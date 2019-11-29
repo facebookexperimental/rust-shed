@@ -43,13 +43,15 @@ impl Slice {
     }
 }
 
-impl NetstringDecoder {
-    pub fn new() -> Self {
-        NetstringDecoder {
+impl Default for NetstringDecoder {
+    fn default() -> Self {
+        Self {
             state: Some(State::Num(0)),
         }
     }
+}
 
+impl NetstringDecoder {
     /// Decode parser. This maintains the internal state machine which tracks what we've seen
     /// before. It will return as much output as it can on each call, or None if nothing can be
     /// returned. The second part of the tuple is the amount of the input buffer we have consumed;
@@ -97,7 +99,7 @@ impl NetstringDecoder {
 
                 State::Body(len) => {
                     // length of payload + ','
-                    if buf.len() >= len + 1 {
+                    if buf.len() > len {
                         // We have up to the end of the buffer, so we can return it and
                         // start expecting the next buffer.
                         let v = Slice::new(consumed, len);
@@ -187,7 +189,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"5:hello,");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(Some(ref res)) if res.as_ref() == b"hello" => (),
@@ -204,7 +206,7 @@ mod test {
 
         buf.put_slice(b"5:hello,5:world,");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(Some(ref res)) if res.as_ref() == b"hello" => (),
@@ -229,7 +231,7 @@ mod test {
 
         buf.put_slice(b"0:,");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(Some(ref res)) if res.as_ref() == b"" => (),
@@ -253,7 +255,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"1");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(None) => (),
@@ -279,7 +281,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"12");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(None) => (),
@@ -305,7 +307,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"12:hello,");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(None) => (),
@@ -331,7 +333,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"12:hello, world");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Ok(None) => (),
@@ -357,7 +359,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"0x12:hello, world,");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Err(e) => println!("got expected error {:?}", e),
@@ -373,7 +375,7 @@ mod test {
         let mut buf = BytesMut::with_capacity(1);
         buf.put_slice(b"12:hello, worldx");
 
-        let mut codec = NetstringDecoder::new();
+        let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
             Err(e) => println!("got expected error {:?}", e),

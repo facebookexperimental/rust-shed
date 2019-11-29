@@ -25,11 +25,11 @@ where
     _marker: PhantomData<Out>,
 }
 
-impl<Out> NetstringEncoder<Out>
+impl<Out> Default for NetstringEncoder<Out>
 where
     Out: AsRef<[u8]>,
 {
-    pub fn new() -> Self {
+    fn default() -> Self {
         NetstringEncoder {
             _marker: PhantomData,
         }
@@ -78,7 +78,7 @@ mod test {
     fn encode_simple() {
         let mut buf = BytesMut::with_capacity(1);
 
-        let mut codec = NetstringEncoder::<&[u8]>::new();
+        let mut codec = NetstringEncoder::<&[u8]>::default();
 
         assert!(codec.encode(b"hello, world", &mut buf).is_ok());
         assert_eq!(buf.as_ref(), b"12:hello, world,");
@@ -88,7 +88,7 @@ mod test {
     fn encode_zero() {
         let mut buf = BytesMut::with_capacity(1);
 
-        let mut codec = NetstringEncoder::<&[u8]>::new();
+        let mut codec = NetstringEncoder::<&[u8]>::default();
 
         assert!(codec.encode(b"", &mut buf).is_ok());
         assert_eq!(buf.as_ref(), b"0:,");
@@ -98,7 +98,7 @@ mod test {
     fn encode_multiple() {
         let mut buf = BytesMut::with_capacity(1);
 
-        let mut codec = NetstringEncoder::<&[u8]>::new();
+        let mut codec = NetstringEncoder::<&[u8]>::default();
 
         assert!(codec.encode(b"hello, ", &mut buf).is_ok());
         assert!(codec.encode(b"world!", &mut buf).is_ok());
@@ -108,11 +108,11 @@ mod test {
     quickcheck! {
         fn roundtrip(s: Vec<u8>) -> bool {
             let mut buf = BytesMut::with_capacity(1);
-            let mut enc = NetstringEncoder::new();
+            let mut enc = NetstringEncoder::default();
 
             assert!(enc.encode(&s, &mut buf).is_ok(), "encode failed");
 
-            let mut dec = NetstringDecoder::new();
+            let mut dec = NetstringDecoder::default();
             let out = dec.decode(&mut buf).expect("decode failed").expect("incomplete");
 
             s == out

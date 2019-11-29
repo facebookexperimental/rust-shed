@@ -6,6 +6,10 @@
  * directory of this source tree.
  */
 
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+
+//! Provides tokio_unit_test helper function for async unit tests that use Tokio
+
 use std::panic::{catch_unwind, UnwindSafe};
 use std::sync::mpsc;
 

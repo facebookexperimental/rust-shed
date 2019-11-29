@@ -6,6 +6,8 @@
  * directory of this source tree.
  */
 
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+
 //! Tokio-based implementation of netstrings
 //!
 //! [Netstring](http://cr.yp.to/proto/netstrings.txt) is an extremely simple mechanism for
@@ -23,8 +25,10 @@ mod errors {
     pub use crate::failure::{Error, Result};
     use thiserror::Error;
 
+    /// Errors that can originate from this crate
     #[derive(Clone, Debug, Error)]
     pub enum ErrorKind {
+        /// Error while decoding netstring
         #[error("{0}")]
         NetstringDecode(&'static str),
     }

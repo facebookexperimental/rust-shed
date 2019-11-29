@@ -6,7 +6,12 @@
  * directory of this source tree.
  */
 
-#![deny(warnings, clippy::all)]
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+
+//! This crate is a wrapper around [fbthrift](https://github.com/facebook/fbthrift)'s compiler.
+//! Its main usage is withing
+//! [Cargo's build script](https://doc.rust-lang.org/cargo/reference/build-scripts.html)
+//! where it might be invoked to generate rust code from thrift files.
 
 use std::env;
 use std::ffi::{OsStr, OsString};
@@ -16,6 +21,7 @@ use std::process::Command;
 
 use anyhow::{anyhow, ensure, Context, Result};
 
+/// Builder for thrift compilare wrapper
 pub struct Config {
     thrift_bin: OsString,
     out_dir: PathBuf,
@@ -25,6 +31,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Return a new configuration with the required parameters set
     pub fn new(thrift_bin: OsString, out_dir: PathBuf) -> Self {
         Self {
             thrift_bin,
@@ -35,6 +42,11 @@ impl Config {
         }
     }
 
+    /// Return a new configuration with parameters computed based on environment
+    /// variables set by Cargo's build scrip (OUT_DIR mostly). It requires that
+    /// either "thrift1" is an executable callable by Command (e.g. on unix it
+    /// means that it is in the PATH) or that the THRIFT environment variable
+    /// points to a thrift executable
     pub fn from_env() -> Result<Self> {
         let thrift_bin = env::var_os("THRIFT").unwrap_or_else(|| OsStr::new("thrift1").to_owned());
         let out_dir = PathBuf::from(
@@ -52,21 +64,32 @@ impl Config {
         Ok(conf)
     }
 
+    /// Set the base path which is used by the compiler to find thrift files
+    /// included by input thrift files
     pub fn base_path(&mut self, value: impl Into<PathBuf>) -> &mut Self {
         self.base_path = Some(value.into());
         self
     }
 
+    /// Set the path to file with crate map definition which is used by the
+    /// compiler to infer crate names that will be used in the generated code.
+    /// Please refer to code in
+    /// fbthrift/thrift/compiler/generate/t_mstch_rust_generator.cc
+    /// for the scheme of crate map.
     pub fn crate_map(&mut self, value: impl Into<PathBuf>) -> &mut Self {
         self.crate_map = Some(value.into());
         self
     }
 
+    /// Set the options to be passed to `mstch_rust` code generation. Example
+    /// options are `serde`.
     pub fn options(&mut self, value: impl Into<String>) -> &mut Self {
         self.options = Some(value.into());
         self
     }
 
+    /// Run the compiler on the input files. As a result a `lib.rs` file will
+    /// be generated inside the output dir.
     pub fn run(&self, input_files: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<()> {
         let input = name_and_path_from_input(input_files)?;
         create_dir_all(&self.out_dir)?;

@@ -6,6 +6,8 @@
  * directory of this source tree.
  */
 
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+
 //! See examples for what code you can write with cloned macro.
 //!
 //! # Examples
@@ -38,8 +40,7 @@
 //! # }
 //! ```
 
-#![deny(warnings)]
-
+/// See crate's documentation
 #[macro_export]
 macro_rules! cloned {
     ($i:ident as $alias:ident) => {
@@ -112,6 +113,7 @@ mod tests {
     }
 
     impl A {
+        #[allow(clippy::let_and_return)]
         fn foo(&self) -> String {
             cloned!(self.x);
             x
