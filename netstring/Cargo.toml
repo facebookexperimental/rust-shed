@@ -1,0 +1,16 @@
+[package]
+name = "netstring"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+failure_ext = { path = "../failure_ext" }
+bytes = { version="*", features=["serde"] }
+thiserror = "*"
+tokio-io = "0.1"
+
+[dev-dependencies]
+quickcheck = "0.9"

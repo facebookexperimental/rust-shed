@@ -4,5 +4,6 @@ members = [
     "cloned",
     "codegen_includer_proc_macro",
     "failure_ext",
+    "netstring",
     "thrift_compiler",
 ]
