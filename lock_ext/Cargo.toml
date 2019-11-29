@@ -1,0 +1,10 @@
+[package]
+name = "lock_ext"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+parking_lot = "*"
