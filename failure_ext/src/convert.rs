@@ -11,6 +11,7 @@ use failure::Fail;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
+/// Convert error implementing [failure::Fail] to [anyhow::Error]
 pub fn convert(fail: impl Fail) -> Error {
     convert_ref(&fail)
 }

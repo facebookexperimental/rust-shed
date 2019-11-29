@@ -6,6 +6,8 @@
  * directory of this source tree.
  */
 
+//! See documentation of [Chain][chain::Chain] and [ChainExt][chain::ChainExt]
+
 use anyhow::Error;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
@@ -50,6 +52,7 @@ impl<ERR> Chain<ERR> {
         Chain { err, cause: None }
     }
 
+    /// Chain a new error with a result which error implements `std::error::Error` as its cause.
     pub fn with_result<T, F>(err: ERR, cause: Result<T, F>) -> Result<T, Self>
     where
         F: StdError + Send + Sync + 'static,
@@ -76,10 +79,12 @@ impl<ERR> Chain<ERR> {
         }
     }
 
+    /// Extracts error that originated this `Chain`
     pub fn as_err(&self) -> &ERR {
         &self.err
     }
 
+    /// Converts this `Chain` back to the original error
     pub fn into_err(self) -> ERR {
         self.err
     }

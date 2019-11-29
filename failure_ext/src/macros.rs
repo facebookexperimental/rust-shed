@@ -92,6 +92,7 @@ macro_rules! err_downcast {
     }};
 }
 
+#[allow(clippy::blacklisted_name)]
 #[cfg(test)]
 mod test {
     use crate::prelude::*;
@@ -156,10 +157,11 @@ mod test {
         assert_eq!(msg.unwrap(), "Blat badness".to_string());
     }
 
+    #[allow(clippy::cognitive_complexity)]
     #[test]
     fn downcast_ref_context() {
         let foo = Error::from(Foo);
-        let outer = Error::from(foo.context(Outer));
+        let outer = foo.context(Outer);
 
         let msg1 = err_downcast_ref! {
             outer,

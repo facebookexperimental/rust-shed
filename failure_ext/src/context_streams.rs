@@ -11,12 +11,14 @@ use futures::{Poll, Stream};
 use std::error::Error as StdError;
 use std::fmt::Display;
 
-// "Context" support for streams where the error is an implementation of std::error::Error.
+/// "Context" support for streams where the error is an implementation of std::error::Error.
 pub trait StreamFailureExt: Stream + Sized {
+    /// Add context to the error returned by this stream
     fn context<D>(self, context: D) -> ContextStream<Self, D>
     where
         D: Display + Clone + Send + Sync + 'static;
 
+    /// Add context created by provided function to the error returned by this stream
     fn with_context<D, F>(self, f: F) -> WithContextStream<Self, F>
     where
         D: Display + Clone + Send + Sync + 'static,
@@ -110,12 +112,14 @@ where
     }
 }
 
-// "Context" support for streams where the error is an implementation of anyhow::Error.
+/// "Context" support for streams where the error is an implementation of anyhow::Error.
 pub trait StreamFailureErrorExt: Stream + Sized {
+    /// Add context to the error returned by this stream
     fn context<D>(self, context: D) -> ContextErrorStream<Self, D>
     where
         D: Display + Clone + Send + Sync + 'static;
 
+    /// Add context created by provided function to the error returned by this stream
     fn with_context<D, F>(self, f: F) -> WithContextErrorStream<Self, F>
     where
         D: Display + Clone + Send + Sync + 'static,

@@ -11,12 +11,14 @@ use futures::{Future, Poll};
 use std::error::Error as StdError;
 use std::fmt::Display;
 
-// "Context" support for futures where the error is anyhow::Error.
+/// "Context" support for futures where the error is anyhow::Error.
 pub trait FutureFailureErrorExt: Future + Sized {
+    /// Add context to the error returned by this future
     fn context<D>(self, context: D) -> ContextErrorFut<Self, D>
     where
         D: Display + Send + Sync + 'static;
 
+    /// Add context created by provided function to the error returned by this future
     fn with_context<D, F>(self, f: F) -> WithContextErrorFut<Self, F>
     where
         D: Display + Send + Sync + 'static,
@@ -125,12 +127,14 @@ where
     }
 }
 
-// "Context" support for futures where the error is an implementation of std::error::Error.
+/// "Context" support for futures where the error is an implementation of std::error::Error.
 pub trait FutureFailureExt: Future + Sized {
+    /// Add context to the error returned by this future
     fn context<D>(self, context: D) -> ContextFut<Self, D>
     where
         D: Display + Send + Sync + 'static;
 
+    /// Add context created by provided function to the error returned by this future
     fn with_context<D, F>(self, f: F) -> WithContextFut<Self, F>
     where
         D: Display + Send + Sync + 'static,

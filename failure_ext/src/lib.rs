@@ -7,7 +7,9 @@
  */
 
 #![cfg_attr(fbcode, feature(backtrace))]
-#![deny(warnings)]
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+
+//! Crate extending functionality of [`failure`] and [`anyhow`] crates
 
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
@@ -23,6 +25,17 @@ pub use self::convert::convert;
 pub mod chain;
 
 pub mod prelude {
+    //! A "prelude" of `failure_ext` crate.
+    //!
+    //! This prelude is similar to the standard library's prelude in that you'll
+    //! almost always want to import its entire contents, but unlike the standard
+    //! library's prelude you'll have to do so manually:
+    //!
+    //! ```
+    //! # #![allow(unused)]
+    //! use failure_ext::prelude::*;
+    //! ```
+
     pub use crate::chain::{self, Chain, ChainExt};
     pub use crate::{
         FutureFailureErrorExt, FutureFailureExt, StreamFailureErrorExt, StreamFailureExt,
@@ -63,6 +76,8 @@ mod context_streams;
 pub use crate::context_futures::{FutureFailureErrorExt, FutureFailureExt};
 pub use crate::context_streams::{StreamFailureErrorExt, StreamFailureExt};
 
+/// Shallow wrapper struct around ['anyhow::Error`] with ['std::fmt::Display`]
+/// implementation that shows the entire chain of errors
 pub struct DisplayChain<'a>(&'a Error);
 
 impl<'a> From<&'a Error> for DisplayChain<'a> {
@@ -82,7 +97,7 @@ impl Display for DisplayChain<'_> {
     }
 }
 
-// Temporary immitation of failure::Compat<T> to ease migration.
+/// Temporary immitation of failure::Compat<T> to ease migration.
 pub struct Compat<T>(pub T);
 
 impl StdError for Compat<Error> {
