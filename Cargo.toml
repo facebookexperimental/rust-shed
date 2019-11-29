@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "async_unit",
     "cloned",
     "codegen_includer_proc_macro",
     "failure_ext",

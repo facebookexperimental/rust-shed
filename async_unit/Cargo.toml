@@ -1,0 +1,13 @@
+[package]
+name = "async_unit"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/lib.rs"]
+
+[dependencies]
+tokio = "0.1"
+
+[dev-dependencies]
+tokio-timer = "0.2"
