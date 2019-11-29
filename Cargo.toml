@@ -3,5 +3,6 @@
 members = [
     "cloned",
     "codegen_includer_proc_macro",
+    "failure_ext",
     "thrift_compiler",
 ]
