@@ -1,0 +1,27 @@
+[package]
+name = "thrift_compiler"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/lib.rs", "src/main.rs", "tests/*.rs"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "compiler"
+path = "src/main.rs"
+
+[[test]]
+name = "tests"
+path = "tests/main.rs"
+
+[dependencies]
+anyhow = "*"
+clap = "*"
+
+[dev-dependencies]
+lazy_static = "*"
+regex = "*"
+tempdir = "*"
