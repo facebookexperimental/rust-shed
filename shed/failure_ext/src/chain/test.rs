@@ -78,18 +78,10 @@ fn simple_error_result() {
     let res2 = res.chain_err(Bar);
 
     assert!(res2.is_err());
-    let formatted = format!("{:?}", res2);
-    let expected = "Err(Chain { err: Bar, cause: Some(RootError badness\n) })";
-    if formatted != expected {
-        // The anyhow::Error has a backtrace on nighly builds
-        assert_eq!(
-            formatted,
-            "Err(Chain { err: Bar, cause: Some(RootError badness\n\nStack backtrace:\n    Run \
-             with RUST_LIB_BACKTRACE=1 env variable to display a backtrace\n) })"
-        );
-    } else {
-        assert_eq!(formatted, expected)
-    }
+    assert_eq!(
+        format!("{:?}", res2),
+        "Err(Chain { err: Bar, cause: Some(RootError badness) })"
+    )
 }
 
 #[test]

@@ -8,7 +8,7 @@ include = ["src/**/*.rs"]
 
 [dependencies]
 anyhow = "*"
-failure = "*"
+failure-deprecated = { package = "failure", version = "*" } # prefer std::error::Error based libraries (anyhow, thiserror, snafu) wherever possible
 futures = "0.1"
 slog = { version="*", features=["max_level_debug"] }
 thiserror = "*"
