@@ -52,6 +52,7 @@ class DockerFBCodeBuilder(FBCodeBuilder):
             + [self.workdir(self.option('prefix'))]
             + self.create_python_venv()
             + self.python_venv()
+            + self.rust_toolchain()
         )
 
     def python_venv(self):
@@ -70,6 +71,9 @@ class DockerFBCodeBuilder(FBCodeBuilder):
 
     def run(self, shell_cmd):
         return ShellQuoted('RUN {cmd}').format(cmd=shell_cmd)
+
+    def set_env(self, key, value):
+        return ShellQuoted('ENV {key}={val}').format(key=key, val=value)
 
     def workdir(self, dir):
         return [
