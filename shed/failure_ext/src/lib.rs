@@ -53,7 +53,7 @@ pub use anyhow::{bail, format_err, Error, Result};
 // temporarily re-export under our old failure macro names to ease migration,
 // but these will be removed in favor of plain bail and ensure.
 #[doc(hidden)]
-pub use anyhow::{bail as bail_err, bail as bail_msg};
+pub use anyhow::bail as bail_err;
 pub use anyhow::{ensure as ensure_err, ensure as ensure_msg};
 
 // Temporary immitation of failure's API to ease migration.
