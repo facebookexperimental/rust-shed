@@ -47,13 +47,7 @@ pub mod prelude {
     pub use anyhow::{Context, Error, Result};
 }
 
-pub use anyhow::{bail, format_err, Error, Result};
-
-// Anyhow's macros work with both fmt messages and error values the same. We
-// temporarily re-export under our old failure macro names to ease migration,
-// but these will be removed in favor of plain bail and ensure.
-#[doc(hidden)]
-pub use anyhow::{ensure as ensure_err, ensure as ensure_msg};
+pub use anyhow::{bail, ensure, format_err, Error, Result};
 
 // Temporary immitation of failure's API to ease migration.
 #[doc(hidden)]
