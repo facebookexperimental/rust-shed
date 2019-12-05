@@ -9,10 +9,9 @@
 use std::io::{Cursor, Write};
 use std::marker::PhantomData;
 
+use anyhow::{Error, Result};
 use bytes::{BufMut, BytesMut};
 use tokio_io::codec::Encoder;
-
-use crate::errors::*;
 
 /// A Netstring encoder.
 ///

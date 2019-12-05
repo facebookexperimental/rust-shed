@@ -6,11 +6,10 @@
  * directory of this source tree.
  */
 
+use crate::ErrorKind;
+use anyhow::{bail, ensure, Error, Result};
 use bytes::BytesMut;
-use failure_ext::{bail_err, ensure_err};
 use tokio_io::codec::Decoder;
-
-use crate::errors::*;
 
 #[derive(Debug, Copy, Clone)]
 enum State {
@@ -77,9 +76,7 @@ impl NetstringDecoder {
                                 next = Some((idx + 1, State::Body(cur)));
                                 break;
                             }
-                            _ => bail_err!(ErrorKind::NetstringDecode(
-                                "Bad character in payload size"
-                            )),
+                            _ => bail!(ErrorKind::NetstringDecode("Bad character in payload size")),
                         }
                     }
 
@@ -104,7 +101,7 @@ impl NetstringDecoder {
                         // start expecting the next buffer.
                         let v = Slice::new(consumed, len);
 
-                        ensure_err!(buf[len] == b',', ErrorKind::NetstringDecode("missing ','"));
+                        ensure!(buf[len] == b',', ErrorKind::NetstringDecode("missing ','"));
                         consumed += len + 1;
 
                         (State::Num(0), Some(Some((true, v))))

@@ -19,21 +19,15 @@
 
 #![deny(warnings)]
 
-use failure_ext as failure;
+use thiserror::Error;
 
-mod errors {
-    pub use crate::failure::{Error, Result};
-    use thiserror::Error;
-
-    /// Errors that can originate from this crate
-    #[derive(Clone, Debug, Error)]
-    pub enum ErrorKind {
-        /// Error while decoding netstring
-        #[error("{0}")]
-        NetstringDecode(&'static str),
-    }
+/// Errors that can originate from this crate
+#[derive(Clone, Debug, Error)]
+pub enum ErrorKind {
+    /// Error while decoding netstring
+    #[error("{0}")]
+    NetstringDecode(&'static str),
 }
-pub use crate::errors::*;
 
 mod decode;
 mod encode;
