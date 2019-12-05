@@ -7,9 +7,9 @@ license = "GPLv2+"
 include = ["src/**/*.rs"]
 
 [dependencies]
-anyhow = "*"
+anyhow = "^1.0"
 bytes = { version="0.4", features=["serde"] }
-thiserror = "*"
+thiserror = "^1.0"
 tokio-io = "0.1"
 
 [dev-dependencies]

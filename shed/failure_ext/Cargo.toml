@@ -7,8 +7,8 @@ license = "GPLv2+"
 include = ["src/**/*.rs"]
 
 [dependencies]
-anyhow = "*"
-failure-deprecated = { package = "failure", version = "*" } # prefer std::error::Error based libraries (anyhow, thiserror, snafu) wherever possible
+anyhow = "^1.0"
+failure-deprecated = { package = "failure", version = "^0.1" } # prefer std::error::Error based libraries (anyhow, thiserror, snafu) wherever possible
 futures = "0.1"
-slog = { version="*", features=["max_level_debug"] }
-thiserror = "*"
+slog = { version="^2.5", features=["max_level_debug"] }
+thiserror = "^1.0"

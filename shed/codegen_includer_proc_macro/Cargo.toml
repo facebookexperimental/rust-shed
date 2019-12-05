@@ -18,5 +18,5 @@ name = "tests"
 path = "tests/main.rs"
 
 [dependencies]
-quote = "*"
-syn = { version = "*", features = ["full", "visit", "visit-mut", "fold", "extra-traits"] }
+quote = "^1.0"
+syn = { version = "^1.0", features = ["full", "visit", "visit-mut", "fold", "extra-traits"] }
