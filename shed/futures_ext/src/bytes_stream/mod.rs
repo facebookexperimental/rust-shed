@@ -21,6 +21,9 @@ pub use self::bytes_stream_future::BytesStreamFuture;
 // 8KB is a reasonable default
 const BUFSIZE: usize = 8 * 1024;
 
+/// A structure that wraps a [Stream] of [Bytes] and lets it being accessed both
+/// as a [Stream] and as [AsyncRead]. It is very useful when decoding Stream of
+/// Bytes in an asynchronous way.
 #[derive(Debug)]
 pub struct BytesStream<S> {
     bytes: BytesMut,
@@ -29,6 +32,7 @@ pub struct BytesStream<S> {
 }
 
 impl<S: Stream<Item = Bytes>> BytesStream<S> {
+    /// Create a new instance of [BytesStream] wrapping the given [Stream] of [Bytes]
     pub fn new(stream: S) -> Self {
         BytesStream {
             bytes: BytesMut::with_capacity(BUFSIZE),
@@ -37,14 +41,19 @@ impl<S: Stream<Item = Bytes>> BytesStream<S> {
         }
     }
 
+    /// Returns `true` if there are no more bytes left to be consumed
     pub fn is_empty(&self) -> bool {
         self.bytes.is_empty() && self.stream_done
     }
 
+    /// Consumes this combinator returning a pair of bytes that have been received,
+    /// but not yet consumed and the Stream that can possibly yield more bytes
     pub fn into_parts(self) -> (Bytes, S) {
         (self.bytes.freeze(), self.stream)
     }
 
+    /// Returns a future that yields a single decoded item from the Bytes of this
+    /// BytesStream (if any) and the remaining BytesStream.
     pub fn into_future_decode<Dec>(self, decoder: Dec) -> BytesStreamFuture<S, Dec>
     where
         Dec: Decoder,
@@ -53,6 +62,8 @@ impl<S: Stream<Item = Bytes>> BytesStream<S> {
         BytesStreamFuture::new(self, decoder)
     }
 
+    /// Adds some bytes to the front of the BytesStream internal buffer. Those
+    /// bytes are ready to be read immediately after this function completes.
     pub fn prepend_bytes(&mut self, bytes: Bytes) {
         let mut bytes_mut = match bytes.try_mut() {
             Ok(bytes_mut) => bytes_mut,

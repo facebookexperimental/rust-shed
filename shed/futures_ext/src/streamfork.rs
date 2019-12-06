@@ -213,7 +213,7 @@ mod test {
         let even = Vec::new();
         let odd = Vec::new();
 
-        let nums = iter_ok((0i32..10).into_iter());
+        let nums = iter_ok(0i32..10);
         let (_, even, odd) = streamfork(nums, even, odd, |n| Ok::<_, ()>(*n % 2 == 1))
             .wait()
             .unwrap();
@@ -271,7 +271,7 @@ mod test {
         let even = DelayedSink::new(5);
         let odd = DelayedSink::new(5);
 
-        let nums = iter_ok((0u32..2).into_iter());
+        let nums = iter_ok(0u32..2);
         let mut fork = streamfork(nums, even, odd, |n| Ok::<_, ()>(*n % 2 == 1));
         loop {
             let res = fork.poll().expect("no error expected");
@@ -288,7 +288,7 @@ mod test {
         let even = DelayedSink::new(5);
         let odd = DelayedSink::new(5);
 
-        let nums = iter_ok((0u32..2).into_iter()).chain(once(Err(())));
+        let nums = iter_ok(0u32..2).chain(once(Err(())));
         let mut fork = streamfork(nums, even, odd, |n| Ok::<_, ()>(*n % 2 == 1));
         loop {
             let res = fork.poll();

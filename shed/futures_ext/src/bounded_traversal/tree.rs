@@ -157,17 +157,15 @@ where
     }
 
     fn process_fold(&mut self, parent: NodeLocation, result: Out) {
-        if {
-            // update parent
-            let node = self
-                .execution_tree
-                .get_mut(&parent.node_index)
-                .expect("fold referenced invalid node");
-            debug_assert!(node.children[parent.child_index].is_none());
-            node.children[parent.child_index] = Some(result);
-            node.children_left -= 1;
-            node.children_left == 0
-        } {
+        // update parent
+        let node = self
+            .execution_tree
+            .get_mut(&parent.node_index)
+            .expect("fold referenced invalid node");
+        debug_assert!(node.children[parent.child_index].is_none());
+        node.children[parent.child_index] = Some(result);
+        node.children_left -= 1;
+        if node.children_left == 0 {
             // all parents children have been completed, so we need
             // to schedule fold operation for it
             let Node {

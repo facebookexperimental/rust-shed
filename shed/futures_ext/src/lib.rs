@@ -6,8 +6,10 @@
  * directory of this source tree.
  */
 
-#![deny(warnings)]
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
 #![feature(never_type)]
+
+//! Crate extending functionality of [`futures`] crate
 
 use anyhow::format_err;
 use bytes::Bytes;
@@ -46,9 +48,7 @@ pub use crate::launch::top_level_launch;
 pub use crate::select_all::{select_all, SelectAll};
 pub use crate::split_err::split_err;
 pub use crate::stream_clone::stream_clone;
-pub use crate::stream_wrappers::{
-    BoxStreamWrapper, CollectNoConsume, CollectTo, StreamWrapper, TakeWhile,
-};
+pub use crate::stream_wrappers::{CollectNoConsume, CollectTo};
 
 /// Map `Item` and `Error` to `()`
 ///
@@ -58,6 +58,7 @@ pub use crate::stream_wrappers::{
 pub struct Discard<F>(F);
 
 impl<F> Discard<F> {
+    /// Create instance wrapping `f`
     pub fn new(f: F) -> Self {
         Discard(f)
     }
@@ -97,10 +98,13 @@ where
     sender.send(value).then(|_| Ok(()))
 }
 
-// Replacements for BoxFuture and BoxStream, deprecated in upstream futures-rs.
+/// Replacement for BoxFuture, deprecated in upstream futures-rs.
 pub type BoxFuture<T, E> = Box<dyn Future<Item = T, Error = E> + Send>;
+/// Replacement for BoxFutureNonSend, deprecated in upstream futures-rs.
 pub type BoxFutureNonSend<T, E> = Box<dyn Future<Item = T, Error = E>>;
+/// Replacement for BoxStream, deprecated in upstream futures-rs.
 pub type BoxStream<T, E> = Box<dyn Stream<Item = T, Error = E> + Send>;
+/// Replacement for BoxStreamNonSend, deprecated in upstream futures-rs.
 pub type BoxStreamNonSend<T, E> = Box<dyn Stream<Item = T, Error = E>>;
 
 /// Do something with an error if the future failed.
@@ -187,6 +191,8 @@ where
     }
 }
 
+/// A trait implemented by default for all Futures which extends the standard
+/// functionality.
 pub trait FutureExt: Future + Sized {
     /// Map a `Future` to have `Item=()` and `Error=()`. This is
     /// useful when a future is being used to drive a computation
@@ -215,14 +221,17 @@ pub trait FutureExt: Future + Sized {
         Box::new(self)
     }
 
+    /// Shorthand for returning [`future::Either::A`]
     fn left_future<B>(self) -> future::Either<Self, B> {
         future::Either::A(self)
     }
 
+    /// Shorthand for returning [`future::Either::B`]
     fn right_future<A>(self) -> future::Either<A, Self> {
         future::Either::B(self)
     }
 
+    /// Similar to [`future::Future::inspect`], but runs the function on error
     fn inspect_err<F>(self, f: F) -> InspectErr<Self, F>
     where
         F: FnOnce(&Self::Error) -> (),
@@ -234,6 +243,8 @@ pub trait FutureExt: Future + Sized {
         }
     }
 
+    /// Similar to [`future::Future::inspect`], but runs the function on both
+    /// output or error of the Future treating it as a regular [`Result`]
     fn inspect_result<F>(self, f: F) -> InspectResult<Self, F>
     where
         F: FnOnce(Result<&Self::Item, &Self::Error>) -> (),
@@ -248,11 +259,16 @@ pub trait FutureExt: Future + Sized {
 
 impl<T> FutureExt for T where T: Future {}
 
+/// Params for [StreamExt::buffered_weight_limited] and [WeightLimitedBufferedStream]
 pub struct BufferedParams {
+    /// Limit for the sum of weights in the [WeightLimitedBufferedStream] stream
     pub weight_limit: u64,
+    /// Limit for size of buffer in the [WeightLimitedBufferedStream] stream
     pub buffer_size: usize,
 }
 
+/// A trait implemented by default for all Streams which extends the standard
+/// functionality.
 pub trait StreamExt: Stream {
     /// Fork elements in a stream out to two sinks, depending on a predicate
     ///
@@ -279,15 +295,8 @@ pub trait StreamExt: Stream {
         streamfork::streamfork(self, out1, out2, pred)
     }
 
-    fn take_while_wrapper<P, R>(self, pred: P) -> TakeWhile<Self, P, R>
-    where
-        P: FnMut(&Self::Item) -> R,
-        R: IntoFuture<Item = bool, Error = Self::Error>,
-        Self: Sized,
-    {
-        stream_wrappers::take_while::new(self, pred)
-    }
-
+    /// Returns a future that yields a `(Vec<<Self>::Item>, Self)`, where the
+    /// vector is a collections of all elements yielded by the Stream.
     fn collect_no_consume(self) -> CollectNoConsume<Self>
     where
         Self: Sized,
@@ -295,6 +304,7 @@ pub trait StreamExt: Stream {
         stream_wrappers::collect_no_consume::new(self)
     }
 
+    /// A shorthand for [encode::encode]
     fn encode<Enc>(self, encoder: Enc) -> encode::LayeredEncoder<Self, Enc>
     where
         Self: Sized,
@@ -303,6 +313,9 @@ pub trait StreamExt: Stream {
         encode::encode(self, encoder)
     }
 
+    /// Similar to [std::iter::Iterator::enumerate], returns a Stream that yields
+    /// `(usize, Self::Item)` where the first element of tuple is the iteration
+    /// count.
     fn enumerate(self) -> Enumerate<Self>
     where
         Self: Sized,
@@ -367,6 +380,7 @@ pub trait StreamExt: Stream {
         Box::new(self)
     }
 
+    /// Shorthand for returning [`StreamEither::A`]
     fn left_stream<B>(self) -> StreamEither<Self, B>
     where
         Self: Sized,
@@ -374,6 +388,7 @@ pub trait StreamExt: Stream {
         StreamEither::A(self)
     }
 
+    /// Shorthand for returning [`StreamEither::B`]
     fn right_stream<A>(self) -> StreamEither<A, Self>
     where
         Self: Sized,
@@ -381,8 +396,8 @@ pub trait StreamExt: Stream {
         StreamEither::B(self)
     }
 
-    // It's different from tokio::timer::Timeout in that it sets a timeout on the whole Stream,
-    // not just on a single Stream item
+    /// It's different from [tokio::timer::Timeout] in that it sets a timeout on the whole Stream,
+    /// not just on a single Stream item
     fn whole_stream_timeout(self, duration: Duration) -> StreamWithTimeout<Self>
     where
         Self: Sized,
@@ -393,6 +408,8 @@ pub trait StreamExt: Stream {
         }
     }
 
+    /// Similar to [Stream::chunks], but returns earlier if [futures::Async::NotReady]
+    /// was returned.
     fn batch(self, limit: usize) -> BatchStream<Self>
     where
         Self: Sized,
@@ -400,7 +417,7 @@ pub trait StreamExt: Stream {
         BatchStream::new(self, limit)
     }
 
-    // Like `buffered()` call, but can also limit number of futures in a buffer by "weight".
+    /// Like [Stream::buffered] call, but can also limit number of futures in a buffer by "weight".
     fn buffered_weight_limited<I, E, Fut>(
         self,
         params: BufferedParams,
@@ -413,6 +430,8 @@ pub trait StreamExt: Stream {
         WeightLimitedBufferedStream::new(params, self)
     }
 
+    /// Returns a Future that yields a collection `C` containing all `Self::Item`
+    /// yielded by the stream
     fn collect_to<C: Default + Extend<Self::Item>>(self) -> CollectTo<Self, C>
     where
         Self: Sized,
@@ -423,6 +442,7 @@ pub trait StreamExt: Stream {
 
 impl<T> StreamExt for T where T: Stream {}
 
+/// Like [stream::Buffered], but can also limit number of futures in a buffer by "weight".
 pub struct WeightLimitedBufferedStream<S, I, E> {
     queue: stream::FuturesOrdered<BoxFuture<(I, u64), E>>,
     current_weight: u64,
@@ -435,6 +455,7 @@ impl<S, I, E> WeightLimitedBufferedStream<S, I, E>
 where
     S: Stream,
 {
+    /// Create a new instance that will be configured using the `params` provided
     pub fn new(params: BufferedParams, stream: S) -> Self {
         Self {
             queue: stream::FuturesOrdered::new(),
@@ -486,7 +507,10 @@ where
     }
 }
 
+/// Trait that provides a function for making a decoding layer on top of Stream of Bytes
 pub trait StreamLayeredExt: Stream<Item = Bytes> {
+    /// Returnes a Stream that will yield decoded chunks of Bytes as they come
+    /// using provided [Decoder]
     fn decode<Dec>(self, decoder: Dec) -> decode::LayeredDecode<Self, Dec>
     where
         Self: Sized,
@@ -506,6 +530,7 @@ where
     }
 }
 
+/// Like [std::iter::Enumerate], but for Stream
 pub struct Enumerate<In> {
     inner: In,
     count: usize,
@@ -535,8 +560,11 @@ impl<In: Stream> Stream for Enumerate<In> {
     }
 }
 
+/// Like [future::Either], but for Stream
 pub enum StreamEither<A, B> {
+    /// First branch of the type
     A(A),
+    /// Second branch of the type
     B(B),
 }
 
@@ -561,17 +589,21 @@ where
 /// receiver is polled before the sender has send the result
 pub struct ConservativeReceiver<T>(oneshot::Receiver<T>);
 
+/// Error that can be returned by [ConservativeReceiver]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ConservativeReceiverError {
+    /// The underlying [oneshot::Receiver] returned [oneshot::Canceled]
     Canceled,
+    /// The underlying [oneshot::Receiver] returned [Async::NotReady], which means it was polled
+    /// before the [oneshot::Sender] send some data
     ReceiveBeforeSend,
 }
 
 impl ::std::error::Error for ConservativeReceiverError {
     fn description(&self) -> &str {
         match self {
-            &ConservativeReceiverError::Canceled => "oneshot canceled",
-            &ConservativeReceiverError::ReceiveBeforeSend => "recv called on channel before send",
+            ConservativeReceiverError::Canceled => "oneshot canceled",
+            ConservativeReceiverError::ReceiveBeforeSend => "recv called on channel before send",
         }
     }
 }
@@ -579,8 +611,8 @@ impl ::std::error::Error for ConservativeReceiverError {
 impl ::std::fmt::Display for ConservativeReceiverError {
     fn fmt(&self, fmt: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
         match self {
-            &ConservativeReceiverError::Canceled => write!(fmt, "oneshot canceled"),
-            &ConservativeReceiverError::ReceiveBeforeSend => {
+            ConservativeReceiverError::Canceled => write!(fmt, "oneshot canceled"),
+            ConservativeReceiverError::ReceiveBeforeSend => {
                 write!(fmt, "recv called on channel before send")
             }
         }
@@ -594,6 +626,7 @@ impl ::std::convert::From<oneshot::Canceled> for ConservativeReceiverError {
 }
 
 impl<T> ConservativeReceiver<T> {
+    /// Return an instance of [ConservativeReceiver] wrapping the [oneshot::Receiver]
     pub fn new(recv: oneshot::Receiver<T>) -> Self {
         ConservativeReceiver(recv)
     }
@@ -611,6 +644,7 @@ impl<T> Future for ConservativeReceiver<T> {
     }
 }
 
+/// A stream wrapper returned by [StreamExt::return_remainder]
 pub struct ReturnRemainder<In> {
     inner: Option<In>,
     send: Option<oneshot::Sender<In>>,
@@ -653,11 +687,15 @@ impl<In: Stream> Stream for ReturnRemainder<In> {
     }
 }
 
+/// Error returned by [StreamWithTimeout]
 pub enum StreamTimeoutError {
+    /// The original error returned
     Error(anyhow::Error),
+    /// Error returned when timeout was reached
     Timeout,
 }
 
+/// A stream wrapper returned by [StreamExt::whole_stream_timeout]
 pub struct StreamWithTimeout<S> {
     delay: Delay,
     stream: S,
@@ -867,6 +905,7 @@ pub struct SinkToAsyncWrite<S> {
 }
 
 impl<S> SinkToAsyncWrite<S> {
+    /// Return an instance of [SinkToAsyncWrite] wrapping a Sink
     pub fn new(sink: S) -> Self {
         SinkToAsyncWrite { sink }
     }
@@ -932,6 +971,7 @@ where
 }
 
 impl<S: Stream> BatchStream<S> {
+    /// Return an instance of [BatchStream] wrapping a Stream with the provided limit set
     pub fn new(s: S, limit: usize) -> Self {
         Self {
             inner: s.fuse(),
@@ -1011,12 +1051,8 @@ mod test {
     // In some cases it fails with a longer duration than specified
     fn asynchronize_parallel() {
         const SLEEP_TIME: Duration = time::Duration::from_millis(20);
+        // Thread count must be bigger than 10 to prove parallelism
         const THREAD_COUNT: usize = 20;
-
-        assert!(
-            THREAD_COUNT > 10,
-            "Thread count too small to prove parallelism"
-        );
 
         let mut runtime = tokio::runtime::Builder::new()
             .name_prefix("my-runtime-worker-")
@@ -1028,7 +1064,7 @@ mod test {
             Ok(())
         }
 
-        let futures: Vec<_> = std::iter::repeat_with(|| asynchronize(|| sleep()))
+        let futures: Vec<_> = std::iter::repeat_with(|| asynchronize(sleep))
         // This count needs to be much greater than 2, so that if we serialize operations, we see
         // an issue
             .take(THREAD_COUNT)
@@ -1073,7 +1109,7 @@ mod test {
             assert_eq!(42, *e);
             count_cloned.fetch_add(1, Ordering::SeqCst);
         });
-        if let Ok(_) = runtime.block_on(work) {
+        if runtime.block_on(work).is_ok() {
             panic!("future is supposed to fail");
         }
         assert_eq!(1, count.load(Ordering::SeqCst));
@@ -1087,7 +1123,7 @@ mod test {
         let work = ok::<i32, i32>(42).inspect_err(move |_| {
             count_cloned.fetch_add(1, Ordering::SeqCst);
         });
-        if let Err(_) = runtime.block_on(work) {
+        if runtime.block_on(work).is_err() {
             panic!("future is supposed to succeed");
         }
         assert_eq!(0, count.load(Ordering::SeqCst));
@@ -1106,7 +1142,7 @@ mod test {
                 count_cloned.fetch_add(2, Ordering::SeqCst);
             }
         });
-        if let Ok(_) = runtime.block_on(work) {
+        if runtime.block_on(work).is_ok() {
             panic!("future is supposed to fail");
         }
         assert_eq!(1, count.load(Ordering::SeqCst));
@@ -1188,7 +1224,7 @@ mod test {
         use std::io::Write;
         loop {
             let flush_res = sink.flush();
-            if let Ok(_) = flush_res {
+            if flush_res.is_ok() {
                 break;
             }
             if let Err(ref e) = flush_res {
@@ -1205,7 +1241,7 @@ mod test {
     {
         loop {
             let shutdown_res = sink.shutdown();
-            if let Ok(_) = shutdown_res {
+            if shutdown_res.is_ok() {
                 break;
             }
             if let Err(ref e) = shutdown_res {
@@ -1281,8 +1317,10 @@ mod test {
 
     #[test]
     fn test_buffered() {
-        fn create_stream() -> (Arc<AtomicUsize>, BoxStream<(BoxFuture<(), ()>, u64), ()>) {
-            let s: BoxStream<(BoxFuture<(), ()>, u64), ()> = stream::iter_ok(vec![
+        type TestStream = BoxStream<(BoxFuture<(), ()>, u64), ()>;
+
+        fn create_stream() -> (Arc<AtomicUsize>, TestStream) {
+            let s: TestStream = stream::iter_ok(vec![
                 (future::ok(()).boxify(), 100),
                 (future::ok(()).boxify(), 2),
             ])
@@ -1356,7 +1394,7 @@ mod test {
         let mut runtime = Runtime::new().unwrap();
         match runtime.block_on::<_, Vec<i32>, _>(future) {
             Ok(collections) => assert_same_elements(items, collections),
-            Err(_) => panic!("future is supposed to succeed"),
+            Err(()) => panic!("future is supposed to succeed"),
         }
     }
 
@@ -1367,7 +1405,7 @@ mod test {
         let mut runtime = Runtime::new().unwrap();
         match runtime.block_on::<_, HashSet<i32>, _>(future) {
             Ok(collections) => assert_same_elements(items, collections),
-            Err(_) => panic!("future is supposed to succeed"),
+            Err(()) => panic!("future is supposed to succeed"),
         }
     }
 }

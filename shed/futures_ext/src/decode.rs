@@ -20,8 +20,8 @@ use bytes::{BufMut, Bytes, BytesMut};
 use futures::{try_ready, Async, Poll, Stream};
 use tokio_io::codec::Decoder;
 
-use crate::{BoxStreamWrapper, StreamWrapper};
-
+/// Returns a stream that will yield decoded items that are the result of decoding
+/// [Bytes] of the underlying [Stream] by using the provided [Decoder]
 pub fn decode<In, Dec>(input: In, decoder: Dec) -> LayeredDecode<In, Dec>
 where
     In: Stream<Item = Bytes>,
@@ -37,6 +37,7 @@ where
     }
 }
 
+/// Stream returned by the [decode] function
 #[derive(Debug)]
 pub struct LayeredDecode<In, Dec> {
     input: In,
@@ -62,7 +63,7 @@ where
         loop {
             if self.is_readable {
                 if self.eof {
-                    let ret = if self.buf.len() == 0 {
+                    let ret = if self.buf.is_empty() {
                         None
                     } else {
                         self.decoder.decode_eof(&mut self.buf)?
@@ -90,33 +91,27 @@ where
     }
 }
 
-impl<In, Dec> StreamWrapper<In> for LayeredDecode<In, Dec>
+impl<In, Dec> LayeredDecode<In, Dec>
 where
     In: Stream<Item = Bytes>,
 {
-    fn into_inner(self) -> In {
+    /// Consume this combinator and returned the underlying stream
+    #[inline]
+    pub fn into_inner(self) -> In {
         // TODO: do we want to check that buf is empty? otherwise we might lose data
         self.input
     }
-}
 
-impl<In, Dec> BoxStreamWrapper<In> for LayeredDecode<In, Dec>
-where
-    In: Stream<Item = Bytes>,
-{
+    /// Returns reference to the underlying stream
     #[inline]
-    fn get_ref(&self) -> &In {
+    pub fn get_ref(&self) -> &In {
         &self.input
     }
 
+    /// Returns mutable reference to the underlying stream
     #[inline]
-    fn get_mut(&mut self) -> &mut In {
+    pub fn get_mut(&mut self) -> &mut In {
         &mut self.input
-    }
-
-    fn into_inner(self: Box<Self>) -> In {
-        // TODO: do we want to check that buf is empty? otherwise we might lose data
-        self.input
     }
 }
 
@@ -143,7 +138,7 @@ mod test {
         let out = Vec::new();
 
         let xfer = dec
-            .map_err(|err| -> () {
+            .map_err::<(), _>(|err| {
                 panic!("bad = {}", err);
             })
             .forward(out);
@@ -170,7 +165,7 @@ mod test {
         let out = Vec::new();
 
         let xfer = dec
-            .map_err(|err| -> () {
+            .map_err::<(), _>(|err| {
                 panic!("bad = {}", err);
             })
             .forward(out);
@@ -199,7 +194,7 @@ mod test {
         let out = Vec::new();
 
         let xfer = dec
-            .map_err(|err| -> () {
+            .map_err::<(), _>(|err| {
                 panic!("bad = {}", err);
             })
             .forward(out);

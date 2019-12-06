@@ -24,6 +24,8 @@ const INITIAL_CAPACITY: usize = 8192;
 const HEADROOM: usize = 512;
 const HIGHWATER: usize = INITIAL_CAPACITY - HEADROOM;
 
+/// Returns a stream that will yield [Bytes] that are the result of encoding
+/// items of the underlying [Stream] by using the provided [Encoder]
 pub fn encode<In, Enc>(inp: In, enc: Enc) -> LayeredEncoder<In, Enc>
 where
     In: Stream,
@@ -37,6 +39,7 @@ where
     }
 }
 
+/// Stream returned by the [encode] function
 pub struct LayeredEncoder<In, Enc> {
     inp: In,       // source
     enc: Enc,      // encoder
@@ -146,7 +149,7 @@ mod test {
         let s = TestStream::new(vec![Some(0u16), Some(4), Some(5), Some(6), Some(256)]);
         let enc = encode::<_, _>(s, EncU16);
         let res = enc.collect().wait().expect("collect failed");
-        let res: Vec<u8> = res.into_iter().flat_map(|x| x).collect();
+        let res: Vec<u8> = res.into_iter().flatten().collect();
         assert_eq!(res.as_slice(), &[0, 0, 0, 4, 0, 5, 0, 6, 1, 0][..]);
     }
 
@@ -164,7 +167,7 @@ mod test {
                 }
             }
 
-            let res: Vec<u8> = res.into_iter().flat_map(|x| x).collect();
+            let res: Vec<u8> = res.into_iter().flatten().collect();
             let input: Vec<u16> = v.into_iter().filter_map(|v| v).collect();
             assert_eq!(input.len() * 2, res.len());
 

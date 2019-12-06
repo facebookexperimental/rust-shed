@@ -253,7 +253,7 @@ fn test_bounded_traversal() -> Result<()> {
             move |id, children| {
                 let log = log.clone();
                 tick.sleep(1).map(move |now| {
-                    let value = id.to_string() + &children.into_iter().collect::<String>();
+                    let value = id.to_string() + &children.collect::<String>();
                     log.fold(id, now, value.clone());
                     value
                 })
@@ -353,7 +353,7 @@ fn test_bounded_traversal_dag() -> Result<()> {
             let log = log.clone();
             move |id| {
                 let log = log.clone();
-                let children = dag.get(&id).cloned().unwrap_or(Vec::new());
+                let children = dag.get(&id).cloned().unwrap_or_default();
                 tick.sleep(1).map(move |now| {
                     log.unfold(id, now);
                     (id, children)
@@ -367,7 +367,7 @@ fn test_bounded_traversal_dag() -> Result<()> {
             move |id, children| {
                 let log = log.clone();
                 tick.sleep(1).map(move |now| {
-                    let value = id.to_string() + &children.into_iter().collect::<String>();
+                    let value = id.to_string() + &children.collect::<String>();
                     log.fold(id, now, value.clone());
                     value
                 })
@@ -467,7 +467,7 @@ fn test_bounded_traversal_dag_with_cycle() -> Result<()> {
             let log = log.clone();
             move |id| {
                 let log = log.clone();
-                let children = graph.get(&id).cloned().unwrap_or(Vec::new());
+                let children = graph.get(&id).cloned().unwrap_or_default();
                 tick.sleep(1).map(move |now| {
                     log.unfold(id, now);
                     (id, children)
@@ -481,7 +481,7 @@ fn test_bounded_traversal_dag_with_cycle() -> Result<()> {
             move |id, children| {
                 let log = log.clone();
                 tick.sleep(1).map(move |now| {
-                    let value = id.to_string() + &children.into_iter().collect::<String>();
+                    let value = id.to_string() + &children.collect::<String>();
                     log.fold(id, now, value.clone());
                     value
                 })

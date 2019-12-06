@@ -66,7 +66,7 @@ impl<E> Future for ErrFuture<E> {
         match self.err_rx.take() {
             None => Ok(Async::NotReady),
             Some(mut rx) => match rx.poll() {
-                Ok(Async::Ready(err)) => return Err(err),
+                Ok(Async::Ready(err)) => Err(err),
                 Ok(Async::NotReady) => {
                     self.err_rx = Some(rx);
                     Ok(Async::NotReady)
@@ -93,7 +93,7 @@ mod test {
 
         let res: Result<Vec<_>, ()> = rt.block_on(future::lazy(move || {
             s.collect()
-                .map_err(|_| -> () { unreachable!() })
+                .map_err(|_| unreachable!())
                 .select(err.map(|_| -> Vec<_> { unreachable!() }))
                 .map(|(ok, _)| ok)
                 .map_err(|(err, _)| err)

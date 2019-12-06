@@ -236,7 +236,7 @@ where
             Node::Pending { children, .. } => children,
             _ => unreachable!("updating already resolved parent node"),
         };
-        if {
+        let no_children_left = {
             // update parent
             let mut children = children
                 .as_mut()
@@ -245,7 +245,8 @@ where
             children.children[loc.child_index] = Some(result);
             children.children_left -= 1;
             children.children_left == 0
-        } {
+        };
+        if no_children_left {
             // all parents children have been completed, so we need
             // to schedule fold operation for it
             let Children {

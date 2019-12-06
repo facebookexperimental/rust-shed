@@ -6,6 +6,9 @@
  * directory of this source tree.
  */
 
+//! Read the documentation of [bounded_traversal::bounded_traversal],
+//! [bounded_traversal::bounded_traversal_dag] and [bounded_traversal::bounded_traversal_stream]
+
 mod tree;
 pub use tree::bounded_traversal;
 
@@ -20,4 +23,5 @@ mod common;
 #[cfg(test)]
 mod tests;
 
+/// A type used frequently in fold-like invocations inside this module
 pub type Iter<Out> = std::iter::Flatten<std::vec::IntoIter<Option<Out>>>;

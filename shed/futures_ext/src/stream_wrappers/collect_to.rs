@@ -10,6 +10,7 @@ use futures::{Async, Future, Poll, Stream};
 use std::default::Default;
 use std::mem;
 
+/// Stream returned as a result of calling [crate::StreamExt::collect_to]
 #[must_use = "futures do nothing unless you `.await` or poll them"]
 pub struct CollectTo<S, C> {
     stream: S,
@@ -24,6 +25,7 @@ where
         mem::replace(&mut self.collection, Default::default())
     }
 
+    /// Create a new instance of [CollectTo] wrapping the provided stream
     pub fn new(stream: S) -> CollectTo<S, C> {
         CollectTo {
             stream,

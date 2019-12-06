@@ -41,17 +41,19 @@ impl<T: Debug + Stream> Debug for SelectAll<T> {
     }
 }
 
-impl<S: Stream> SelectAll<S> {
+impl<S: Stream> Default for SelectAll<S> {
     /// Constructs a new, empty `SelectAll`
     ///
     /// The returned `SelectAll` does not contain any streams and, in this
     /// state, `SelectAll::poll` will return `Ok(Async::Ready(None))`.
-    pub fn new() -> SelectAll<S> {
-        SelectAll {
+    fn default() -> Self {
+        Self {
             inner: FuturesUnordered::new(),
         }
     }
+}
 
+impl<S: Stream> SelectAll<S> {
     /// Returns the number of streams contained in the set.
     ///
     /// This represents the total number of in-flight streams.
@@ -116,13 +118,13 @@ where
     I: IntoIterator,
     I::Item: Stream,
 {
-    let mut set = SelectAll::new();
+    let mut set = SelectAll::default();
 
     for stream in streams {
         set.push(stream);
     }
 
-    return set;
+    set
 }
 
 #[cfg(test)]
@@ -136,10 +138,7 @@ mod tests {
     #[test]
     fn select_all_many_streams() {
         tokio_unit_test(|| {
-            let streams: Vec<_> = (1..5)
-                .into_iter()
-                .map(|i| iter_ok::<_, ()>((0..i).into_iter()))
-                .collect();
+            let streams: Vec<_> = (1..5).map(|i| iter_ok::<_, ()>(0..i)).collect();
             let result = spawn(select_all(streams).collect()).wait_future().unwrap();
             assert_eq!(result.len(), 10);
         })

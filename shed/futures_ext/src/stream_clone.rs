@@ -150,9 +150,7 @@ mod test {
         let res = rt.block_on(future::lazy(|| {
             let c = stream_clone(s, 5);
             let c = c.into_iter().map(|c| c.collect());
-            let c = future::join_all(c);
-
-            c
+            future::join_all(c)
         }));
 
         for (idx, v) in res.unwrap().into_iter().enumerate() {
@@ -170,9 +168,7 @@ mod test {
         let res: Result<_, ()> = rt.block_on(future::lazy(|| {
             let c = stream_clone(s, 5);
             let c = c.into_iter().map(|c| c.then(Result::Ok).collect());
-            let c = future::join_all(c);
-
-            c
+            future::join_all(c)
         }));
 
         // Fuse keeps going after errors, so we get the entire vector.
