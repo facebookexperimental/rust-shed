@@ -5,6 +5,7 @@ members = [
     "shed/cloned",
     "shed/codegen_includer_proc_macro",
     "shed/failure_ext",
+    "shed/futures_ext",
     "shed/lock_ext",
     "shed/netstring",
     "shed/thrift_compiler",
