@@ -53,15 +53,6 @@ pub use anyhow::{bail, ensure, format_err, Error, Result};
 #[doc(hidden)]
 pub use anyhow::Context as ResultExt;
 
-// Temporary immitation of failure's API to ease migration.
-#[doc(hidden)]
-pub fn err_msg<D>(msg: D) -> Error
-where
-    D: Display + Debug + Send + Sync + 'static,
-{
-    Error::msg(msg)
-}
-
 // Deprecated.
 #[doc(hidden)]
 pub use failure::Fail;
