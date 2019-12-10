@@ -9,7 +9,9 @@
 /// Downcast matching
 /// Usage:
 /// ```
-/// # use failure_ext::{err_downcast_ref, Error, Fail};
+/// # use anyhow::Error;
+/// # use failure_deprecated::Fail;
+/// # use failure_ext::err_downcast_ref;
 /// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
 /// let res = err_downcast_ref! {
 ///    err,
@@ -53,7 +55,9 @@ macro_rules! err_downcast_ref {
 /// Downcast matching
 /// Usage:
 /// ```
-/// # use failure_ext::{err_downcast, Error, Fail};
+/// # use anyhow::Error;
+/// # use failure_deprecated::Fail;
+/// # use failure_ext::err_downcast;
 /// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
 /// let res = err_downcast! {
 ///    err,
@@ -95,7 +99,8 @@ macro_rules! err_downcast {
 #[allow(clippy::blacklisted_name)]
 #[cfg(test)]
 mod test {
-    use crate::prelude::*;
+    use crate::chain::ChainExt;
+    use anyhow::Error;
     use thiserror::Error;
 
     #[derive(Error, Debug)]

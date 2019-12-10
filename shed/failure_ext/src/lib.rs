@@ -11,6 +11,7 @@
 
 //! Crate extending functionality of [`failure`] and [`anyhow`] crates
 
+use anyhow::Error;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
@@ -40,18 +41,7 @@ pub mod prelude {
     pub use crate::{
         FutureFailureErrorExt, FutureFailureExt, StreamFailureErrorExt, StreamFailureExt,
     };
-    pub use anyhow::{Context, Error, Result};
 }
-
-pub use anyhow::{bail, ensure, format_err, Error, Result};
-
-// Temporary immitation of failure's API to ease migration.
-#[doc(hidden)]
-pub use anyhow::Context as ResultExt;
-
-// Deprecated.
-#[doc(hidden)]
-pub use failure::Fail;
 
 #[macro_use]
 mod macros;
