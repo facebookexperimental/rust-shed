@@ -1,0 +1,12 @@
+[package]
+name = "ascii_ext"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/lib.rs"]
+
+[dependencies]
+ascii = "1.0"
+quickcheck = "0.9"
+rand = { version = "0.7", features = ["small_rng"] }
