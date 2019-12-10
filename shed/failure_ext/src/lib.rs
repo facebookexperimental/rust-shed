@@ -14,11 +14,7 @@
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
-// FIXME: cargo_from_buck's behavior on renamed dependencies does not match tp2's
-#[cfg(fbcode)]
 pub use failure;
-#[cfg(not(fbcode))]
-pub use failure_deprecated as failure;
 
 mod slogkv;
 pub use crate::slogkv::{cause_workaround as cause, SlogKVError, SlogKVErrorKey};
