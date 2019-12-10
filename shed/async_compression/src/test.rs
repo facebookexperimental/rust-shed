@@ -65,14 +65,13 @@ struct BzipCompression(bzip2::Compression);
 impl Arbitrary for BzipCompression {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         BzipCompression(
-            [
+            *[
                 bzip2::Compression::Fastest,
                 bzip2::Compression::Best,
                 bzip2::Compression::Default,
             ]
             .choose(g)
-            .unwrap()
-            .clone(),
+            .unwrap(),
         )
     }
 }
@@ -82,14 +81,13 @@ struct GzipCompression(flate2::Compression);
 impl Arbitrary for GzipCompression {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         GzipCompression(
-            [
+            *[
                 flate2::Compression::none(),
                 flate2::Compression::fast(),
                 flate2::Compression::best(),
             ]
             .choose(g)
-            .unwrap()
-            .clone(),
+            .unwrap(),
         )
     }
 }

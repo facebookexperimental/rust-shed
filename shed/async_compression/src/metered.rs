@@ -22,6 +22,7 @@ pub struct MeteredRead<R: Read> {
 }
 
 impl<R: Read> MeteredRead<R> {
+    /// Create a [MeteredRead] wrapping the provided reader.
     pub fn new(inner: R) -> Self {
         MeteredRead {
             inner,
@@ -34,16 +35,19 @@ impl<R: Read> MeteredRead<R> {
         self.total_thru
     }
 
+    /// Get a reference to the inner reader
     #[inline]
     pub fn get_ref(&self) -> &R {
         &self.inner
     }
 
+    /// Get a mutable reference to the inner reader
     #[inline]
     pub fn get_mut(&mut self) -> &mut R {
         &mut self.inner
     }
 
+    /// Returns the inner reader consuming this structure
     #[inline]
     pub fn into_inner(self) -> R {
         self.inner
@@ -98,6 +102,7 @@ pub struct MeteredWrite<W: Write> {
 }
 
 impl<W: Write> MeteredWrite<W> {
+    /// Create a [MeteredWrite] wrapping the provided writer.
     pub fn new(inner: W) -> Self {
         MeteredWrite {
             inner,
@@ -113,16 +118,19 @@ impl<W: Write> MeteredWrite<W> {
         self.total_thru
     }
 
+    /// Get a reference to the inner writer
     #[inline]
     pub fn get_ref(&self) -> &W {
         &self.inner
     }
 
+    /// Get a mutable reference to the inner writer
     #[inline]
     pub fn get_mut(&mut self) -> &mut W {
         &mut self.inner
     }
 
+    /// Returns the inner writer consuming this structure
     #[inline]
     pub fn into_inner(self) -> W {
         self.inner

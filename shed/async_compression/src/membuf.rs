@@ -27,6 +27,7 @@ pub struct MemBuf {
 }
 
 impl MemBuf {
+    /// Create an instance of [MemBuf] with the provided buffer capacity
     pub fn new(buf_size: usize) -> Self {
         MemBuf {
             capacity: buf_size,
@@ -36,8 +37,9 @@ impl MemBuf {
         }
     }
 
+    /// Write the provided data to the in-memory buffer
     pub fn write_buf(&mut self, data: &[u8]) -> io::Result<usize> {
-        if self.eof || data.len() == 0 {
+        if self.eof || data.is_empty() {
             return Ok(0);
         }
 
@@ -56,6 +58,9 @@ impl MemBuf {
         Ok(to_write)
     }
 
+    /// Notify this [MemBuf] that there won't be any more data incoming to it,
+    /// it will wake any async tasks waiting for content, all attempts to read
+    /// the rest of the data from this instance will succeed immediately.
     pub fn mark_eof(&mut self) {
         self.eof = true;
         self.unblock_read();
@@ -85,7 +90,7 @@ impl From<Vec<u8>> for MemBuf {
 
 impl Read for MemBuf {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        if self.buf.len() == 0 {
+        if self.buf.is_empty() {
             if self.eof {
                 return Ok(0);
             }

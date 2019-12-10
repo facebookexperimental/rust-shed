@@ -1,4 +1,3 @@
-#![deny(warnings)]
 /*
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -6,6 +5,13 @@
  * GNU General Public License found in the LICENSE file in the root
  * directory of this source tree.
  */
+
+//! This crate adds [Compressor] and [Decompressor] wrappers around some common
+//! compression libraries. Those wrappers implement [tokio_io::AsyncWrite] and
+//! [tokio_io::AsyncRead] respectively so they might be used efficiently in an
+//! asynchronous contexts.
+
+#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
 
 mod compressor;
 mod decompressor;

@@ -18,6 +18,9 @@ use zstd::Decoder as ZstdDecoder;
 
 use crate::raw::RawDecoder;
 
+/// A wrapper around various compression libraries that decompresses from the
+/// inner [Read]er and exposes a [Read] trait API of its own. It implements
+/// [AsyncRead].
 pub struct Decompressor<'a, R>
 where
     R: AsyncRead + BufRead + 'a + Send,
@@ -26,10 +29,15 @@ where
     inner: Box<dyn RawDecoder<R> + 'a + Send>,
 }
 
+/// Defines the supported decompression types
 #[derive(Clone, Copy, Debug)]
 pub enum DecompressorType {
+    /// The [bzip2] decompression
     Bzip2,
+    /// The [flate2] decompression
     Gzip,
+    ///  The [zstd] decompression
+    ///
     /// The Zstd Decoder is overreading it's input. Consider this situation: you have a Reader that
     /// returns parts of it's data compressed with Zstd and the remainder decompressed. Gzip and
     /// Bzip2 will consume only the compressed bytes leaving the remainder untouched. The Zstd
@@ -45,6 +53,9 @@ impl<'a, R> Decompressor<'a, R>
 where
     R: AsyncRead + BufRead + 'a + Send,
 {
+    /// Creates and instance of [Decompressor] that will use the provided
+    /// [DecompressorType] for decompression of data read from the provided
+    /// [Read]er
     pub fn new(r: R, dt: DecompressorType) -> Self {
         Decompressor {
             d_type: dt,
@@ -58,16 +69,19 @@ where
         }
     }
 
+    /// Get a reference to the inner decompressor
     #[inline]
     pub fn get_ref(&self) -> &R {
         self.inner.get_ref()
     }
 
+    /// Get a mutable reference to the inner decompressor
     #[inline]
     pub fn get_mut(&mut self) -> &mut R {
         self.inner.get_mut()
     }
 
+    /// Returns the inner decompressor consuming this structure
     #[inline]
     pub fn into_inner(self) -> R {
         self.inner.into_inner()
