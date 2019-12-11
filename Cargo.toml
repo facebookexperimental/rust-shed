@@ -9,6 +9,7 @@ members = [
     "shed/failure_ext",
     "shed/futures_ext",
     "shed/futures_stats",
+    "shed/hlua_futures",
     "shed/lock_ext",
     "shed/netstring",
     "shed/thrift_compiler",

@@ -1,0 +1,16 @@
+[package]
+name = "hlua_futures"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+futures = "0.1"
+hlua = "^0.4"
+lazy_static = "^1.4"
+libc = "^0.2"
+
+[dev-dependencies]
+assert_matches = "^1.3"
