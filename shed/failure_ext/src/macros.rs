@@ -10,7 +10,7 @@
 /// Usage:
 /// ```
 /// # use anyhow::Error;
-/// # use failure_deprecated::Fail;
+/// # use failure::Fail;
 /// # use failure_ext::err_downcast_ref;
 /// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
 /// let res = err_downcast_ref! {
@@ -56,7 +56,7 @@ macro_rules! err_downcast_ref {
 /// Usage:
 /// ```
 /// # use anyhow::Error;
-/// # use failure_deprecated::Fail;
+/// # use failure::Fail;
 /// # use failure_ext::err_downcast;
 /// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
 /// let res = err_downcast! {
