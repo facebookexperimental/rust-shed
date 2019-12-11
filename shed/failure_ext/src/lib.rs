@@ -6,7 +6,7 @@
  * directory of this source tree.
  */
 
-#![cfg_attr(fbcode, feature(backtrace))]
+#![cfg_attr(fbcode_build, feature(backtrace))]
 #![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
 
 //! Crate extending functionality of [`failure`] and [`anyhow`] crates
@@ -78,7 +78,7 @@ impl StdError for Compat<Error> {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         self.0.source()
     }
-    #[cfg(fbcode)]
+    #[cfg(fbcode_build)]
     fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         Some(self.0.backtrace())
     }

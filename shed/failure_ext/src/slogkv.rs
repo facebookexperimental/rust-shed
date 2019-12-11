@@ -23,7 +23,7 @@ impl slog::KV for SlogKVError {
         let err = &self.0;
 
         serializer.emit_str(Error.into_str(), &format!("{}", err))?;
-        #[cfg(fbcode)]
+        #[cfg(fbcode_build)]
         {
             let backtrace = err.backtrace();
             if let std::backtrace::BacktraceStatus::Captured = backtrace.status() {

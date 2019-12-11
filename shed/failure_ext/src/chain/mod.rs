@@ -130,7 +130,7 @@ where
         }
     }
 
-    #[cfg(fbcode)]
+    #[cfg(fbcode_build)]
     fn backtrace(&self) -> Option<&std::backtrace::Backtrace> {
         self.cause
             .as_ref()
