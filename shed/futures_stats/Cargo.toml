@@ -1,0 +1,21 @@
+[package]
+name = "futures_stats"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs", "test/**/*.rs"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "futures_stats_test"
+path = "test/main.rs"
+
+[dependencies]
+futures_ext = { path = "../futures_ext" }
+anyhow = "^1.0"
+futures = "0.1"
+tokio = "0.1"
+tokio-timer = "0.2"

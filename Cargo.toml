@@ -1,11 +1,14 @@
 [workspace]
 
 members = [
+    "shed/ascii_ext",
+    "shed/async_compression",
     "shed/async_unit",
     "shed/cloned",
     "shed/codegen_includer_proc_macro",
     "shed/failure_ext",
     "shed/futures_ext",
+    "shed/futures_stats",
     "shed/lock_ext",
     "shed/netstring",
     "shed/thrift_compiler",
