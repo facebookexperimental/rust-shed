@@ -1,0 +1,30 @@
+[package]
+name = "panichandler"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/*.rs", "test/test.rs", "test/test_deep.rs", "test/testmultithread.rs", "test/testmultithread_abort.rs"]
+
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+name = "test"
+path = "test/test.rs"
+
+[[bin]]
+name = "test_deep"
+path = "test/test_deep.rs"
+
+[[bin]]
+name = "testmultithread"
+path = "test/testmultithread.rs"
+
+[[bin]]
+name = "testmultithread_abort"
+path = "test/testmultithread_abort.rs"
+
+[dependencies]
+backtrace = "^0.3"
+libc = "^0.2"

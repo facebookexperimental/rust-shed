@@ -12,5 +12,6 @@ members = [
     "shed/hlua_futures",
     "shed/lock_ext",
     "shed/netstring",
+    "shed/panichandler",
     "shed/thrift_compiler",
 ]
