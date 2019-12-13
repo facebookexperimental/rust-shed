@@ -4,7 +4,7 @@ edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
 license = "GPLv2+"
-include = ["src/*.rs", "test/test.rs", "test/test_deep.rs", "test/testmultithread.rs", "test/testmultithread_abort.rs"]
+include = ["src/*.rs", "test/test.rs", "test/test_deep.rs", "test/testmultithread.rs", "test/testmultithread_abort.rs", "test/testrunner.rs"]
 
 [lib]
 path = "src/lib.rs"
@@ -25,6 +25,15 @@ path = "test/testmultithread.rs"
 name = "testmultithread_abort"
 path = "test/testmultithread_abort.rs"
 
+[[test]]
+name = "panichandler_tests"
+path = "test/testrunner.rs"
+
 [dependencies]
 backtrace = "^0.3"
 libc = "^0.2"
+
+[dev-dependencies]
+anyhow = "^1.0"
+assert_cmd = "^0.12"
+predicates = "^1.0"
