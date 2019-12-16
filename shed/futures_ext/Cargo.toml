@@ -9,10 +9,10 @@ include = ["src/**/*.rs"]
 [dependencies]
 cloned = { path = "../cloned" }
 anyhow = "^1.0"
-bytes = { version="0.4", features=["serde"] }
-futures = "0.1"
+bytes = { version = "0.4", features = ["serde"] }
+futures = "0.1" # todo: rename to "futures-old"
 maplit = "^1.0"
-tokio = "0.1"
+tokio = "0.1" # todo: rename to "tokio-old"
 tokio-io = "0.1"
 tokio-threadpool = "0.1"
 

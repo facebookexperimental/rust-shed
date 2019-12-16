@@ -7,7 +7,7 @@ license = "GPLv2+"
 include = ["src/lib.rs"]
 
 [dependencies]
-tokio = "0.1"
+tokio = "0.1" # todo: rename to "tokio-old"
 
 [dev-dependencies]
 tokio-timer = "0.2"

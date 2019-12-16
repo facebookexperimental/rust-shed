@@ -16,6 +16,6 @@ path = "test/main.rs"
 [dependencies]
 futures_ext = { path = "../futures_ext" }
 anyhow = "^1.0"
-futures = "0.1"
-tokio = "0.1"
+futures = "0.1" # todo: rename to "futures-old"
+tokio = "0.1" # todo: rename to "tokio-old"
 tokio-timer = "0.2"
