@@ -50,6 +50,10 @@ pub use crate::split_err::split_err;
 pub use crate::stream_clone::stream_clone;
 pub use crate::stream_wrappers::{CollectNoConsume, CollectTo};
 
+// Re-exports. Those are used by the macros in this crate in order to reference a stable version of
+// what "futures" means.
+pub use futures as futures_reexport;
+
 /// Map `Item` and `Error` to `()`
 ///
 /// Adapt an existing `Future` to return unit `Item` and `Error`, while still
@@ -757,7 +761,7 @@ macro_rules! try_boxfuture {
     ($e:expr) => {
         match $e {
             Ok(t) => t,
-            Err(e) => return $crate::FutureExt::boxify(::futures::future::err(e.into())),
+            Err(e) => return $crate::FutureExt::boxify($crate::futures_reexport::future::err(e.into())),
         }
     };
 }
@@ -771,7 +775,7 @@ macro_rules! try_boxstream {
     ($e:expr) => {
         match $e {
             Ok(t) => t,
-            Err(e) => return $crate::StreamExt::boxify(::futures::stream::once(Err(e.into()))),
+            Err(e) => return $crate::StreamExt::boxify($crate::futures_reexport::stream::once(Err(e.into()))),
         }
     };
 }
