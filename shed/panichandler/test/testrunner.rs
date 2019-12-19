@@ -6,7 +6,6 @@
  * directory of this source tree.
  */
 
-use std::env;
 use std::process::Command;
 
 use anyhow::Result;
@@ -15,29 +14,20 @@ use predicates::prelude::*;
 
 macro_rules! get_command {
     ( $name:expr ) => {{
-        // This disabling logic is helping in fbcode_build builds using Buck
-        // because the Command::cargo_bin cannot be used in that context
-        // and a workaround have to be provided.
-        let disable: bool = {
-            let var = env::var("PANICHANDLER_TESTS_DISABLE").ok();
-            let var = var
-                .as_ref()
-                .map(String::as_str)
-                .or(option_env!("PANICHANDLER_TESTS_DISABLE"));
-            match var {
-                Some(var) => var.parse()?,
-                None => false,
+        let maybe_cmd = {
+            #[cfg(fbcode_build)]
+            {
+                facebook::get_command!($name)
+            }
+            #[cfg(not(fbcode_build))]
+            {
+                None
             }
         };
-        if disable {
-            return Ok(());
-        }
 
-        if let Some(bin_path) = env::var(format!("PANICHANDLER_TESTS_BIN_{}", $name)).ok() {
-            Command::new(bin_path)
-        } else {
-            Command::cargo_bin($name)?
-        }
+        maybe_cmd
+            .map(Ok)
+            .unwrap_or_else(|| Command::cargo_bin($name))?
     }};
 }
 
