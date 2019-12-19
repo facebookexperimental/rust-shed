@@ -13,6 +13,7 @@ members = [
     "shed/lock_ext",
     "shed/netstring",
     "shed/panichandler",
+    "shed/perthread",
     "shed/time_ext",
     "shed/thrift_compiler",
 ]
