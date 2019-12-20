@@ -961,7 +961,7 @@ where
     }
 }
 
-/// It's a combinator that converts Stream<A> into Stream<Vec<A>>.
+/// It's a combinator that converts `Stream<A>` into `Stream<Vec<A>>`.
 /// So interface is similar to `.chunks()` method, but there's an important difference:
 /// BatchStream won't wait until the whole batch fills up i.e. as soon as underlying stream
 /// return NotReady, then new batch is returned from BatchStream
