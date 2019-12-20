@@ -6,7 +6,8 @@
  * directory of this source tree.
  */
 
-/// Downcast matching
+/// Downcast matching.
+///
 /// Usage:
 /// ```
 /// # use anyhow::Error;
@@ -52,7 +53,8 @@ macro_rules! err_downcast_ref {
     }};
 }
 
-/// Downcast matching
+/// Downcast matching.
+///
 /// Usage:
 /// ```
 /// # use anyhow::Error;

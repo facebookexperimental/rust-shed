@@ -6,7 +6,7 @@
  * directory of this source tree.
  */
 
-//! See documentation of [Chain][chain::Chain] and [ChainExt][chain::ChainExt]
+//! See documentation of [Chain](crate::chain::Chain) and [ChainExt](crate::chain::ChainExt)
 
 use anyhow::Error;
 use std::error::Error as StdError;

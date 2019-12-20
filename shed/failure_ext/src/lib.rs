@@ -50,7 +50,7 @@ mod context_streams;
 pub use crate::context_futures::{FutureFailureErrorExt, FutureFailureExt};
 pub use crate::context_streams::{StreamFailureErrorExt, StreamFailureExt};
 
-/// Shallow wrapper struct around ['anyhow::Error`] with ['std::fmt::Display`]
+/// Shallow wrapper struct around [anyhow::Error] with [std::fmt::Display]
 /// implementation that shows the entire chain of errors
 pub struct DisplayChain<'a>(&'a Error);
 
