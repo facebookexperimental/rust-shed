@@ -1,0 +1,13 @@
+[package]
+name = "stats_traits"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["**/*.rs"]
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+auto_impl = { git = "https://github.com/auto-impl-rs/auto_impl", rev = "43ad0ed49f67168b2971b271481e75afac589b24" }
