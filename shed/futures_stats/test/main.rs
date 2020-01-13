@@ -27,4 +27,11 @@ fn main() {
         Ok(())
     });
     runtime.block_on(stream.for_each(|_| Ok(()))).unwrap();
+
+    let empty: Vec<u32> = vec![];
+    let stream = stream::iter_ok(empty.into_iter()).timed(|stats, _: Result<_, &()>| {
+        assert!(stats.first_item_time.is_none());
+        Ok(())
+    });
+    runtime.block_on(stream.for_each(|_| Ok(()))).unwrap();
 }

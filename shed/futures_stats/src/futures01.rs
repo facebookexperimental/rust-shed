@@ -77,6 +77,7 @@ where
     count: usize,
     poll_count: u64,
     poll_time: Duration,
+    first_item_time: Option<Duration>,
 }
 
 impl<S, C, R> TimedStream<S, C, R>
@@ -94,6 +95,7 @@ where
             count: 0,
             poll_count: 0,
             poll_time: Duration::from_secs(0),
+            first_item_time: None,
         }
     }
 }
@@ -123,6 +125,9 @@ where
             Ok(Async::NotReady) => Ok(Async::NotReady),
             notfinished @ Ok(Async::Ready(Some(_))) => {
                 self.count += 1;
+                if self.count == 1 {
+                    self.first_item_time = Some(self.start.expect("start time not set").elapsed());
+                }
                 notfinished
             }
             Ok(Async::Ready(None)) => {
@@ -153,6 +158,7 @@ where
             poll_time: self.poll_time,
             poll_count: self.poll_count,
             count: self.count,
+            first_item_time: self.first_item_time,
         };
         let callback = self.callback.take().expect("callback was already called");
         callback(stats, res)

@@ -43,12 +43,15 @@ pub struct FutureStats {
 /// A structure that holds some basic statistics for Stream.
 #[derive(Debug)]
 pub struct StreamStats {
-    /// Time elapsed between the first time the Future was polled until it completed.
+    /// Time elapsed between the first time the Stream was polled until it completed.
     pub completion_time: Duration,
 
-    /// Cumulative time the wrapped Future spent in its `poll()` function. This should
+    /// Time elapsed between the first time the Stream was polled until the first item became available
+    pub first_item_time: Option<Duration>,
+
+    /// Cumulative time the wrapped Stream spent in its `poll()` function. This should
     /// usually be small -- large amounts of time spent in `poll()` may indicate that the
-    /// Future is spending time performing expensive synchronous work.
+    /// Stream is spending time performing expensive synchronous work.
     pub poll_time: Duration,
 
     /// Number of times that the Stream was polled.
