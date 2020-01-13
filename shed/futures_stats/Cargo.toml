@@ -15,7 +15,11 @@ path = "test/main.rs"
 
 [dependencies]
 futures_ext = { path = "../futures_ext" }
-anyhow = "^1.0"
 futures = "0.1" # todo: rename to "futures-old"
+futures-preview = { package = "futures", version = "0.3", features = ["async-await", "compat"] } # todo: rename to "futures"
 tokio = "0.1" # todo: rename to "tokio-old"
+
+[dev-dependencies]
+anyhow = "^1.0"
+tokio-preview = { package = "tokio", version = "0.2", features = ["full"] }
 tokio-timer = "0.2"
