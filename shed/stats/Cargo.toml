@@ -13,6 +13,6 @@ stats_traits = { path = "traits" }
 auto_impl = { git = "https://github.com/auto-impl-rs/auto_impl", rev = "43ad0ed49f67168b2971b271481e75afac589b24" }
 futures = "0.1" # todo: rename to "futures-old"
 futures-preview = { package = "futures", version = "0.3", features = ["async-await", "compat"] } # todo: rename to "futures"
-lazy_static = "^1.4"
+lazy_static = "1.4"
 tokio = "0.1" # todo: rename to "tokio-old"
 tokio-preview = { package = "tokio", version = "0.2", features = ["full"] }

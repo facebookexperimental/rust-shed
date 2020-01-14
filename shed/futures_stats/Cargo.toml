@@ -20,6 +20,6 @@ futures-preview = { package = "futures", version = "0.3", features = ["async-awa
 tokio = "0.1" # todo: rename to "tokio-old"
 
 [dev-dependencies]
-anyhow = "^1.0"
+anyhow = "1.0"
 tokio-preview = { package = "tokio", version = "0.2", features = ["full"] }
 tokio-timer = "0.2"
