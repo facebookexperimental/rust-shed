@@ -26,7 +26,7 @@ pub use futures01::{Timed, TimedFuture, TimedNonSend, TimedStream, TimedStreamTr
 pub use futures03::{TimedFutureExt, TimedStreamExt};
 
 /// A structure that holds some basic statistics for Future.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct FutureStats {
     /// Time elapsed between the first time the Future was polled until it completed.
     pub completion_time: Duration,
@@ -41,7 +41,7 @@ pub struct FutureStats {
 }
 
 /// A structure that holds some basic statistics for Stream.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct StreamStats {
     /// Time elapsed between the first time the Stream was polled until it completed.
     pub completion_time: Duration,
