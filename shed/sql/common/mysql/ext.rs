@@ -144,10 +144,7 @@ where
     query(Box::new(move |query_result| {
         process(query_result)
             .map(|(query_result, result)| {
-                assert!(
-                    tx.send(result).is_ok(),
-                    "Unexpectedly, receiver of the channel has been dropped"
-                );
+                let _ = tx.send(result);
                 query_result
             })
             .boxify()
