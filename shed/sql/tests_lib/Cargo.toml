@@ -1,0 +1,15 @@
+[package]
+name = "sql_tests_lib"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["**/*.rs"]
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+sql = { path = ".." }
+anyhow = "1.0"
+futures = "0.1" # todo: rename to "futures-old"
