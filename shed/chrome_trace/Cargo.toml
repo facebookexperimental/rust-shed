@@ -1,0 +1,21 @@
+[package]
+name = "chrome-trace"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+anyhow = "1.0"
+bytes = { version = "0.4", features = ["serde"] }
+flate2 = { version="1.0", features=["tokio", "rust_backend"], default-features=false }
+libc = "0.2"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_derive = "1.0"
+serde_json = "1.0"
+zstd = "=0.4.23"
+
+[dev-dependencies]
+maplit = "1.0"
+tempdir = "0.3"
