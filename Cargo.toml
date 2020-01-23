@@ -14,6 +14,7 @@ members = [
     "shed/netstring",
     "shed/panichandler",
     "shed/perthread",
+    "shed/slog_glog_fmt",
     "shed/sql",
     "shed/stats",
     "shed/time_ext",
