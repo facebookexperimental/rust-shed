@@ -11,7 +11,7 @@ failure_ext = { path = "../failure_ext" }
 futures_ext = { path = "../futures_ext" }
 sql_common = { path = "common" }
 anyhow = "1.0"
-failure = "0.1" # prefer std::error::Error based libraries (anyhow, thiserror, snafu) wherever possible
+failure = "0.1"
 futures = "0.1" # todo: rename to "futures-old"
 mysql_async = { version="0.20", features=["ssl"] }
 rusqlite = { version = "0.21", features = ["bundled"] }

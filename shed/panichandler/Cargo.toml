@@ -36,4 +36,4 @@ libc = "0.2"
 [dev-dependencies]
 anyhow = "1.0"
 assert_cmd = "0.12"
-predicates = "1.0"
+predicates  = "1"

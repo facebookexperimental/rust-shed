@@ -9,7 +9,7 @@ include = ["src/**/*.rs"]
 [dependencies]
 futures = "0.1" # todo: rename to "futures-old"
 hlua = "0.4"
-lazy_static = "1.4"
+lazy_static = "1.0"
 libc = "0.2"
 
 [dev-dependencies]

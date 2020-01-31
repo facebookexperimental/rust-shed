@@ -15,7 +15,7 @@ futures_ext = { path = "../../futures_ext" }
 anyhow = "1.0"
 auto_impl = { git = "https://github.com/auto-impl-rs/auto_impl", rev = "43ad0ed49f67168b2971b271481e75afac589b24" }
 futures = "0.1" # todo: rename to "futures-old"
-lazy_static = "1.4"
+lazy_static = "1.0"
 mysql_async = { version="0.20", features=["ssl"] }
 rusqlite = { version = "0.21", features = ["bundled"] }
 thiserror = "1.0"
