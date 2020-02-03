@@ -1,0 +1,22 @@
+[package]
+name = "fbinit"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs", "test/fbinit_test.rs"]
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "fbinit_test"
+path = "test/fbinit_test.rs"
+
+[features]
+default = ["tokio"]
+
+[dependencies]
+macros = { path = "macros" }
+quickcheck = "0.9"
+tokio = { version = "0.2", features = ["full"], optional = true }

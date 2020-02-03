@@ -6,6 +6,7 @@ members = [
     "shed/async_unit",
     "shed/cloned",
     "shed/codegen_includer_proc_macro",
+    "shed/fbinit",
     "shed/failure_ext",
     "shed/futures_ext",
     "shed/futures_stats",
