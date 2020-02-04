@@ -1,0 +1,15 @@
+[package]
+name = "scuba_sample"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+fbinit = { path = "../fbinit" }
+serde_json = "1.0"
+
+[dev-dependencies]
+assert_matches = "1.3"
+quickcheck = "0.9"

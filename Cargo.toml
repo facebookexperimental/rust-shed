@@ -15,6 +15,8 @@ members = [
     "shed/netstring",
     "shed/panichandler",
     "shed/perthread",
+    "shed/scuba_sample",
+    "shed/scuba_stub",
     "shed/slog_glog_fmt",
     "shed/sql",
     "shed/stats",

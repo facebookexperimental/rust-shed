@@ -1,0 +1,10 @@
+[package]
+name = "scuba"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+scuba_sample = { path = "../scuba_sample" }
