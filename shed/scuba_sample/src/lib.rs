@@ -20,6 +20,9 @@ pub mod builder;
 pub mod sample;
 pub mod value;
 
+mod sampling;
+
 pub use crate::builder::ScubaSampleBuilder;
 pub use crate::sample::ScubaSample;
+pub use crate::sampling::Sampling;
 pub use crate::value::ScubaValue;

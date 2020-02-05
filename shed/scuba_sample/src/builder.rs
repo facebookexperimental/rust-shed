@@ -14,11 +14,13 @@ use std::collections::hash_map::Entry;
 use std::fmt;
 use std::fs::{File, OpenOptions};
 use std::io::{Error as IoError, Write};
+use std::num::NonZeroU64;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 
 use crate::sample::ScubaSample;
 use crate::value::ScubaValue;
+use crate::Sampling;
 
 /// A helper builder to make it easier to create a new sample and log it into
 /// the proper Scuba dataset.
@@ -26,6 +28,7 @@ use crate::value::ScubaValue;
 pub struct ScubaSampleBuilder {
     sample: ScubaSample,
     log_file: Option<Arc<Mutex<File>>>,
+    sampling: Sampling,
 }
 
 impl ScubaSampleBuilder {
@@ -42,6 +45,7 @@ impl ScubaSampleBuilder {
         Self {
             sample: ScubaSample::new(),
             log_file: None,
+            sampling: Sampling::NoSampling,
         }
     }
 
@@ -85,15 +89,27 @@ impl ScubaSampleBuilder {
         self.sample.entry(key)
     }
 
+    /// Only log one in sample_rate samples. The decision is made at the point where sampled() is
+    /// called.
+    pub fn sampled(&mut self, sample_rate: NonZeroU64) -> &mut Self {
+        self.sampling = self.sampling.sample(&mut rand::thread_rng(), sample_rate);
+        self
+    }
+
     /// Get a reference to the internally built sample.
     pub fn get_sample(&self) -> &ScubaSample {
         &self.sample
     }
 
-    /// Log the internally built sample the previously configured log file with
-    /// overriding it's timestampt to current time.
-    pub fn log(&mut self) {
+    /// Log the internally built sample to the previously configured log file while overriding its
+    /// timestamp to the current time. Returns whether the sample passed sampling.
+    pub fn log(&mut self) -> bool {
         self.sample.set_time_now();
+
+        if !self.sampling.apply(&mut self.sample) {
+            return false;
+        }
+
         if let Some(ref log_file) = self.log_file {
             if let Ok(sample) = self.to_json() {
                 let mut log_file = log_file.lock().expect("Poisoned lock");
@@ -101,12 +117,19 @@ impl ScubaSampleBuilder {
                 let _ = log_file.write_all(b"\n");
             }
         }
+
+        true
     }
 
-    /// Log the internally built sample to the previously configured log file
-    /// with overriding it's timestampt to provided time.
-    pub fn log_with_time(&mut self, time: u64) {
+    /// Log the internally built sample to the previously configured log file while overriding its
+    /// timestamp to the provided time. Returns whether the sample passed sampling.
+    pub fn log_with_time(&mut self, time: u64) -> bool {
         self.sample.set_time(time);
+
+        if !self.sampling.apply(&mut self.sample) {
+            return true;
+        }
+
         if let Some(ref log_file) = self.log_file {
             if let Ok(sample) = self.sample.to_json() {
                 let mut log_file = log_file.lock().expect("Poisoned lock");
@@ -114,6 +137,8 @@ impl ScubaSampleBuilder {
                 let _ = log_file.write_all(b"\n");
             }
         }
+
+        true
     }
 
     /// Either flush the configured client with the provided timeout or flush
