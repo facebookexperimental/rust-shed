@@ -248,11 +248,9 @@ mod tests {
         let out: Vec<_> = stream::iter([0u32; TEST_COUNT].iter())
             .timed({
                 let callback_called = callback_called.clone();
-                move |stats| {
-                    async move {
-                        assert_eq!(stats.count, TEST_COUNT);
-                        callback_called.store(true, Ordering::SeqCst);
-                    }
+                move |stats| async move {
+                    assert_eq!(stats.count, TEST_COUNT);
+                    callback_called.store(true, Ordering::SeqCst);
                 }
             })
             .collect::<Vec<u32>>()
