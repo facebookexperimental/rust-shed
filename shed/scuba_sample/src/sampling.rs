@@ -60,6 +60,15 @@ impl Sampling {
             Self::SampledOut => false,
         }
     }
+
+    /// Indicate whether this [Sampling] will require logging when applied.
+    pub fn is_logged(&self) -> bool {
+        match &self {
+            Self::NoSampling => true,
+            Self::SampledIn(..) => true,
+            Self::SampledOut => false,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -104,5 +113,12 @@ mod test {
 
         assert!(sampling.apply(&mut sample));
         assert_eq!(sample.get("sample_rate"), Some(&ScubaValue::Int(10)));
+    }
+
+    #[test]
+    fn test_is_logged() {
+        assert!(Sampling::NoSampling.is_logged());
+        assert!(Sampling::SampledIn(nonzero!(1u64)).is_logged());
+        assert!(!Sampling::SampledOut.is_logged());
     }
 }

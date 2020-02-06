@@ -90,10 +90,21 @@ impl ScubaSampleBuilder {
     }
 
     /// Only log one in sample_rate samples. The decision is made at the point where sampled() is
-    /// called.
+    /// called. Multiple calls to sampled() further reduce the logging probability.
     pub fn sampled(&mut self, sample_rate: NonZeroU64) -> &mut Self {
         self.sampling = self.sampling.sample(&mut rand::thread_rng(), sample_rate);
         self
+    }
+
+    /// Revert sampling.
+    pub fn unsampled(&mut self) -> &mut Self {
+        self.sampling = Sampling::NoSampling;
+        self
+    }
+
+    /// Access this builder's underlying [Sampling].
+    pub fn sampling(&self) -> &Sampling {
+        &self.sampling
     }
 
     /// Get a reference to the internally built sample.
