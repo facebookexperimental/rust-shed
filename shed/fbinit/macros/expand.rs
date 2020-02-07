@@ -51,6 +51,7 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
         #assignment unsafe {
             fbinit::r#impl::perform_init()
         };
+        let _destroy_guard = unsafe { fbinit::r#impl::DestroyGuard::new() };
         #block
     });
 

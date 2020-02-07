@@ -120,5 +120,13 @@ mod non_fbcode {
 
         #[cfg(feature = "tokio")]
         pub use tokio;
+
+        pub struct DestroyGuard;
+
+        impl DestroyGuard {
+            pub fn new() -> Self {
+                DestroyGuard
+            }
+        }
     }
 }
