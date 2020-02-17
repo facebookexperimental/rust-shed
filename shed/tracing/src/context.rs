@@ -51,7 +51,7 @@ impl TraceContext {
 
         // Randomly disable a fraction of all contexts, determined by the global sample rate.
         let sample_rate = global::sample_rate();
-        if Uniform::new(0usize, 100).sample(&mut thread_rng()) > sample_rate {
+        if Uniform::new(0usize, 100).sample(&mut thread_rng()) >= sample_rate {
             inner.disable();
         }
 
