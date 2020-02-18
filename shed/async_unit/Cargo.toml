@@ -7,7 +7,11 @@ license = "GPLv2+"
 include = ["src/lib.rs"]
 
 [dependencies]
-tokio = "0.1" # todo: rename to "tokio-old"
+futures-preview = { package = "futures", version = "0.3", features = ["async-await", "compat"] } # todo: rename to "futures"
+tokio-compat = "0.1"
 
 [dev-dependencies]
+futures = "0.1" # todo: rename to "futures-old"
+tokio = "0.1" # todo: rename to "tokio-old"
+tokio-preview = { package = "tokio", version = "0.2", features = ["full"] }
 tokio-timer = "0.2"
