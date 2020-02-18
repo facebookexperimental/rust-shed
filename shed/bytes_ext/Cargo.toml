@@ -1,0 +1,12 @@
+[package]
+name = "bytes_ext"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+bytes = { version = "0.4", features = ["serde"] }
+bytes-preview = { package = "bytes", version = "0.5", features = ["serde"] }
+ref-cast = "1.0"
