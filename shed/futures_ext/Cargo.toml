@@ -17,7 +17,6 @@ tokio-io = "0.1"
 tokio-threadpool = "0.1"
 
 [dev-dependencies]
-async_unit = { path = "../async_unit" }
 lock_ext = { path = "../lock_ext" }
 netstring = { path = "../netstring" }
 assert_matches = "1.3"

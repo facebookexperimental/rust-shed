@@ -130,17 +130,13 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use async_unit::tokio_unit_test;
-    use futures::executor::spawn;
     use futures::stream::iter_ok;
 
     #[test]
     fn select_all_many_streams() {
-        tokio_unit_test(|| {
-            let streams: Vec<_> = (1..5).map(|i| iter_ok::<_, ()>(0..i)).collect();
-            let result = spawn(select_all(streams).collect()).wait_future().unwrap();
-            assert_eq!(result.len(), 10);
-        })
+        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let streams: Vec<_> = (1..5).map(|i| iter_ok::<_, ()>(0..i)).collect();
+        let result = rt.block_on(select_all(streams).collect()).unwrap();
+        assert_eq!(result.len(), 10);
     }
 }

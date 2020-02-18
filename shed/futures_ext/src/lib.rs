@@ -1259,32 +1259,32 @@ mod test {
     fn sink_to_async_write() {
         use futures::sync::mpsc;
         use std::io::Write;
+        let mut rt = tokio::runtime::Runtime::new().unwrap();
 
-        async_unit::tokio_unit_test(|| {
-            let (tx, rx) = mpsc::channel::<Bytes>(1);
+        let (tx, rx) = mpsc::channel::<Bytes>(1);
 
-            let messages_num = 10;
-            tokio::spawn(Ok(()).into_future().map(move |()| {
-                let mut async_write = SinkToAsyncWrite::new(tx);
-                for i in 0..messages_num {
-                    loop {
-                        let res = async_write.write(format!("{}", i).as_bytes());
-                        if let Err(ref e) = res {
-                            assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
-                            assert_flush(&mut async_write);
-                        } else {
-                            break;
-                        }
+        let messages_num = 10;
+
+        rt.spawn(Ok(()).into_future().map(move |()| {
+            let mut async_write = SinkToAsyncWrite::new(tx);
+            for i in 0..messages_num {
+                loop {
+                    let res = async_write.write(format!("{}", i).as_bytes());
+                    if let Err(ref e) = res {
+                        assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
+                        assert_flush(&mut async_write);
+                    } else {
+                        break;
                     }
                 }
+            }
 
-                assert_flush(&mut async_write);
-                assert_shutdown(&mut async_write);
-            }));
+            assert_flush(&mut async_write);
+            assert_shutdown(&mut async_write);
+        }));
 
-            let res = rx.collect().wait().unwrap();
-            assert_eq!(res.len(), messages_num);
-        })
+        let res = rt.block_on(rx.collect()).unwrap();
+        assert_eq!(res.len(), messages_num);
     }
 
     #[test]
