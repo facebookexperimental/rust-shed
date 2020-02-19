@@ -6,8 +6,8 @@
  * directory of this source tree.
  */
 
-use bytes::Bytes as BytesOld;
-use bytes_preview::Bytes as BytesNew;
+use bytes::Bytes as BytesNew;
+use bytes_old::Bytes as BytesOld;
 
 pub fn copy_from_new(bytes: BytesNew) -> BytesOld {
     BytesOld::from(bytes.as_ref())

@@ -7,6 +7,6 @@ license = "GPLv2+"
 include = ["src/**/*.rs"]
 
 [dependencies]
-bytes = { version = "0.4", features = ["serde"] }
-bytes-preview = { package = "bytes", version = "0.5", features = ["serde"] }
+bytes = { version = "0.5", features = ["serde"] }
+bytes-old = { package = "bytes", version = "0.4", features = ["serde"] } # todo: remove
 ref-cast = "1.0"

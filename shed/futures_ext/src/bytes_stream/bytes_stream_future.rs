@@ -6,7 +6,7 @@
  * directory of this source tree.
  */
 
-use bytes::Bytes;
+use bytes_old::Bytes;
 use futures::{try_ready, Async, Future, Poll, Stream};
 use tokio_io::codec::Decoder;
 

@@ -7,7 +7,7 @@ license = "GPLv2+"
 include = ["src/**/*.rs"]
 
 [dependencies]
-bytes = { version = "0.4", features = ["serde"] }
+bytes = { version = "0.4", features = ["serde"] } # todo: remove
 bzip2 = { version="0.3", features=["tokio"] }
 flate2 = { version="1.0", features=["tokio", "rust_backend"], default-features=false }
 futures = "0.1" # todo: rename to "futures-old"

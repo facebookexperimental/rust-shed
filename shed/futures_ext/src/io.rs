@@ -6,12 +6,12 @@
  * directory of this source tree.
  */
 
-//! Extends the functionality of [std::io] and [::tokio_io]
+//! Extends the functionality of [std::io] and [::tokio::io]
 
 use std::io::{self, Read, Write};
 
 use futures::Poll;
-use tokio_io::{AsyncRead, AsyncWrite};
+use tokio::io::{AsyncRead, AsyncWrite};
 
 /// Like [::futures::future::Either], combines two different types implementing
 /// the same trait into a single type.

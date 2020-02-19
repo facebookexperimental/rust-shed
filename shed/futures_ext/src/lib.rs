@@ -12,7 +12,7 @@
 //! Crate extending functionality of [`futures`] crate
 
 use anyhow::format_err;
-use bytes::Bytes;
+use bytes_old::Bytes;
 use futures::sync::{mpsc, oneshot};
 use futures::{
     future, stream, try_ready, Async, AsyncSink, Future, IntoFuture, Poll, Sink, Stream,
@@ -885,7 +885,7 @@ where
 /// # use anyhow::Error;
 /// # use futures::Future;
 /// # use futures_ext::{BoxFuture, SinkToAsyncWrite};
-/// # use tokio_io::AsyncWrite;
+/// # use tokio::io::AsyncWrite;
 /// # use tokio;
 /// fn async_write_interface(writer: &mut dyn AsyncWrite) -> BoxFuture<(), Error> {
 ///     unimplemented!()

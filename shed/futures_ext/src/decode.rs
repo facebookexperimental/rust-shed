@@ -16,7 +16,7 @@
 //! rather than restricting all codec operations to `AsyncRead`/`AsyncWrite` operations on
 //! an underlying transport.
 
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes_old::{BufMut, Bytes, BytesMut};
 use futures::{try_ready, Async, Poll, Stream};
 use tokio_io::codec::Decoder;
 
@@ -121,7 +121,7 @@ mod test {
 
     use std::io;
 
-    use bytes::Bytes;
+    use bytes_old::Bytes;
     use futures::{stream, Stream};
 
     use super::*;
@@ -157,9 +157,8 @@ mod test {
 
         let decoder = NetstringDecoder::default();
 
-        let inp = stream::iter_ok::<_, io::Error>(vec![Bytes::from(
-            "13:hello, world!,".repeat(5000).as_bytes(),
-        )]);
+        let inp =
+            stream::iter_ok::<_, io::Error>(vec![Bytes::from("13:hello, world!,".repeat(5000))]);
 
         let dec = decode(inp, decoder);
         let out = Vec::new();
