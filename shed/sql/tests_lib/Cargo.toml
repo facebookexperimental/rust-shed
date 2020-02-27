@@ -12,4 +12,4 @@ path = "lib.rs"
 [dependencies]
 sql = { path = ".." }
 anyhow = "1.0"
-futures = "0.1" # todo: rename to "futures-old"
+futures = "0.1"

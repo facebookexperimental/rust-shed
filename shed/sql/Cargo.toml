@@ -12,7 +12,7 @@ futures_ext = { path = "../futures_ext" }
 sql_common = { path = "common" }
 anyhow = "1.0"
 failure = "0.1"
-futures = "0.1" # todo: rename to "futures-old"
+futures = "0.1"
 mysql_async = { version="0.20", features=["ssl"] }
 rusqlite = { version = "0.21", features = ["bundled"] }
 

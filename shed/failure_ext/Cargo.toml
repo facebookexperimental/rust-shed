@@ -9,6 +9,6 @@ include = ["src/**/*.rs"]
 [dependencies]
 anyhow = "1.0"
 failure = "0.1"
-futures = "0.1" # todo: rename to "futures-old"
+futures = "0.1"
 slog = { version="2.5", features=["max_level_debug"] }
 thiserror = "1.0"

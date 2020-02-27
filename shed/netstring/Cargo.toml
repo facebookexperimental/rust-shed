@@ -8,7 +8,7 @@ include = ["src/**/*.rs"]
 
 [dependencies]
 anyhow = "1.0"
-bytes = { version = "0.4", features = ["serde"] } # todo: remove
+bytes = { version = "0.4", features = ["serde"] }
 thiserror = "1.0"
 tokio-io = "0.1"
 
