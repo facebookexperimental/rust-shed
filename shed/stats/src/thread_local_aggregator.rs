@@ -25,9 +25,9 @@ use std::future::Future as NewFuture;
 use std::sync::{atomic, Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use futures::{future::ready, FutureExt as _, Stream as NewStream, StreamExt as _};
 use futures_ext::{BoxFuture, FutureExt};
 use futures_old::Stream;
-use futures_preview::{future::ready, FutureExt as _, Stream as NewStream, StreamExt as _};
 use lazy_static::lazy_static;
 use perthread::ThreadMap;
 use stats_traits::stats_manager::{BoxStatsManager, StatsManager};

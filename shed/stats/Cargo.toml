@@ -11,8 +11,8 @@ futures_ext = { path = "../futures_ext" }
 perthread = { path = "../perthread" }
 stats_traits = { path = "traits" }
 auto_impl = { git = "https://github.com/auto-impl-rs/auto_impl", rev = "43ad0ed49f67168b2971b271481e75afac589b24" }
+futures = { version = "0.3", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1" }
-futures-preview = { package = "futures", version = "0.3", features = ["async-await", "compat"] }
 lazy_static = "1.0"
 tokio = "0.1"
 tokio-preview = { package = "tokio", version = "0.2", features = ["full"] }

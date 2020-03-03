@@ -10,8 +10,8 @@
 
 use std::future::Future;
 
-use futures_preview::stream::Stream;
-use futures_preview::task::{Context, Poll};
+use futures::stream::Stream;
+use futures::task::{Context, Poll};
 use std::pin::Pin;
 use std::time::{Duration, Instant};
 
@@ -176,7 +176,7 @@ pub trait TimedFutureExt: Future + Sized {
     /// ```
     /// use futures_stats::TimedFutureExt;
     ///
-    /// # futures_preview::executor::block_on(async {
+    /// # futures::executor::block_on(async {
     /// let (stats, value) = async { 123u32 }.timed().await;
     /// assert_eq!(value, 123);
     /// assert!(stats.poll_count > 0);
@@ -199,9 +199,9 @@ pub trait TimedStreamExt: Stream + Sized {
     ///
     /// ```
     /// use futures_stats::TimedStreamExt;
-    /// use futures_preview::stream::{self, StreamExt};
+    /// use futures::stream::{self, StreamExt};
     ///
-    /// # futures_preview::executor::block_on(async {
+    /// # futures::executor::block_on(async {
     /// let out = stream::iter([0u32; 3].iter())
     ///     .timed(|stats| {
     ///         async move {
@@ -231,7 +231,7 @@ mod tests {
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
 
-    use futures_preview::stream::{self, StreamExt};
+    use futures::stream::{self, StreamExt};
     use tokio_preview as tokio;
 
     #[tokio::test]
