@@ -8,8 +8,8 @@
 
 //! An implementation of `futures_stats` for Futures 0.1.
 
-use futures::{Async, Future, IntoFuture, Poll, Stream};
 use futures_ext::{BoxFuture, BoxFutureNonSend, BoxStream, FutureExt, StreamExt};
+use futures_old::{Async, Future, IntoFuture, Poll, Stream};
 use std::time::{Duration, Instant};
 
 use super::{FutureStats, StreamStats};
@@ -217,7 +217,7 @@ where
     })
 }
 
-/// A trait that provides extra methods to [futures::Future] used for gathering stats
+/// A trait that provides extra methods to [futures_old::Future] used for gathering stats
 pub trait Timed: Future + Sized + Send + 'static {
     /// Combinator that returns a future that will gather some statistics using
     /// [TimedFuture] and pass them for inspection to the provided callback.
@@ -268,7 +268,7 @@ pub trait TimedNonSend: Future + Sized + 'static {
 impl<T: Future + Send + 'static> Timed for T {}
 impl<T: Future + 'static> TimedNonSend for T {}
 
-/// A trait that provides extra methods to [futures::Stream] used for gathering stats
+/// A trait that provides extra methods to [futures_old::Stream] used for gathering stats
 pub trait TimedStreamTrait: Stream + Sized + Send + 'static {
     /// Combinator that returns a stream that will gather some statistics using
     /// [TimedStream] and pass them for inspection to the provided callback.
@@ -277,7 +277,7 @@ pub trait TimedStreamTrait: Stream + Sized + Send + 'static {
         C: FnOnce(StreamStats, Result<(), &Self::Error>) -> R + Send + 'static,
         R: IntoFuture<Item = (), Error = ()> + Send + 'static,
         R::Future: 'static,
-        <R as futures::IntoFuture>::Future: Send,
+        <R as futures_old::IntoFuture>::Future: Send,
         Self::Item: Send,
         Self::Error: Send,
     {
@@ -291,8 +291,8 @@ impl<T: Stream + Send + 'static> TimedStreamTrait for T {}
 mod tests {
     use super::*;
     use anyhow::Error;
-    use futures::future::{err, ok};
-    use futures::stream::{iter_ok, once};
+    use futures_old::future::{err, ok};
+    use futures_old::stream::{iter_ok, once};
 
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;

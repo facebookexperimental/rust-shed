@@ -6,7 +6,7 @@
  * directory of this source tree.
  */
 
-use futures::{future, stream, Stream};
+use futures_old::{future, stream, Stream};
 
 use futures_stats::{Timed, TimedStreamTrait};
 

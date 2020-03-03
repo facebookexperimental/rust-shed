@@ -25,8 +25,8 @@ use std::future::Future as NewFuture;
 use std::sync::{atomic, Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use futures::Stream;
 use futures_ext::{BoxFuture, FutureExt};
+use futures_old::Stream;
 use futures_preview::{future::ready, FutureExt as _, Stream as NewStream, StreamExt as _};
 use lazy_static::lazy_static;
 use perthread::ThreadMap;
@@ -109,7 +109,7 @@ pub fn create_map() -> Arc<ThreadMap<BoxStatsManager>> {
 /// # Examples
 ///
 /// ```no_run
-/// use futures::Future;
+/// use futures_old::Future;
 /// use stats::schedule_stats_aggregation;
 /// use tokio::executor::spawn;
 ///
