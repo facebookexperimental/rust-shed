@@ -16,6 +16,7 @@ use syn::{parse_quote, Error, Ident, ItemFn, Result};
 pub enum Mode {
     Main,
     Test,
+    CompatTest,
 }
 
 pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
@@ -39,7 +40,7 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
                 panic!("fbinit must be performed in the crate root on the main function");
             }
         }),
-        Mode::Test => None,
+        Mode::Test | Mode::CompatTest => None,
     };
 
     let assignment = function.sig.inputs.first().map(|arg| quote!(let #arg =));
@@ -55,20 +56,40 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
         #block
     });
 
-    if function.sig.asyncness.is_some() {
-        let tokio_attribute = match mode {
-            Mode::Main => "main",
-            Mode::Test => "test",
-        };
-        let span = function.sig.span();
-        let ident = Ident::new(tokio_attribute, span);
-        let attr = quote_spanned! {span=>
-            #[fbinit::r#impl::tokio::#ident]
-        };
-        function.attrs.push(parse_quote!(#attr));
-    } else if mode == Mode::Test {
+    if mode == Mode::CompatTest {
+        let block = function.block;
+        function.block = parse_quote!({
+            tokio_compat::runtime::current_thread::Runtime::new().unwrap().block_on_std(async {
+                #block
+            })
+        });
+        if function.sig.asyncness.is_none() {
+            return Err(Error::new_spanned(
+                function.sig,
+                "#[fbinit::compat_test] should be used only on async functions",
+            ));
+        }
+        function.sig.asyncness = None;
         function.attrs.push(parse_quote!(#[test]));
-    }
 
-    Ok(quote!(#function))
+        Ok(quote!(#function))
+    } else {
+        if function.sig.asyncness.is_some() {
+            let tokio_attribute = match mode {
+                Mode::Main => "main",
+                Mode::Test => "test",
+                Mode::CompatTest => unreachable!(),
+            };
+            let span = function.sig.span();
+            let ident = Ident::new(tokio_attribute, span);
+            let attr = quote_spanned! {span=>
+                #[fbinit::r#impl::tokio::#ident]
+            };
+            function.attrs.push(parse_quote!(#attr));
+        } else if mode == Mode::Test {
+            function.attrs.push(parse_quote!(#[test]));
+        }
+
+        Ok(quote!(#function))
+    }
 }

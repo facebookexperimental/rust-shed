@@ -61,3 +61,11 @@ pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
         .unwrap_or_else(|err| err.to_compile_error())
         .into()
 }
+
+#[proc_macro_attribute]
+pub fn compat_test(args: TokenStream, input: TokenStream) -> TokenStream {
+    parse_macro_input!(args as Nothing);
+    expand(Mode::CompatTest, parse_macro_input!(input))
+        .unwrap_or_else(|err| err.to_compile_error())
+        .into()
+}
