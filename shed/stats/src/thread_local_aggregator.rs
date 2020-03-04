@@ -38,7 +38,7 @@ lazy_static! {
 }
 
 /// Type alias for the future that must be spawned on tokio.
-pub type Scheduler = BoxFuture<(), tokio::timer::Error>;
+pub type Scheduler = BoxFuture<(), tokio_old::timer::Error>;
 
 /// This error is returned to indicate that the stats scheduler was already
 /// retrieved before and potentially is already running, but might be retrieved
@@ -111,7 +111,7 @@ pub fn create_map() -> Arc<ThreadMap<BoxStatsManager>> {
 /// ```no_run
 /// use futures_old::Future;
 /// use stats::schedule_stats_aggregation;
-/// use tokio::executor::spawn;
+/// use tokio_old::executor::spawn;
 ///
 /// let s = schedule_stats_aggregation().unwrap();
 /// spawn(s.map_err(|e| panic!("Stats problem: {:?}", e)));
@@ -120,7 +120,7 @@ pub fn schedule_stats_aggregation() -> Result<Scheduler, StatsScheduledError> {
     let at = Instant::now() + Duration::from_secs(1);
     let interval = Duration::from_secs(1);
 
-    let scheduler = schedule_stats_on_stream(tokio::timer::Interval::new(at, interval));
+    let scheduler = schedule_stats_on_stream(tokio_old::timer::Interval::new(at, interval));
 
     if STATS_SCHEDULED.swap(true, atomic::Ordering::Relaxed) {
         Err(StatsScheduledError(scheduler))

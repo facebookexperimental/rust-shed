@@ -11,7 +11,7 @@ use futures_old::{future, stream, Stream};
 use futures_stats::{Timed, TimedStreamTrait};
 
 fn main() {
-    let mut runtime = tokio::runtime::Runtime::new().unwrap();
+    let mut runtime = tokio_old::runtime::Runtime::new().unwrap();
     let fut = future::lazy(|| {
         println!("future polled");
         Ok(())

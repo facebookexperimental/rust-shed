@@ -313,7 +313,7 @@ mod tests {
             })
             .boxify();
 
-        tokio::run(s.collect().map(|_| ()));
+        tokio_old::run(s.collect().map(|_| ()));
         assert!(callback_called.load(Ordering::SeqCst));
     }
 
@@ -335,7 +335,7 @@ mod tests {
             })
             .boxify();
 
-        tokio::run(s.collect().map(|_| ()).map_err({
+        tokio_old::run(s.collect().map(|_| ()).map_err({
             let err_happened = err_happened.clone();
             move |_| err_happened.store(true, Ordering::SeqCst)
         }));
@@ -363,7 +363,7 @@ mod tests {
             })
             .boxify();
 
-        tokio::run(s.collect().map(|_| ()));
+        tokio_old::run(s.collect().map(|_| ()));
         assert!(future_called.load(Ordering::SeqCst));
     }
 
@@ -390,7 +390,7 @@ mod tests {
             })
             .boxify();
 
-        tokio::run(s.collect().map(|_| ()).map_err({
+        tokio_old::run(s.collect().map(|_| ()).map_err({
             let err_happened = err_happened.clone();
             move |_| {
                 err_happened.store(true, Ordering::SeqCst);
@@ -420,7 +420,7 @@ mod tests {
             .map_err(|_| ())
             .boxify();
 
-        tokio::run(f);
+        tokio_old::run(f);
         assert!(result_ok.load(Ordering::SeqCst));
     }
 
@@ -442,7 +442,7 @@ mod tests {
             .map_err(|_| ())
             .boxify();
 
-        tokio::run(f);
+        tokio_old::run(f);
         assert!(err_ok.load(Ordering::SeqCst));
     }
 }
