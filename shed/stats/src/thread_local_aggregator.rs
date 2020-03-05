@@ -139,18 +139,17 @@ pub fn schedule_stats_aggregation() -> Result<Scheduler, StatsScheduledError> {
 ///
 /// ```no_run
 /// use stats::schedule_stats_aggregation_preview;
-/// use tokio_preview::spawn;
+/// use tokio::spawn;
 ///
 /// let s = schedule_stats_aggregation_preview().unwrap();
 /// spawn(s);
 /// ```
 pub fn schedule_stats_aggregation_preview() -> Result<SchedulerPreview, StatsScheduledErrorPreview>
 {
-    let start = tokio_preview::time::Instant::now() + Duration::from_secs(1);
+    let start = tokio::time::Instant::now() + Duration::from_secs(1);
     let period = Duration::from_secs(1);
 
-    let scheduler =
-        schedule_stats_on_stream_preview(tokio_preview::time::interval_at(start, period));
+    let scheduler = schedule_stats_on_stream_preview(tokio::time::interval_at(start, period));
 
     if STATS_SCHEDULED.swap(true, atomic::Ordering::Relaxed) {
         Err(StatsScheduledErrorPreview(scheduler))
@@ -193,7 +192,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio_preview as tokio;
 
     lazy_static! {
         // Those tests work on global state so they cannot be run in parallel

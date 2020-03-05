@@ -232,7 +232,6 @@ mod tests {
     use std::sync::Arc;
 
     use futures::stream::{self, StreamExt};
-    use tokio_preview as tokio;
 
     #[tokio::test]
     async fn test_timed_future() {

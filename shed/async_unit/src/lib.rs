@@ -57,14 +57,14 @@ mod test {
     #[test]
     fn spawn_async() {
         tokio_unit_test(async {
-            let _ = tokio::spawn(future::lazy(|| Ok(())));
+            let _ = tokio_old::spawn(future::lazy(|| Ok(())));
         })
     }
 
     #[test]
     fn spawn_async_new_tokio() {
         tokio_unit_test(async {
-            let _ = tokio_preview::spawn(async move { () });
+            let _ = tokio::spawn(async move { () });
         })
     }
 }
