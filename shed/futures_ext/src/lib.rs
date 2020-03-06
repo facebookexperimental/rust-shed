@@ -815,7 +815,7 @@ macro_rules! try_left_future {
     ($e:expr) => {
         match $e {
             Ok(t) => t,
-            Err(e) => return ::futures::future::err(e.into()).left_future(),
+            Err(e) => return $crate::futures_reexport::future::err(e.into()).left_future(),
         }
     };
 }
