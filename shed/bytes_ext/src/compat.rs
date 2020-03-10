@@ -10,15 +10,17 @@ use bytes::{Buf as BufNew, Bytes as BytesNew};
 use bytes_old::{Buf as BufOld, Bytes as BytesOld};
 use ref_cast::RefCast;
 
-// Wrapper for using each of bytes 0.4 and 0.5's Bytes types as an
-// implementation of the other version's Buf trait.
+/// Wrapper for using each of bytes 0.4 and 0.5's Bytes types as an
+/// implementation of the other version's Buf trait.
 #[derive(RefCast)]
 #[repr(transparent)]
 pub struct BytesCompat<B> {
+    /// Inner instance of either bytes 0.4 or 0.5
     pub inner: B,
 }
 
 impl<B> BytesCompat<B> {
+    /// Create a new BytesCompat wrapper around the provided instance
     pub fn new(inner: B) -> Self {
         BytesCompat { inner }
     }
