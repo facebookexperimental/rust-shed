@@ -5,6 +5,7 @@ members = [
     "shed/async_compression",
     "shed/async_unit",
     "shed/bytes_ext",
+    "shed/cachelib_stub",
     "shed/chrome_trace",
     "shed/cloned",
     "shed/codegen_includer_proc_macro",

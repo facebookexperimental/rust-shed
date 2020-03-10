@@ -1,0 +1,13 @@
+[package]
+name = "cachelib"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+futures_ext = { path = "../futures_ext" }
+abomonation = "0.7"
+anyhow = "1.0"
+bytes = { version = "0.5", features = ["serde"] }
