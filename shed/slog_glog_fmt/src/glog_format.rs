@@ -89,8 +89,8 @@ fn write_logline(
         Level::Error => 'E',
         Level::Warning => 'W',
         Level::Info => 'I',
-        Level::Debug => 'D',
-        Level::Trace => 'T',
+        Level::Debug => 'V',
+        Level::Trace => 'V',
     };
 
     decorator.start_level()?;
@@ -224,7 +224,7 @@ mod tests {
     lazy_static! {
         // Create a regex that matches log lines.
         static ref LOG_REGEX: Regex = Regex::new(
-            r"(?m)^(.)(\d{4} \d\d:\d\d:\d\d\.\d{6}) +(\d+)(?: \[([\d\S-]+)\] )?([^:]+):(\d+)\] ([^\n]*(?:\n[^IED][^\n]*)*)$"
+            r"(?m)^(.)(\d{4} \d\d:\d\d:\d\d\.\d{6}) +(\d+)(?: \[([\d\S-]+)\] )?([^:]+):(\d+)\] ([^\n]*(?:\n[^IEV][^\n]*)*)$"
         ).unwrap();
     }
 
@@ -353,8 +353,8 @@ mod tests {
                 "Test log 1, mode: test, Root cause: MyError(\n    0,\n), tau: 6.28",
             ),
             ("E", "Error: my error #2 displayed"),
-            ("D", "Caused by: my error #1 displayed"),
-            ("D", "Caused by: my error #0 displayed"),
+            ("V", "Caused by: my error #1 displayed"),
+            ("V", "Caused by: my error #0 displayed"),
         ]
         .into_iter()
         .map(|(level, msg)| TestLine::new(level, line, msg))
