@@ -85,8 +85,8 @@ impl Deref for AsciiChar {
 }
 
 impl From<ascii::AsciiChar> for AsciiChar {
-    fn from(s: ascii::AsciiChar) -> Self {
-        AsciiChar(s)
+    fn from(ch: ascii::AsciiChar) -> Self {
+        AsciiChar(ch)
     }
 }
 

@@ -10,7 +10,6 @@
 //! to implement traits to be used with the sql's queries macro.
 
 #![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
-#![feature(wait_until)]
 
 pub mod error;
 pub mod mysql;

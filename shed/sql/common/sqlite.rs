@@ -53,17 +53,17 @@ impl SqliteConnectionGuard {
         condvar: Arc<Condvar>,
     ) -> SqliteConnectionGuard {
         let _global_lock =
-            CONN_CONDVAR.wait_until(CONN_LOCK.lock().expect("lock poisoned"), |allowed| {
+            CONN_CONDVAR.wait_while(CONN_LOCK.lock().expect("lock poisoned"), |allowed| {
                 if *allowed {
                     *allowed = false;
-                    true
-                } else {
                     false
+                } else {
+                    true
                 }
             });
         let con = {
             let mut mutexguard = condvar
-                .wait_until(m.lock().expect("poisoned lock"), |con| con.is_some())
+                .wait_while(m.lock().expect("poisoned lock"), |con| con.is_none())
                 .expect("poisoned lock");
 
             mutexguard.take().expect("connection should not be empty")

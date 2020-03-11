@@ -7,7 +7,6 @@
  */
 
 #![deny(warnings, clippy::all)]
-#![feature(wait_until)]
 
 use futures::Future;
 use sql::mysql_async::prelude::*;
