@@ -14,6 +14,7 @@ members = [
     "shed/fbinit/macros",
     "shed/futures_ext",
     "shed/futures_stats",
+    "shed/hostname",
     "shed/lock_ext",
     "shed/memcache_stub",
     "shed/memcache_stub/common",
