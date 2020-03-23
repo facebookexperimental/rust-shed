@@ -25,6 +25,6 @@ pub fn get_hostname() -> Result<String> {
         fbwhoami::FbWhoAmI::get()?
             .name
             .clone()
-            .ok_or(::anyhow::Error::msg("No hostname in fbwhoami"))
+            .ok_or_else(|| ::anyhow::Error::msg("No hostname in fbwhoami"))
     }
 }
