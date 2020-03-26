@@ -16,12 +16,13 @@ pub mod common_macro_prelude {
     pub use perthread::{PerThread, ThreadMap};
     pub use stats_traits::{
         dynamic_stat_types::DynamicStat,
-        stat_types::{BoxCounter, BoxHistogram, BoxTimeseries},
+        stat_types::{BoxCounter, BoxHistogram, BoxSingletonCounter, BoxTimeseries},
         stats_manager::{AggregationType::*, BoxStatsManager, BucketConfig, StatsManager},
     };
     pub use std::sync::Arc;
     pub use std::time::Duration;
 
+    pub use crate::create_singleton_counter;
     pub use crate::create_stats_manager;
     pub use crate::thread_local_aggregator::create_map;
 }
@@ -33,9 +34,11 @@ pub mod common_macro_prelude {
 /// Examples:
 /// ```
 /// use stats::prelude::*;
+/// use fbinit::FacebookInit;
 ///
 /// define_stats! {
 ///     prefix = "my.test.counters";
+///     manual_c: singleton_counter(),
 ///     test_c: counter(),
 ///     test_c2: counter("test_c.two"),
 ///     test_t: timeseries(Sum, Average),
@@ -57,7 +60,9 @@ pub mod common_macro_prelude {
 ///     pub use self::STATS::*;
 /// }
 ///
-/// fn main() {
+/// #[fbinit::main]
+/// fn main(fb: FacebookInit) {
+///     STATS::manual_c.set_value(fb, 1);
 ///     STATS::test_c.increment_value(1);
 ///     STATS::test_c2.increment_value(100);
 ///     STATS::test_t.add_value(1);
@@ -118,6 +123,16 @@ macro_rules! __define_key_generator {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __define_stat {
+    ($prefix:expr; $name:ident: singleton_counter()) => (
+        $crate::__define_stat!($prefix; $name: singleton_counter(stringify!($name)));
+    );
+
+    ($prefix:expr; $name:ident: singleton_counter($key:expr)) => (
+        lazy_static! {
+            pub static ref $name: BoxSingletonCounter = create_singleton_counter($crate::__create_stat_key!($prefix, $key).to_string());
+        }
+    );
+
     ($prefix:expr; $name:ident: counter()) => (
         $crate::__define_stat!($prefix; $name: counter(stringify!($name)));
     );
@@ -376,6 +391,9 @@ macro_rules! define_stats_struct {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __struct_field_type {
+    (singleton_counter) => {
+        $crate::macros::common_macro_prelude::BoxSingletonCounter
+    };
     (counter) => {
         $crate::macros::common_macro_prelude::BoxCounter
     };
@@ -390,6 +408,17 @@ macro_rules! __struct_field_type {
 #[macro_export]
 #[doc(hidden)]
 macro_rules! __struct_field_init {
+    ($prefix:expr, $name:ident, singleton_counter, ) => {
+        $crate::__struct_field_init! ($prefix, $name, singleton_counter, stringify!($name))
+    };
+    ($prefix:expr, $name:ident, singleton_counter, $key:expr) => {
+        $crate::__struct_field_init! ($prefix, $name, singleton_counter, $key ; )
+    };
+    ($prefix:expr, $name:ident, singleton_counter, $key:expr ; ) => {{
+        let key = format!("{}.{}", $prefix, $key);
+        create_singleton_counter(key)
+    }};
+
     ($prefix:expr, $name:ident, counter, ) => {
         $crate::__struct_field_init! ($prefix, $name, counter, stringify!($name))
     };

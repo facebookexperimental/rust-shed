@@ -6,10 +6,13 @@
  * directory of this source tree.
  */
 
+use fbinit::FacebookInit;
 use std::time::Duration;
 
 use stats_traits::{
-    stat_types::{BoxCounter, BoxHistogram, BoxTimeseries, Counter, Histogram, Timeseries},
+    stat_types::{
+        BoxCounter, BoxHistogram, BoxTimeseries, Counter, Histogram, SingletonCounter, Timeseries,
+    },
     stats_manager::{
         AggregationType, BoxStatsManager, BucketConfig, StatsManager, StatsManagerFactory,
     },
@@ -23,7 +26,7 @@ impl StatsManagerFactory for NoopStatsFactory {
     }
 }
 
-struct Noop;
+pub struct Noop;
 
 impl StatsManager for Noop {
     fn aggregate(&self) {}
@@ -64,4 +67,11 @@ impl Timeseries for Noop {
 impl Histogram for Noop {
     fn add_value(&self, _value: i64) {}
     fn add_repeated_value(&self, _value: i64, _nsamples: u32) {}
+}
+
+impl SingletonCounter for Noop {
+    fn set_value(&self, _fb: FacebookInit, _value: i64) {}
+    fn get_value(&self, _fb: FacebookInit) -> Option<i64> {
+        None
+    }
 }

@@ -7,6 +7,7 @@ license = "GPLv2+"
 include = ["src/**/*.rs"]
 
 [dependencies]
+fbinit = { path = "../fbinit" }
 futures_ext = { path = "../futures_ext" }
 perthread = { path = "../perthread" }
 stats_traits = { path = "traits" }

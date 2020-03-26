@@ -7,13 +7,26 @@
  */
 
 use auto_impl::auto_impl;
+use fbinit::FacebookInit;
 
+pub type BoxSingletonCounter = Box<dyn SingletonCounter + Send + Sync>;
 pub type BoxCounter = Box<dyn Counter + Send + Sync>;
 pub type BoxTimeseries = Box<dyn Timeseries + Send + Sync>;
 pub type BoxHistogram = Box<dyn Histogram + Send + Sync>;
 
-/// Counter is the simples type of stat, it behaves as a single number that can
-/// be incremented.
+/// SingletonCounter is a non-aggregated, global counter. Use this if you don't want any aggregation,
+/// and just want to expose a value through stats.
+#[auto_impl(Box)]
+pub trait SingletonCounter {
+    /// Sets the value of the counter
+    fn set_value(&self, fb: FacebookInit, value: i64);
+
+    /// Gets the current value of the counter
+    fn get_value(&self, fb: FacebookInit) -> Option<i64>;
+}
+
+/// Counter is the simplest type of aggregated stat, it behaves as a single number that can be
+/// incremented.
 #[auto_impl(Box)]
 pub trait Counter {
     /// Increments the counter by the given amount.

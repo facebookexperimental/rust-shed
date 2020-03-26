@@ -39,7 +39,10 @@ pub mod prelude {
 use std::sync::RwLock;
 
 use lazy_static::lazy_static;
-use stats_traits::stats_manager::{BoxStatsManager, StatsManagerFactory};
+use stats_traits::{
+    stat_types::BoxSingletonCounter,
+    stats_manager::{BoxStatsManager, StatsManagerFactory},
+};
 
 pub use self::thread_local_aggregator::{
     schedule_stats_aggregation, schedule_stats_aggregation_preview,
@@ -91,5 +94,21 @@ fn get_default_stats_manager_factory() -> Box<dyn StatsManagerFactory + Send + S
     #[cfg(not(fbcode_build))]
     {
         Box::new(crate::noop_stats::NoopStatsFactory)
+    }
+}
+
+#[doc(hidden)]
+/// You probably don't have to use this function, it is made public so that it
+/// might be used by the macros in this crate. It creates a new SingletonCounter.
+pub fn create_singleton_counter(name: String) -> BoxSingletonCounter {
+    #[cfg(fbcode_build)]
+    {
+        Box::new(::stats_facebook::singleton_counter::ServiceDataSingletonCounter::new(name))
+    }
+
+    #[cfg(not(fbcode_build))]
+    {
+        let _ = name;
+        Box::new(crate::noop_stats::Noop)
     }
 }
