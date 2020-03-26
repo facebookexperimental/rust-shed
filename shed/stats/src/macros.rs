@@ -205,6 +205,23 @@ macro_rules! __define_stat {
     );
 
     ($prefix:expr;
+     $name:ident: dynamic_singleton_counter($key:expr, ($( $placeholder:ident: $type:ty ),+))) => (
+        thread_local! {
+            pub static $name: DynamicStat<($( $type, )+), BoxSingletonCounter> = {
+                $crate::__define_key_generator!(
+                    __key_generator($prefix, $key; $( $placeholder: $type ),+)
+                );
+
+                fn __stat_generator(key: &str) -> BoxSingletonCounter {
+                    create_singleton_counter(key.to_string())
+                }
+
+                DynamicStat::new(__key_generator, __stat_generator)
+            }
+        }
+    );
+
+    ($prefix:expr;
      $name:ident: dynamic_counter($key:expr, ($( $placeholder:ident: $type:ty ),+))) => (
         thread_local! {
             pub static $name: DynamicStat<($( $type, )+), BoxCounter> = {

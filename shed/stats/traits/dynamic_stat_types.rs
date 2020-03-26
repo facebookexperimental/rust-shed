@@ -11,11 +11,15 @@
 //! then the pattern that is used to format the key and the arguments used in that pattern are
 //! statically checked.
 
+use fbinit::FacebookInit;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::thread::LocalKey;
 
-use crate::stat_types::{BoxCounter, BoxHistogram, BoxTimeseries, Counter, Histogram, Timeseries};
+use crate::stat_types::{
+    BoxCounter, BoxHistogram, BoxSingletonCounter, BoxTimeseries, Counter, Histogram,
+    SingletonCounter, Timeseries,
+};
 
 /// The struct to hold key and stat generators that are later being used in runtime to create new
 /// stats that are being held in a map to avoid reconstruction of the same counter.
@@ -34,16 +38,16 @@ impl<T, TStatType> DynamicStat<T, TStatType> {
         }
     }
 
-    fn get_or_default<F>(&self, args: T, cb: F)
+    fn get_or_default<F, V>(&self, args: T, cb: F) -> V
     where
-        F: FnOnce(&TStatType),
+        F: FnOnce(&TStatType) -> V,
     {
         // The HashMap::entry requires to pass the key by value, so we can't create the string
         // once and pass it to entry and later to the closure. That is why we are creating the
         // key twice if there is no entry for it already.
         let mut map = self.map.borrow_mut();
         let entry = map.entry((self.key_generator)(&args));
-        cb(entry.or_insert_with(|| (self.stat_generator)(&(self.key_generator)(&args))));
+        cb(entry.or_insert_with(|| (self.stat_generator)(&(self.key_generator)(&args))))
     }
 }
 
@@ -123,5 +127,35 @@ impl<T> DynamicHistogram<'static, T> for LocalKey<DynamicStat<T, BoxHistogram>> 
 
     fn add_repeated_value(&'static self, value: i64, nsamples: u32, args: T) {
         self.with(|s| s.add_repeated_value(value, nsamples, args));
+    }
+}
+
+/// Similar to the SingletonCounter trait, but accepts the args parameter for accessing dynamic
+/// histograms created at runtime.
+pub trait DynamicSingletonCounter<'a, T> {
+    /// Dynamic version of `SingletonCounter::set_value`
+    fn set_value(&'a self, fb: FacebookInit, value: i64, args: T);
+
+    /// Dynamic version of `SingletonCounter::get_value`
+    fn get_value(&'a self, fb: FacebookInit, args: T) -> Option<i64>;
+}
+
+impl<'a, T> DynamicSingletonCounter<'a, T> for DynamicStat<T, BoxSingletonCounter> {
+    fn set_value(&'a self, fb: FacebookInit, value: i64, args: T) {
+        self.get_or_default(args, |s| s.set_value(fb, value));
+    }
+
+    fn get_value(&'a self, fb: FacebookInit, args: T) -> Option<i64> {
+        self.get_or_default(args, |s| s.get_value(fb))
+    }
+}
+
+impl<T> DynamicSingletonCounter<'static, T> for LocalKey<DynamicStat<T, BoxSingletonCounter>> {
+    fn set_value(&'static self, fb: FacebookInit, value: i64, args: T) {
+        self.with(|s| s.set_value(fb, value, args))
+    }
+
+    fn get_value(&'static self, fb: FacebookInit, args: T) -> Option<i64> {
+        self.with(|s| s.get_value(fb, args))
     }
 }
