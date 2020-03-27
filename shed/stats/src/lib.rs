@@ -29,7 +29,9 @@ pub mod prelude {
     //! ```
     pub use crate::{define_stats, define_stats_struct};
     pub use stats_traits::{
-        dynamic_stat_types::{DynamicCounter, DynamicHistogram, DynamicTimeseries},
+        dynamic_stat_types::{
+            DynamicCounter, DynamicHistogram, DynamicSingletonCounter, DynamicTimeseries,
+        },
         stat_types::{
             Counter, CounterStatic, Histogram, HistogramStatic, Timeseries, TimeseriesStatic,
         },
