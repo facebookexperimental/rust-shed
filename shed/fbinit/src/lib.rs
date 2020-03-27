@@ -11,7 +11,7 @@
 //! Provides [FacebookInit] structure that must be used in Facebook code that
 //! requires pre-initialization, e.g. like C++'s logging.
 
-pub use macros::{main, test};
+pub use macros::{compat_test, main, test};
 
 #[cfg(fbcode_build)]
 pub use fbinit::*;
