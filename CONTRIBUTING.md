@@ -52,5 +52,7 @@ the
 [`rustfmt` README](https://github.com/rust-lang-nursery/rustfmt/#installation).
 
 ## License
-By contributing to rust-shed, you agree that your contributions will be licensed
-under the LICENSE file in the root directory of this source tree.
+By contributing to rust-shed, you agree that your contributions will be
+licensed under both the [LICENSE-MIT](LICENSE-MIT) and
+[LICENSE-APACHE](LICENSE-APACHE) files in the root directory of this source
+tree.

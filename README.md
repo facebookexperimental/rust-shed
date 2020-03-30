@@ -36,5 +36,6 @@ Alternatively you can build and run tests with:
 See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
 
 ## License
-rust-shed is GNU General Public License licensed, as found in the
-[LICENSE](LICENSE) file.
+
+rust-shed is both MIT and Apache License, Version 2.0 licensed, as found
+in the [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) files.
