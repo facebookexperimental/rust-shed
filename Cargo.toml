@@ -26,6 +26,7 @@ members = [
     "shed/services",
     "shed/services/common",
     "shed/slog_glog_fmt",
+    "shed/slog_stats",
     "shed/sql",
     "shed/sql/common",
     "shed/sql/tests_lib",

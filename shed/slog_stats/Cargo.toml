@@ -1,0 +1,11 @@
+[package]
+name = "slog_stats"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+stats = { path = "../stats" }
+slog = { version="2.5", features=["max_level_debug"] }
