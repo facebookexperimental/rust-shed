@@ -70,7 +70,7 @@ mod r#impl {
         pub fn configerator(
             _: FacebookInit,
             _: impl Into<Option<Logger>>,
-            _: Duration,
+            _: impl Into<Option<Duration>>,
             _: Duration,
         ) -> Result<Self> {
             fb_unimplemented!()
@@ -82,7 +82,7 @@ mod r#impl {
             _: FacebookInit,
             _: impl Into<Option<Logger>>,
             _: HashMap<String, String>,
-            _: Duration,
+            _: impl Into<Option<Duration>>,
             _: Duration,
         ) -> Result<Self> {
             fb_unimplemented!()
@@ -90,7 +90,11 @@ mod r#impl {
 
         /// # Panics
         /// When called in non-fbcode builds
-        pub fn materialized_configs(_: impl Into<Option<Logger>>, _: PathBuf, _: Duration) -> Self {
+        pub fn materialized_configs(
+            _: impl Into<Option<Logger>>,
+            _: PathBuf,
+            _: impl Into<Option<Duration>>,
+        ) -> Self {
             fb_unimplemented!()
         }
     }

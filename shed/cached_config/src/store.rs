@@ -41,29 +41,32 @@ impl ConfigStore {
     /// Create a new instance of the ConfigStore with its own updating thread
     /// which will be run every `poll_interval`. The configs will be retrieved
     /// from the provided `source`. If `logger` is given then the store will
-    /// inform about status of refreshes.
+    /// inform about status of refreshes. If `poll_interval` is None then no
+    /// updating thread will be spawned.
     ///
     /// TODO: Each instance creates its own thread, make sure the thread is
     /// stopped once the ConfigStore and all relevant ConfigHandle are destroyed.
     pub fn new(
         source: Arc<dyn Source + Sync + Send>,
-        poll_interval: Duration,
-        logger: Option<Logger>,
+        poll_interval: impl Into<Option<Duration>>,
+        logger: impl Into<Option<Logger>>,
     ) -> Self {
         let this = Self {
             source,
             clients: Arc::new(Mutex::new(HashMap::new())),
             kick: Arc::new(Condvar::new()),
-            logger,
+            logger: logger.into(),
         };
 
-        thread::Builder::new()
-            .name("rust-cfgr-updates".into())
-            .spawn({
-                let this = this.clone();
-                move || this.updater_thread(poll_interval)
-            })
-            .expect("Can't spawn cached_config updates poller");
+        if let Some(poll_interval) = poll_interval.into() {
+            thread::Builder::new()
+                .name("rust-cfgr-updates".into())
+                .spawn({
+                    let this = this.clone();
+                    move || this.updater_thread(poll_interval)
+                })
+                .expect("Can't spawn cached_config updates poller");
+        }
 
         this
     }
@@ -77,7 +80,7 @@ impl ConfigStore {
         logger: impl Into<Option<Logger>>,
         directory: PathBuf,
         extension: impl Into<Option<String>>,
-        poll_interval: Duration,
+        poll_interval: impl Into<Option<Duration>>,
     ) -> Self {
         Self::new(
             Arc::new(FileSource::new(directory, extension)),
