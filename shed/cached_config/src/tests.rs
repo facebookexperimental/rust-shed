@@ -12,7 +12,7 @@ use serde_derive::Deserialize;
 use std::{
     collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
-    thread::sleep,
+    thread,
     time::Duration,
 };
 
@@ -116,7 +116,8 @@ fn test_config_store() {
     }
 
     // Ensure the updater thread has run
-    sleep(Duration::from_millis(10));
+    thread::yield_now();
+    thread::sleep(Duration::from_secs(1));
 
     // handle1 remains the same, because the mod_time has not changed
     assert_eq!(*handle1.get(), TestConfig { value: 1 });
