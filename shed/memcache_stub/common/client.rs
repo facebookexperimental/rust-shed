@@ -7,6 +7,7 @@
  * of this source tree.
  */
 
+use anyhow::Result;
 use bytes::Bytes;
 use fbinit::FacebookInit;
 use futures::{future::ok, Future};
@@ -23,8 +24,8 @@ pub struct MemcacheClient;
 
 impl MemcacheClient {
     /// Return a new instance of MemcacheClient.
-    pub fn new(_fb: FacebookInit) -> Self {
-        MemcacheClient
+    pub fn new(_fb: FacebookInit) -> Result<Self> {
+        Ok(MemcacheClient)
     }
 
     /// Gets the Memcache value under `key`
