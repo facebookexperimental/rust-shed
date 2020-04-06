@@ -13,7 +13,7 @@ sql_common = { path = "common" }
 anyhow = "1.0"
 failure = "0.1"
 futures = "0.1"
-mysql_async = { version="0.20", features=["ssl"] }
+mysql_async = { version = "0.23" }
 rusqlite = { version = "0.21", features = ["bundled"] }
 
 [dev-dependencies]

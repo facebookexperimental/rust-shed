@@ -8,12 +8,11 @@
  */
 
 use anyhow::Error;
-use futures::future::Future;
-use futures_ext::{BoxFuture, FutureExt};
+use futures::{compat::Future01CompatExt, future::FutureExt, future::TryFutureExt};
+use futures_ext::{BoxFuture, FutureExt as _};
 use mysql_async::{prelude::Queryable, Conn, Transaction};
 
 use super::{BoxMysqlTransaction, MysqlTransaction, TraQueryProcess};
-use crate::error::from_failure;
 
 impl MysqlTransaction for Transaction<Conn> {
     fn query(
@@ -21,28 +20,36 @@ impl MysqlTransaction for Transaction<Conn> {
         query: String,
         process: TraQueryProcess,
     ) -> BoxFuture<BoxMysqlTransaction, Error> {
-        (*self)
-            .query(query)
-            .map_err(from_failure)
-            .and_then(move |query_result| process(query_result))
-            .and_then(|query_result| query_result.drop_result().map_err(from_failure))
-            .map(move |transaction| -> BoxMysqlTransaction { Box::new(transaction) })
-            .boxify()
+        async move {
+            let query_result = (*self).query(query).await?;
+            let query_result = process(query_result).compat().await?;
+            let transaction = query_result.drop_result().await?;
+            Ok(Box::new(transaction) as BoxMysqlTransaction)
+        }
+        .boxed()
+        .compat()
+        .boxify()
     }
 
     fn commit(self: Box<Self>) -> BoxFuture<(), Error> {
-        (*self)
-            .commit()
-            .and_then(|conn| conn.disconnect())
-            .map_err(from_failure)
-            .boxify()
+        async move {
+            let conn = (*self).commit().await?;
+            conn.disconnect().await?;
+            Ok(())
+        }
+        .boxed()
+        .compat()
+        .boxify()
     }
 
     fn rollback(self: Box<Self>) -> BoxFuture<(), Error> {
-        (*self)
-            .rollback()
-            .and_then(|conn| conn.disconnect())
-            .map_err(from_failure)
-            .boxify()
+        async move {
+            let conn = (*self).rollback().await?;
+            conn.disconnect().await?;
+            Ok(())
+        }
+        .boxed()
+        .compat()
+        .boxify()
     }
 }

@@ -9,7 +9,7 @@
 
 #![deny(warnings, clippy::all)]
 
-use futures::Future;
+use futures_old::Future;
 use sql::mysql_async::prelude::*;
 use sql::mysql_async::{FromValueError, Value};
 use sql::{queries, Connection, Transaction};

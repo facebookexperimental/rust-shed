@@ -8,11 +8,12 @@
  */
 
 use anyhow::Error;
-use futures::{
-    future::{ok, Future},
+use futures::{future::FutureExt as _, future::TryFutureExt};
+use futures_ext::{BoxFuture, FutureExt};
+use futures_old::{
+    future::{ok, Future as OldFuture},
     sync::oneshot,
 };
-use futures_ext::{BoxFuture, FutureExt};
 use mysql_async::{prelude::FromRow, FromRowError};
 
 use super::{BoxMysqlConnection, BoxMysqlTransaction, QueryProcess, QueryResult};
@@ -43,7 +44,13 @@ impl MysqlConnectionExt for BoxMysqlConnection {
     fn read_query<R: FromRow + Send + 'static>(&self, query: String) -> MyBoxFuture<Vec<R>> {
         helper_query_process(
             |process| self.query(query, process),
-            |query_result| query_result.collect().map_err(from_failure),
+            |query_result| {
+                query_result
+                    .collect()
+                    .boxed()
+                    .compat()
+                    .map_err(from_failure)
+            },
         )
         .map(|((), result)| result)
         .boxify()
@@ -55,7 +62,13 @@ impl MysqlConnectionExt for BoxMysqlConnection {
     ) -> MyBoxFuture<Vec<Result<R, FromRowError>>> {
         helper_query_process(
             |process| self.query(query, process),
-            |query_result| query_result.try_collect().map_err(from_failure),
+            |query_result| {
+                query_result
+                    .try_collect()
+                    .boxed()
+                    .compat()
+                    .map_err(from_failure)
+            },
         )
         .map(|((), result)| result)
         .boxify()
@@ -103,7 +116,13 @@ impl MysqlTransactionExt for BoxMysqlTransaction {
     ) -> MyBoxFuture<(BoxMysqlTransaction, Vec<R>)> {
         helper_query_process(
             |process| self.query(query, process),
-            |query_result| query_result.collect().map_err(from_failure),
+            |query_result| {
+                query_result
+                    .collect()
+                    .boxed()
+                    .compat()
+                    .map_err(from_failure)
+            },
         )
     }
 
@@ -113,7 +132,13 @@ impl MysqlTransactionExt for BoxMysqlTransaction {
     ) -> MyBoxFuture<(BoxMysqlTransaction, Vec<Result<R, FromRowError>>)> {
         helper_query_process(
             |process| self.query(query, process),
-            |query_result| query_result.try_collect().map_err(from_failure),
+            |query_result| {
+                query_result
+                    .try_collect()
+                    .boxed()
+                    .compat()
+                    .map_err(from_failure)
+            },
         )
     }
 
@@ -137,7 +162,7 @@ where
     TQueryable: Send + 'static,
     TProcess: FnOnce(QueryResult<TQueryable>) -> TProcessFut + Send + 'static,
     TProcessFut:
-        Future<Item = (QueryResult<TQueryable>, TQueryResult), Error = Error> + Send + 'static,
+        OldFuture<Item = (QueryResult<TQueryable>, TQueryResult), Error = Error> + Send + 'static,
     TProcessResult: Send + 'static,
     TQueryResult: Send + 'static,
 {

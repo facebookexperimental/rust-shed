@@ -48,7 +48,7 @@ pub type TraQueryProcess = QueryProcess<Transaction<Conn>>;
 pub trait MysqlConnection: Debug {
     /// Perform the string query and process the [mysql_async::QueryResult].
     /// A frequent pattern is to extract some values from the QueryResult and
-    /// send it through a [::futures::sync::oneshot::channel] to retrieve it.
+    /// send it through a [::futures_old::sync::oneshot::channel] to retrieve it.
     fn query(&self, query: String, process: ConQueryProcess) -> BoxFuture<(), Error>;
     /// Return a transaction for this connection with provided options.
     fn transaction_with_options(
@@ -76,7 +76,7 @@ impl Clone for BoxMysqlConnection {
 pub trait MysqlTransaction {
     /// Perform the string query and process the [mysql_async::QueryResult].
     /// A frequent pattern is to extract some values from the QueryResult and
-    /// send it through a [::futures::sync::oneshot::channel] to retrieve it.
+    /// send it through a [::futures_old::sync::oneshot::channel] to retrieve it.
     fn query(
         self: Box<Self>,
         query: String,

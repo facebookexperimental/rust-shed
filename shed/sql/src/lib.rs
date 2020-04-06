@@ -86,7 +86,8 @@ impl ToSqliteValue for ValueWrapper {
             Value::Bytes(b) => ToSqliteOutput::Borrowed(SqliteValueRef::Blob(b.as_ref())),
             Value::Int(i) => ToSqliteOutput::Owned(SqliteValue::Integer(*i)),
             Value::UInt(u) => ToSqliteOutput::Owned(SqliteValue::Integer(*u as i64)),
-            Value::Float(f) => ToSqliteOutput::Owned(SqliteValue::Real(*f)),
+            Value::Float(f) => ToSqliteOutput::Owned(SqliteValue::Real((*f).into())),
+            Value::Double(f) => ToSqliteOutput::Owned(SqliteValue::Real(*f)),
             Value::Date(..) | Value::Time(..) => {
                 unimplemented!("TODO(luk) implement date and time for sqlite")
             }
@@ -99,7 +100,7 @@ impl FromSqliteValue for ValueWrapper {
         Ok(ValueWrapper(match value {
             SqliteValueRef::Null => Value::NULL,
             SqliteValueRef::Integer(i) => Value::Int(i),
-            SqliteValueRef::Real(f) => Value::Float(f),
+            SqliteValueRef::Real(f) => Value::Double(f),
             SqliteValueRef::Text(s) => Value::Bytes(s.into()),
             SqliteValueRef::Blob(b) => Value::Bytes(b.into()),
         }))

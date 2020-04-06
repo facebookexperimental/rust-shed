@@ -10,8 +10,8 @@
 //! Module that provides support for SQL transactions to this library.
 
 use anyhow::Error;
-use futures::{future::IntoFuture, Future};
 use futures_ext::{BoxFuture, FutureExt};
+use futures_old::{future::IntoFuture, Future};
 use mysql_async::TransactionOptions;
 
 use crate::mysql::BoxMysqlTransaction;
@@ -39,7 +39,7 @@ impl crate::Connection {
 /// # Example
 /// ```
 /// use anyhow::Error;
-/// use futures::Future;
+/// use futures_old::Future;
 ///
 /// use sql::{queries, Connection};
 /// use sql_tests_lib::{A, B};
