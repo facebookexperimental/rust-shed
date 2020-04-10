@@ -4,14 +4,14 @@ edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
 license = "GPLv2+"
-include = ["src/*.rs", "test/test.rs"]
+include = ["src/*.rs", "test/starlark_test.rs"]
 
 [lib]
 path = "src/lib.rs"
 
 [[bin]]
-name = "test"
-path = "test/test.rs"
+name = "starlark_test"
+path = "test/starlark_test.rs"
 
 [dependencies]
 maplit = "1.0"
