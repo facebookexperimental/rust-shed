@@ -24,6 +24,7 @@ members = [
     "shed/perthread",
     "shed/scuba_sample",
     "shed/scuba_stub",
+    "shed/serde-starlark",
     "shed/services",
     "shed/services/common",
     "shed/slog_glog_fmt",
