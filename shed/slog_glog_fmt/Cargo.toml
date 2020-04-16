@@ -19,7 +19,7 @@ anyhow = "1.0"
 chrono = { version="0.4", features=["serde"] }
 hostname = "0.3"
 itertools = "0.8"
-nix = "0.15"
+nix = "0.17"
 slog = { version="2.5", features=["max_level_debug"] }
 slog-term = "2.4.2"
 
