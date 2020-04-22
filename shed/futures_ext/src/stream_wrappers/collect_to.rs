@@ -23,7 +23,7 @@ where
     C: Default + Extend<S::Item>,
 {
     fn finish(&mut self) -> C {
-        mem::replace(&mut self.collection, Default::default())
+        mem::take(&mut self.collection)
     }
 
     /// Create a new instance of [CollectTo] wrapping the provided stream
