@@ -10,7 +10,6 @@
 //! Module defining FacebookKV structure that should be used by all Facebook services
 
 use anyhow::Result;
-use hostname;
 use slog::{Record, Result as SlogResult, Serializer, KV};
 
 /// Structure containing all common KV values for Facebook services
