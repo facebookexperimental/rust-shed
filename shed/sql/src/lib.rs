@@ -149,7 +149,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = Vec<($( $rtype, )*)>, Error = Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -160,7 +160,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = (Transaction, Vec<($( $rtype, )*)>), Error = Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query in transaction))
+                    .context(stringify!(While executing $name query in transaction))
                     .from_err()
             }
         }
@@ -204,7 +204,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = Vec<($( $rtype, )*)>, Error = Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -215,7 +215,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = (Transaction, Vec<($( $rtype, )*)>), Error = Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query in transaction))
+                    .context(stringify!(While executing $name query in transaction))
                     .from_err()
             }
         }
@@ -260,7 +260,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = WriteResult, Error = Error> {
                 query_internal(connection, values $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -271,7 +271,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
                 query_internal_with_transaction(transaction, values $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
         }
@@ -316,7 +316,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = WriteResult, Error = Error> {
                 query_internal(connection, values $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -327,7 +327,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
                 query_internal_with_transaction(transaction, values $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
         }
@@ -375,7 +375,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = WriteResult, Error = Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -386,7 +386,7 @@ macro_rules! queries {
                 $( $lname: & [ $ltype ], )*
             ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
         }
@@ -430,7 +430,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = WriteResult, Error = Error> {
                 query_internal(connection, $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
 
@@ -440,7 +440,7 @@ macro_rules! queries {
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
                 query_internal_with_transaction(transaction $( , $pname )*)
-                    .chain_err(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name query))
                     .from_err()
             }
         }
@@ -455,9 +455,8 @@ macro_rules! _query_common {
         use std::fmt::Write;
         use std::sync::Arc;
 
-        use $crate::anyhow::Error;
-        use $crate::failure::Fail;
-        use $crate::failure_ext::chain::ChainExt;
+        use $crate::anyhow::{Context, Error};
+        use $crate::failure_ext::FutureFailureErrorExt;
         use $crate::futures::{
             future::{lazy, IntoFuture},
             Future,
@@ -468,10 +467,7 @@ macro_rules! _query_common {
             types::ToSql as ToSqliteValue, Connection as SqliteConnection, Result as SqliteResult,
             Statement as SqliteStatement,
         };
-        use $crate::sql_common::{
-            error::from_failure,
-            mysql::{MysqlConnectionExt, MysqlTransactionExt},
-        };
+        use $crate::sql_common::mysql::{MysqlConnectionExt, MysqlTransactionExt};
         use $crate::{
             sqlite::{SqliteConnectionGuard, SqliteMultithreaded},
             Connection, Transaction, ValueWrapper,

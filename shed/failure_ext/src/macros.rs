@@ -12,9 +12,12 @@
 /// Usage:
 /// ```
 /// # use anyhow::Error;
-/// # use failure::Fail;
+/// # use std::fmt::{Debug, Display};
 /// # use failure_ext::err_downcast_ref;
-/// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
+/// # fn foo<
+/// #      Type: Display + Debug + Send + Sync + 'static,
+/// #      YourType: Display + Debug + Send + Sync + 'static
+/// # >(err: Error) {
 /// let res = err_downcast_ref! {
 ///    err,
 ///    ty: Type => { /* use ty as &Type */ },
@@ -24,9 +27,9 @@
 /// # fn main() {}
 /// ```
 ///
-/// Where `err` is a `&failure::Error`.
+/// Where `err` is a `&anyhow::Error`.
 /// When one of the type arms match, then it returns Some(value from expr), otherwise None.
-/// It matches against `type`, but also `Chain<type>` and `Context<Type>`.
+/// It's like downcast_ref but for multiple types.
 #[macro_export]
 macro_rules! err_downcast_ref {
     // Base case - all patterns consumed
@@ -43,13 +46,7 @@ macro_rules! err_downcast_ref {
     ( $err:expr, $v:ident : $ty:ty => $action:expr $(, $rv:ident : $rty:ty => $raction:expr)* ) => {{
         match $err.downcast_ref::<$ty>() {
             Some($v) => Some($action),
-            None => match $err.downcast_ref::<$crate::failure::Context<$ty>>() {
-                Some(c) => { let $v = c.get_context(); Some($action) },
-                None => match $err.downcast_ref::<$crate::chain::Chain<$ty>>() {
-                    Some(c) => { let $v = c.as_err(); Some($action) },
-                    None => err_downcast_ref!($err $(, $rv : $rty => $raction)*),
-                }
-            }
+            None => err_downcast_ref!($err $(, $rv : $rty => $raction)*),
         }
     }};
 }
@@ -59,9 +56,12 @@ macro_rules! err_downcast_ref {
 /// Usage:
 /// ```
 /// # use anyhow::Error;
-/// # use failure::Fail;
+/// # use std::fmt::{Debug, Display};
 /// # use failure_ext::err_downcast;
-/// # fn foo<Type: Fail, YourType: Fail>(err: Error) {
+/// # fn foo<
+/// #      Type: Display + Debug + Send + Sync + 'static,
+/// #      YourType: Display + Debug + Send + Sync + 'static
+/// # >(err: Error) {
 /// let res = err_downcast! {
 ///    err,
 ///    ty: Type => { /* use ty as Type */ },
@@ -71,10 +71,9 @@ macro_rules! err_downcast_ref {
 /// # fn main() {}
 /// ```
 ///
-/// Where `err` is a `failure::Error`.
+/// Where `err` is a `anyhow::Error`.
 /// When one of the type arms match, then it returns Ok(value from expr), otherwise Err(err).
-/// It matches against `type`, but also `Chain<type>`. (`Context` can't be supported as it
-/// doesn't have an `into_context()` method).
+/// It's like downcast but for multiple types.
 #[macro_export]
 macro_rules! err_downcast {
     // Base case - all patterns consumed
@@ -91,10 +90,7 @@ macro_rules! err_downcast {
     ( $err:expr, $v:ident : $ty:ty => $action:expr $(, $rv:ident : $rty:ty => $raction:expr)* ) => {{
         match $err.downcast::<$ty>() {
             Ok($v) => Ok($action),
-            Err(other) => match other.downcast::<$crate::chain::Chain<$ty>>() {
-                Ok(c) => { let $v = c.into_err(); Ok($action) },
-                Err(other) => err_downcast!(other $(, $rv : $rty => $raction)*),
-            }
+            Err(other) => err_downcast!(other $(, $rv : $rty => $raction)*),
         }
     }};
 }
@@ -102,7 +98,6 @@ macro_rules! err_downcast {
 #[allow(clippy::blacklisted_name)]
 #[cfg(test)]
 mod test {
-    use crate::chain::ChainExt;
     use anyhow::Error;
     use thiserror::Error;
 
@@ -191,22 +186,6 @@ mod test {
     }
 
     #[test]
-    fn downcast_ref_chain() {
-        let foo = Error::from(Foo);
-        let outer = Error::from(foo.chain_err(Outer));
-
-        let msg = err_downcast_ref! {
-            outer,
-            v: Foo => { let _: &Foo = v; v.to_string() },
-            v: Bar => { let _: &Bar = v; v.to_string() },
-            v: Blat => { let _: &Blat = v; v.to_string() },
-            v: Outer => { let _: &Outer = v; v.to_string() },
-        };
-
-        assert_eq!(msg.unwrap(), "Outer badness".to_string());
-    }
-
-    #[test]
     fn downcast_ref_miss() {
         let blat = Error::from(Blat);
 
@@ -269,9 +248,9 @@ mod test {
     }
 
     #[test]
-    fn downcast_chain() {
+    fn downcast_context() {
         let foo = Error::from(Foo);
-        let outer = Error::from(foo.chain_err(Outer));
+        let outer = foo.context(Outer);
 
         let msg = err_downcast! {
             outer,
@@ -281,7 +260,7 @@ mod test {
             v: Outer => { let _: Outer = v; v.to_string() },
         };
 
-        assert_eq!(msg.unwrap(), "Outer badness".to_string());
+        assert_eq!(msg.unwrap(), "Foo badness".to_string());
     }
 
     #[test]

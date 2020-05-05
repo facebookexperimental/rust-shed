@@ -24,8 +24,6 @@ pub use crate::slogkv::{cause_workaround as cause, SlogKVError, SlogKVErrorKey};
 mod convert;
 pub use self::convert::convert;
 
-pub mod chain;
-
 pub mod prelude {
     //! A "prelude" of `failure_ext` crate.
     //!
@@ -38,7 +36,6 @@ pub mod prelude {
     //! use failure_ext::prelude::*;
     //! ```
 
-    pub use crate::chain::{self, Chain, ChainExt};
     pub use crate::{
         FutureFailureErrorExt, FutureFailureExt, StreamFailureErrorExt, StreamFailureExt,
     };
