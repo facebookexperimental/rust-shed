@@ -14,7 +14,7 @@ anyhow = "1.0"
 failure = "0.1"
 futures = "0.1"
 mysql_async = { version = "0.23" }
-rusqlite = { version = "0.21", features = ["bundled"] }
+rusqlite = { version = "0.23", features = ["bundled"] }
 
 [dev-dependencies]
 sql_tests_lib = { path = "tests_lib" }
