@@ -17,6 +17,8 @@
 mod facebook;
 mod file_source;
 mod handle;
+#[cfg(not(fbcode_build))]
+mod oss;
 mod refreshable_entities;
 mod store;
 #[cfg(test)]
@@ -48,54 +50,4 @@ pub struct Entity {
     /// Optional version of the config, together with mod_time it is used to
     /// decide if the config has changed or not
     pub version: Option<String>,
-}
-
-#[cfg(not(fbcode_build))]
-mod r#impl {
-    use super::*;
-
-    use fbinit::FacebookInit;
-    use slog::Logger;
-    use std::{collections::HashMap, path::PathBuf, time::Duration};
-
-    macro_rules! fb_unimplemented {
-        () => {
-            unimplemented!("This is implemented only for fbcode_build!")
-        };
-    }
-
-    impl ConfigStore {
-        /// # Panics
-        /// When called in non-fbcode builds
-        pub fn configerator(
-            _: FacebookInit,
-            _: impl Into<Option<Logger>>,
-            _: impl Into<Option<Duration>>,
-            _: Duration,
-        ) -> Result<Self> {
-            fb_unimplemented!()
-        }
-
-        /// # Panics
-        /// When called in non-fbcode builds
-        pub fn signed_configerator(
-            _: FacebookInit,
-            _: impl Into<Option<Logger>>,
-            _: HashMap<String, String>,
-            _: impl Into<Option<Duration>>,
-            _: Duration,
-        ) -> Result<Self> {
-            fb_unimplemented!()
-        }
-
-        /// # Panics
-        /// When called in non-fbcode builds
-        pub fn materialized_configs(
-            _: impl Into<Option<Logger>>,
-            _: PathBuf,
-            _: impl Into<Option<Duration>>,
-        ) -> Self {
-            fb_unimplemented!()
-        }
-    }
 }

@@ -10,14 +10,10 @@
 #![deny(warnings)]
 
 #[cfg(not(fbcode_build))]
-mod abomonation_future_cache;
-#[cfg(not(fbcode_build))]
-mod lrucache;
+mod oss;
 
 #[cfg(not(fbcode_build))]
-pub use crate::abomonation_future_cache::*;
-#[cfg(not(fbcode_build))]
-pub use crate::lrucache::*;
+pub use crate::oss::{abomonation_future_cache::*, lrucache::*};
 
 // export Abomonation so that users of this crate don't need to add abomination as dependency
 #[cfg(not(fbcode_build))]

@@ -10,7 +10,7 @@
 use anyhow::{Error, Result};
 use futures_ext::BoxFuture;
 
-use crate::lrucache::VolatileLruCachePool;
+use super::lrucache::VolatileLruCachePool;
 
 pub fn get_cached_or_fill<T, F>(
     _cache_pool: &VolatileLruCachePool,
