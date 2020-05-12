@@ -351,9 +351,10 @@ mod tests {
         let expected = vec![
             (
                 "I",
-                "Test log 1, mode: test, Root cause: MyError(\n    0,\n), tau: 6.28",
+                "Test log 1, mode: test, Root cause: my error #0 displayed, tau: 6.28",
             ),
             ("E", "Error: my error #2 displayed"),
+            ("V",  "Debug context: Error {\n    context: \"my error #2 displayed\",\n    source: Error {\n        context: \"my error #1 displayed\",\n        source: MyError(\n            0,\n        ),\n    },\n}"),
             ("V", "Caused by: my error #1 displayed"),
             ("V", "Caused by: my error #0 displayed"),
         ]

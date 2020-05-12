@@ -62,6 +62,7 @@ impl KVCategorizer for ErrorCategorizer {
             Ok(SlogKVErrorKey::Cause) => KVCategory::LevelLog(Level::Debug),
             Ok(SlogKVErrorKey::Backtrace) => KVCategory::LevelLog(Level::Trace),
             Ok(SlogKVErrorKey::RootCause) | Err(()) => InlineCategorizer.categorize(key),
+            Ok(SlogKVErrorKey::ErrorDebug) => KVCategory::LevelLog(Level::Debug),
         }
     }
 
@@ -71,6 +72,7 @@ impl KVCategorizer for ErrorCategorizer {
             Ok(SlogKVErrorKey::Cause) => "Caused by",
             Ok(SlogKVErrorKey::Backtrace) => "Originated in",
             Ok(SlogKVErrorKey::RootCause) => "Root cause",
+            Ok(SlogKVErrorKey::ErrorDebug) => "Debug context",
             Err(()) => InlineCategorizer.name(key),
         }
     }
@@ -126,6 +128,7 @@ mod tests {
         let err = Error::from(TestError::MyError(0))
             .context(TestError::MyError(1))
             .context(TestError::MyError(2));
+        let debug = format!("{:#?}", err);
 
         let categorizer = ErrorCategorizer;
         let mut serializer = CollectorSerializer::new(&categorizer);
@@ -139,9 +142,10 @@ mod tests {
             serializer.into_inner(),
             vec![
                 ("error", "my error #2 displayed".to_owned()),
+                ("error_debug", debug),
                 ("cause", "my error #1 displayed".to_owned()),
                 ("cause", "my error #0 displayed".to_owned()),
-                ("root_cause", "MyError(\n    0,\n)".to_owned()),
+                ("root_cause", "my error #0 displayed".to_owned()),
             ],
         );
     }

@@ -24,6 +24,8 @@ impl slog::KV for SlogKVError {
         let err = &self.0;
 
         serializer.emit_str(Error.into_str(), &format!("{}", err))?;
+        serializer.emit_str(ErrorDebug.into_str(), &format!("{:#?}", err))?;
+
         #[cfg(fbcode_build)]
         {
             let backtrace = err.backtrace();
@@ -37,7 +39,7 @@ impl slog::KV for SlogKVError {
             serializer.emit_str(Cause.into_str(), &format!("{}", cause))?;
             err = cause;
         }
-        serializer.emit_str(RootCause.into_str(), &format!("{:#?}", err))?;
+        serializer.emit_str(RootCause.into_str(), &format!("{}", err))?;
 
         Ok(())
     }
@@ -54,6 +56,8 @@ pub enum SlogKVErrorKey {
     Backtrace,
     /// One of causes in a chain of errors
     Cause,
+    /// The error that is being logged, but in debug format
+    ErrorDebug,
 }
 use crate::SlogKVErrorKey::*;
 
@@ -65,6 +69,7 @@ impl SlogKVErrorKey {
             RootCause => "root_cause",
             Backtrace => "backtrace",
             Cause => "cause",
+            ErrorDebug => "error_debug",
         }
     }
 }
@@ -78,6 +83,7 @@ impl ::std::str::FromStr for SlogKVErrorKey {
             "root_cause" => Ok(RootCause),
             "backtrace" => Ok(Backtrace),
             "cause" => Ok(Cause),
+            "error_debug" => Ok(ErrorDebug),
             _ => Err(()),
         }
     }
