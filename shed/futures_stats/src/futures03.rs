@@ -9,7 +9,7 @@
 
 //! An implementation of `futures_stats` for Futures 0.3.
 
-use std::future::Future;
+use futures::future::{Future, TryFuture};
 
 use futures::stream::Stream;
 use futures::task::{Context, Poll};
@@ -63,6 +63,35 @@ impl<F: Future> Future for TimedFuture<F> {
         };
 
         Poll::Ready((stats, out))
+    }
+}
+
+/// A Future that gathers some basic statistics for inner TryFuture.  This structure's main usage
+/// is by calling [TimedTryFutureExt::try_timed].
+pub struct TimedTryFuture<F> {
+    inner: TimedFuture<F>,
+}
+
+impl<F> TimedTryFuture<F> {
+    fn new(future: F) -> Self {
+        Self {
+            inner: TimedFuture::new(future),
+        }
+    }
+}
+
+impl<I, E, F: Future<Output = Result<I, E>>> Future for TimedTryFuture<F> {
+    type Output = Result<(FutureStats, I), E>;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+        let this = unsafe { self.get_unchecked_mut() };
+        let poll = unsafe { Pin::new_unchecked(&mut this.inner).poll(cx) };
+
+        match poll {
+            Poll::Pending => Poll::Pending,
+            Poll::Ready((stats, Ok(v))) => Poll::Ready(Ok((stats, v))),
+            Poll::Ready((_, Err(e))) => Poll::Ready(Err(e)),
+        }
     }
 }
 
@@ -190,6 +219,29 @@ pub trait TimedFutureExt: Future + Sized {
 
 impl<T: Future> TimedFutureExt for T {}
 
+/// A trait that provides the `timed` method to [futures_old::Future] for gathering stats
+pub trait TimedTryFutureExt: TryFuture + Sized {
+    /// Combinator that returns a future that will gather some statistics and
+    /// return them together with the result of inner future.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use futures_stats::TimedTryFutureExt;
+    ///
+    /// # futures::executor::block_on(async {
+    /// let (stats, value) = async { Result::<_, ()>::Ok(123u32) }.try_timed().await.unwrap();
+    /// assert_eq!(value, 123);
+    /// assert!(stats.poll_count > 0);
+    /// # });
+    /// ```
+    fn try_timed(self) -> TimedTryFuture<Self> {
+        TimedTryFuture::new(self)
+    }
+}
+
+impl<T: TryFuture> TimedTryFutureExt for T {}
+
 /// A trait that provides the `timed` method to [futures_old::Stream] for gathering stats
 pub trait TimedStreamExt: Stream + Sized {
     /// Combinator that returns a stream that will gather some statistics and
@@ -237,6 +289,16 @@ mod tests {
     #[tokio::test]
     async fn test_timed_future() {
         let (stats, result) = async { 123u32 }.timed().await;
+        assert_eq!(result, 123u32);
+        assert!(stats.poll_count > 0);
+    }
+
+    #[tokio::test]
+    async fn test_timed_try_future() {
+        let (stats, result) = async { Result::<_, ()>::Ok(123u32) }
+            .try_timed()
+            .await
+            .unwrap();
         assert_eq!(result, 123u32);
         assert!(stats.poll_count > 0);
     }

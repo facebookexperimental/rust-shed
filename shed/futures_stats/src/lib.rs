@@ -24,7 +24,7 @@ pub mod futures03;
 pub use futures01::{Timed, TimedFuture, TimedNonSend, TimedStream, TimedStreamTrait};
 
 // Export new Futures 0.3 API, which has different names.
-pub use futures03::{TimedFutureExt, TimedStreamExt};
+pub use futures03::{TimedFutureExt, TimedStreamExt, TimedTryFutureExt};
 
 /// A structure that holds some basic statistics for Future.
 #[derive(Clone, Debug)]
