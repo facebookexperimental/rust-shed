@@ -1058,166 +1058,78 @@ macro_rules! _write_sqlite_query {
 #[doc(hidden)]
 macro_rules! _sqlite_named_params {
     ($params:ident, $tup:ident $( , $vname:ident )*) => (
-        $crate::_sqlite_named_params!(@step 0 $params, $tup $( , $vname )*);
+        $crate::_sqlite_named_params!(@expand () {} $params, $tup $( , $vname )*);
     );
 
-    (@step 0 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(0 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 1 $params, $tup $( , $vnames )*);
+    (
+        @expand
+        ( $( $binds:pat , )* )
+        { $( $unames:ident => $uses:expr , )* }
+        $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*
+    ) => (
+        $crate::_sqlite_named_params!(
+            @expand
+            ( $( $binds , )* value , )
+            { $( $unames => $uses , )* $vname => value , }
+            $params, $tup $( , $vnames )*
+        )
     );
 
-    (@step 1 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(1 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 2 $params, $tup $( , $vnames )*);
+    (
+        @expand
+        ( $( $binds:pat , )* )
+        { $( $unames:ident => $uses:expr , )* }
+        $params:ident, $tup:ident
+    ) => (
+        match $tup {
+            ( $( $binds , )* ) => {
+                $(
+                    $params.push((
+                        concat!(":", stringify!($unames)),
+                        ValueWrapper(ToValue::to_value($uses)),
+                    ));
+                )*
+            }
+        }
     );
-
-    (@step 2 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(2 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 3 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 3 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(3 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 4 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 4 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(4 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 5 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 5 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(5 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 6 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 5 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(5 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 6 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 6 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(6 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 7 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 7 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(7 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 8 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 8 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(8 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 9 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 9 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(9 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 10 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 10 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(10 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 11 $params, $tup $( , $vnames )*);
-    );
-
-    (@step 11 $params:ident, $tup:ident, $vname:ident $( , $vnames:ident )*) => (
-        $crate::_sqlite_named_params_impl!(11 $params, $tup, $vname);
-        $crate::_sqlite_named_params!(@step 12 $params, $tup $( , $vnames )*);
-    );
-
-    (@step $step:tt $params:ident, $tup:ident) => ();
-}
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! _sqlite_named_params_impl {
-    ($step:tt $params:ident, $tup:ident, $vname:ident) => {
-        $params.push((
-            concat!(":", stringify!($vname)),
-            ValueWrapper(ToValue::to_value(&$tup.$step)),
-        ));
-    };
 }
 
 #[macro_export]
 #[doc(hidden)]
 macro_rules! _append_to_mysql_values {
     ($values:ident, $tup:ident, $( $vtype:ty, )*) => (
-        $crate::_append_to_mysql_values!(@step 0 $values, $tup, $( $vtype, )*);
+        $crate::_append_to_mysql_values!(@expand () {} $values, $tup, $( $vtype, )* )
     );
 
-    (@step 0 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(0 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 1 $values, $tup, $( $vtypes, )*);
+    (
+        @expand
+        ( $( $binds:pat , )* )
+        { $( $uses:expr , )* }
+        $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+
+    ) => (
+        $crate::_append_to_mysql_values!(
+            @expand
+            ( $( $binds , )* value , )
+            { $( $uses , )* value , }
+            $values, $tup, $( $vtypes, )+
+        )
     );
 
-    (@step 1 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(1 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 2 $values, $tup, $( $vtypes, )*);
+    (
+        @expand
+        ( $( $binds:pat , )* )
+        { $( $uses:expr , )* }
+        $values:ident, $tup:ident, $vtype:ty,
+    ) => (
+        match $tup {
+            ( $( $binds , )* value , ) => {
+                $(
+                    write!(&mut $values, "{}, ", $uses.to_value().as_sql(false)).unwrap();
+                )*
+                write!(&mut $values, "{}", value.to_value().as_sql(false)).unwrap();
+            }
+        }
     );
-
-    (@step 2 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(2 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 3 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 3 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(3 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 4 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 4 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(4 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 5 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 5 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(5 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 6 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 6 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(6 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 7 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 7 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(7 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 8 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 8 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(8 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 9 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 9 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(9 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 10 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 10 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(10 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 11 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step 11 $values:ident, $tup:ident, $vtype:ty, $( $vtypes:ty, )+) => (
-        $crate::_append_to_mysql_values_impl!(11 $values, $tup);
-        $crate::_append_to_mysql_values!(@step 12 $values, $tup, $( $vtypes, )*);
-    );
-
-    (@step $step:tt $values:ident, $tup:ident, $vtype:ty,) => (
-        write!(&mut $values, "{}", $tup.$step.to_value().as_sql(false)).unwrap();
-    );
-}
-
-#[macro_export]
-#[doc(hidden)]
-macro_rules! _append_to_mysql_values_impl {
-    ($step:tt $values:ident, $tup:ident) => {
-        write!(&mut $values, "{}, ", $tup.$step.to_value().as_sql(false)).unwrap();
-    };
 }
 
 #[macro_export]
