@@ -11,7 +11,7 @@ fbinit = { path = "../fbinit" }
 anyhow = "1.0"
 serde = { version = "1.0", features = ["derive", "rc"] }
 serde_json = "1.0"
-slog = { version="2.5", features=["max_level_debug"] }
+slog = { version = "2.5", features = ["max_level_debug"] }
 
 [dev-dependencies]
 serde_derive = "1.0"

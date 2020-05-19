@@ -8,4 +8,4 @@ include = ["src/**/*.rs"]
 
 [dependencies]
 stats = { path = "../stats" }
-slog = { version="2.5", features=["max_level_debug"] }
+slog = { version = "2.5", features = ["max_level_debug"] }

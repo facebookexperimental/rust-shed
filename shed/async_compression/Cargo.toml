@@ -8,8 +8,8 @@ include = ["src/**/*.rs"]
 
 [dependencies]
 bytes = { version = "0.4", features = ["serde"] }
-bzip2 = { version="0.3", features=["tokio"] }
-flate2 = { version="1.0", features=["tokio", "rust_backend"], default-features=false }
+bzip2 = { version = "0.3", features = ["tokio"] }
+flate2 = { version = "1.0", features = ["tokio", "rust_backend"], default-features = false }
 futures = "0.1"
 tokio-io = "0.1"
 zstd = "=0.4.23"
