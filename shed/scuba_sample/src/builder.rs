@@ -18,6 +18,7 @@ use std::io::{Error as IoError, Write};
 use std::num::NonZeroU64;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 
 use crate::sample::ScubaSample;
 use crate::value::ScubaValue;
@@ -156,7 +157,7 @@ impl ScubaSampleBuilder {
     /// Either flush the configured client with the provided timeout or flush
     /// the configured log file making sure all the logged samples have been
     /// written to it. The timeout is used only in fbcode builds.
-    pub fn flush(&self, _timeout: i64) {
+    pub fn flush(&self, _timeout: Duration) {
         if let Some(ref log_file) = self.log_file {
             let mut log_file = log_file.lock().expect("Poisoned lock");
             let _ = log_file.flush();
