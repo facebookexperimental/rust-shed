@@ -1,0 +1,19 @@
+[package]
+name = "secure_utils"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "GPLv2+"
+include = ["src/**/*.rs"]
+
+[dependencies]
+anyhow = "1.0"
+hex = "0.4"
+lazy_static = "1.0"
+libc = "0.2"
+openssl = "0.10"
+openssl-sys = "0.9"
+serde = { version = "1.0", features = ["derive", "rc"] }
+serde_derive = "1.0"
+serde_json = "1.0"
+slog = { version = "2.5", features = ["max_level_debug"] }
