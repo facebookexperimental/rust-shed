@@ -1070,8 +1070,8 @@ mod test {
         }
 
         let futures: Vec<_> = std::iter::repeat_with(|| asynchronize(sleep))
-        // This count needs to be much greater than 2, so that if we serialize operations, we see
-        // an issue
+            // This count needs to be much greater than 2, so that if we serialize operations, we see
+            // an issue
             .take(THREAD_COUNT)
             .collect();
         let start = time::Instant::now();
