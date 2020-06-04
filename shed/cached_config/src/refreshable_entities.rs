@@ -8,8 +8,6 @@
  */
 
 use anyhow::Result;
-use serde::de::DeserializeOwned;
-use serde_json::from_str;
 use std::sync::{Arc, RwLock};
 
 use crate::Entity;
@@ -25,6 +23,7 @@ pub(crate) trait Refreshable {
 pub(crate) struct RegisteredConfigEntity<T> {
     contents: RwLock<CachedConfigEntity<T>>,
     path: String,
+    deserializer: fn(String) -> Result<T>,
 }
 
 struct CachedConfigEntity<T> {
@@ -35,22 +34,28 @@ struct CachedConfigEntity<T> {
 
 impl<T> RegisteredConfigEntity<T>
 where
-    T: Send + Sync + DeserializeOwned + 'static,
+    T: Send + Sync + 'static,
 {
     pub(crate) fn new(
         path: String,
-        mod_time: u64,
-        version: Option<String>,
-        contents: Arc<T>,
-    ) -> Self {
-        Self {
+        entity: Entity,
+        deserializer: fn(String) -> Result<T>,
+    ) -> Result<Self> {
+        let Entity {
+            mod_time,
+            version,
+            contents,
+        } = entity;
+
+        Ok(Self {
             contents: RwLock::new(CachedConfigEntity {
                 mod_time,
                 version,
-                contents,
+                contents: Arc::new(deserializer(contents)?),
             }),
             path,
-        }
+            deserializer,
+        })
     }
 
     pub(crate) fn get(&self) -> Arc<T> {
@@ -64,7 +69,7 @@ where
 
 impl<T> Refreshable for RegisteredConfigEntity<T>
 where
-    T: Send + Sync + DeserializeOwned + 'static,
+    T: Send + Sync + 'static,
 {
     fn get_path(&self) -> &str {
         &self.path
@@ -77,7 +82,7 @@ where
         };
 
         if has_changed {
-            let contents = Arc::new(from_str(&entity.contents)?);
+            let contents = Arc::new((self.deserializer)(entity.contents)?);
             {
                 let mut locked = self.contents.write().expect("lock poisoned");
                 *locked = CachedConfigEntity {

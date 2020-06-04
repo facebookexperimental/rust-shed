@@ -9,7 +9,6 @@
 
 use anyhow::Result;
 use serde::de::DeserializeOwned;
-use serde_json::from_str;
 use slog::{info, warn, Logger};
 use std::{
     collections::HashMap,
@@ -95,14 +94,40 @@ impl ConfigStore {
     where
         T: Send + Sync + DeserializeOwned + 'static,
     {
+        fn deserialize_json<T: DeserializeOwned>(s: String) -> Result<T> {
+            let v = serde_json::from_str(&s)?;
+            Ok(v)
+        }
+        self.get_config_handle_with_deserializer(path, deserialize_json)
+    }
+
+    /// Fetch a self-updating config handle for the config at `path`, as a raw, non-deserialized
+    /// string. This is usually not what you want if you need to use the config (since you won't
+    /// get the benefits of a cached deserialization), so prefer using `get_config_handle`. That
+    /// said, if you need to pass the config through to something else, this is the method you
+    /// want.
+    pub fn get_raw_config_handle(&self, path: String) -> Result<ConfigHandle<String>> {
+        fn deserialize_raw(s: String) -> Result<String> {
+            Ok(s)
+        }
+        self.get_config_handle_with_deserializer(path, deserialize_raw)
+    }
+
+    fn get_config_handle_with_deserializer<T>(
+        &self,
+        path: String,
+        deserializer: fn(String) -> Result<T>,
+    ) -> Result<ConfigHandle<T>>
+    where
+        T: Send + Sync + 'static,
+    {
         let entity = {
             let entity = self.source.config_for_path(&path)?;
             Arc::new(RegisteredConfigEntity::new(
                 path.clone(),
-                entity.mod_time,
-                entity.version,
-                Arc::new(from_str(&entity.contents)?),
-            ))
+                entity,
+                deserializer,
+            )?)
         };
 
         let mut clients = self.clients.lock().expect("lock poisoned");

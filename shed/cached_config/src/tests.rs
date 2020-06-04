@@ -122,6 +122,12 @@ fn test_config_store() {
     // handle1 remains the same, because the mod_time has not changed
     assert_eq!(*handle1.get(), TestConfig { value: 1 });
     assert_eq!(*handle2.get(), TestConfig { value: 22 });
+
+    // Test raw configs, too
+    let raw_handle = store
+        .get_raw_config_handle("some1".to_string())
+        .expect("Failed to get raw handle");
+    assert_eq!(*raw_handle.get(), r#"{ "value": 11 }"#);
 }
 
 #[test]

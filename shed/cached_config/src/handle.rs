@@ -33,7 +33,7 @@ enum ConfigHandleImpl<T> {
 
 impl<T> ConfigHandle<T>
 where
-    T: Send + Sync + DeserializeOwned + 'static,
+    T: Send + Sync + 'static,
 {
     /// Fetch the current version of the config referred to by this handle
     /// Return is an `Arc` so that if the config is updated after you get it, you will simply own an outdated pointer
@@ -44,13 +44,6 @@ where
         }
     }
 
-    /// Create a static config handle from a JSON blob. Useful for testing.
-    pub fn from_json(data: &str) -> Result<Self> {
-        Ok(Self {
-            inner: ConfigHandleImpl::Fixed(Arc::new(from_str(data)?)),
-        })
-    }
-
     pub(crate) fn from_registered(registered: Arc<RegisteredConfigEntity<T>>) -> Self {
         Self {
             inner: ConfigHandleImpl::Registered(registered),
@@ -58,9 +51,21 @@ where
     }
 }
 
+impl<T> ConfigHandle<T>
+where
+    T: Send + Sync + DeserializeOwned + 'static,
+{
+    /// Create a static config handle from a JSON blob. Useful for testing.
+    pub fn from_json(data: &str) -> Result<Self> {
+        Ok(Self {
+            inner: ConfigHandleImpl::Fixed(Arc::new(from_str(data)?)),
+        })
+    }
+}
+
 impl<T> Default for ConfigHandle<T>
 where
-    T: Send + Sync + DeserializeOwned + Default + 'static,
+    T: Send + Sync + Default + 'static,
 {
     fn default() -> Self {
         Self {
