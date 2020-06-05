@@ -3,7 +3,7 @@ name = "thrift_compiler"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
-license = "GPLv2+"
+license = "MIT OR Apache-2.0"
 include = ["src/lib.rs", "src/main.rs", "tests/*.rs"]
 
 [lib]

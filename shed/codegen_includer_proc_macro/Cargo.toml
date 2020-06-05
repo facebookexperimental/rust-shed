@@ -3,7 +3,7 @@ name = "codegen_includer_proc_macro"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
-license = "GPLv2+"
+license = "MIT OR Apache-2.0"
 build = "build.rs"
 include = ["src/**/*.rs", "tests/**/*.rs"]
 

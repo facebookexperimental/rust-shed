@@ -3,7 +3,7 @@ name = "panichandler"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
-license = "GPLv2+"
+license = "MIT OR Apache-2.0"
 include = ["src/*.rs", "test/test.rs", "test/test_deep.rs", "test/testmultithread.rs", "test/testmultithread_abort.rs", "test/testrunner.rs"]
 
 [lib]

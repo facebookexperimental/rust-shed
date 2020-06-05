@@ -3,7 +3,7 @@ name = "stats_traits"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
-license = "GPLv2+"
+license = "MIT OR Apache-2.0"
 include = ["**/*.rs"]
 
 [lib]
