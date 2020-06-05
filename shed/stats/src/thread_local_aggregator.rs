@@ -35,7 +35,7 @@ use stats_traits::stats_manager::{BoxStatsManager, StatsManager};
 
 lazy_static! {
     static ref STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);
-    static ref STATS_AGGREGATOR: StatsAggregator = { StatsAggregator(Mutex::new(Vec::new())) };
+    static ref STATS_AGGREGATOR: StatsAggregator = StatsAggregator(Mutex::new(Vec::new()));
 }
 
 /// Type alias for the future that must be spawned on tokio.
