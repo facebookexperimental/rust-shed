@@ -333,9 +333,18 @@ where
     T: Ord,
 {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
-        iter.into_iter().for_each(move |value| {
-            self.insert(value);
-        });
+        let mut new: Vec<_> = iter.into_iter().collect();
+        if new.is_empty() {
+            return;
+        }
+        new.sort();
+        let self_iter = mem::take(self).into_iter();
+        let new_iter = new.into_iter();
+        let iter = MergeIter {
+            left: self_iter.peekable(),
+            right: new_iter.peekable(),
+        };
+        self.0 = iter.collect();
     }
 }
 
@@ -367,6 +376,24 @@ struct MergeIter<T, I: Iterator<Item = T>> {
     right: Peekable<I>,
 }
 
+impl<T, I> MergeIter<T, I>
+where
+    T: Ord,
+    I: Iterator<Item = T>,
+{
+    /// Returns the next right value, skipping over equal values.
+    fn next_right(&mut self) -> Option<T> {
+        let mut next = self.right.next();
+        while let (Some(next_ref), Some(after)) = (next.as_ref(), self.right.peek()) {
+            if after > next_ref {
+                break;
+            }
+            next = self.right.next();
+        }
+        next
+    }
+}
+
 impl<T, I> Iterator for MergeIter<T, I>
 where
     T: Ord,
@@ -384,12 +411,13 @@ where
 
         // Check which element comes first and only advance the corresponding
         // iterator.  If the two keys are equal, take the value from `right`.
+        // If `right` has multiple equal keys, take the last one.
         match res {
             Ordering::Less => self.left.next(),
-            Ordering::Greater => self.right.next(),
+            Ordering::Greater => self.next_right(),
             Ordering::Equal => {
                 self.left.next();
-                self.right.next()
+                self.next_right()
             }
         }
     }

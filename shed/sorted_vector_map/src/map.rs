@@ -491,9 +491,18 @@ where
 {
     #[inline]
     fn extend<I: IntoIterator<Item = (K, V)>>(&mut self, iter: I) {
-        iter.into_iter().for_each(move |(k, v)| {
-            self.insert(k, v);
-        });
+        let mut new: Vec<_> = iter.into_iter().collect();
+        if new.is_empty() {
+            return;
+        }
+        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
+        let self_iter = mem::take(self).into_iter();
+        let new_iter = new.into_iter();
+        let iter = MergeIter {
+            left: self_iter.peekable(),
+            right: new_iter.peekable(),
+        };
+        self.0 = iter.collect();
     }
 }
 
@@ -504,9 +513,18 @@ where
 {
     #[inline]
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
-        iter.into_iter().for_each(move |(&k, &v)| {
-            self.insert(k, v);
-        });
+        let mut new: Vec<_> = iter.into_iter().map(|(&k, &v)| (k, v)).collect();
+        if new.is_empty() {
+            return;
+        }
+        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
+        let self_iter = mem::take(self).into_iter();
+        let new_iter = new.into_iter();
+        let iter = MergeIter {
+            left: self_iter.peekable(),
+            right: new_iter.peekable(),
+        };
+        self.0 = iter.collect();
     }
 }
 
@@ -732,6 +750,26 @@ struct MergeIter<K, V, I: Iterator<Item = (K, V)>> {
     right: Peekable<I>,
 }
 
+impl<K, V, I> MergeIter<K, V, I>
+where
+    K: Ord,
+    I: Iterator<Item = (K, V)>,
+{
+    /// Returns the next right value, skipping over equal values.
+    fn next_right(&mut self) -> Option<(K, V)> {
+        let mut next = self.right.next();
+        while let (Some(&(ref next_key, _)), Some(&(ref after_key, _))) =
+            (next.as_ref(), self.right.peek())
+        {
+            if after_key > next_key {
+                break;
+            }
+            next = self.right.next();
+        }
+        next
+    }
+}
+
 impl<K, V, I> Iterator for MergeIter<K, V, I>
 where
     K: Ord,
@@ -749,12 +787,13 @@ where
 
         // Check which element comes first and only advance the corresponding
         // iterator.  If the two keys are equal, take the value from `right`.
+        // If `right` has multiple equal keys, take the last one.
         match res {
             Ordering::Less => self.left.next(),
-            Ordering::Greater => self.right.next(),
+            Ordering::Greater => self.next_right(),
             Ordering::Equal => {
                 self.left.next();
-                self.right.next()
+                self.next_right()
             }
         }
     }
