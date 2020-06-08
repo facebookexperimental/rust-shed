@@ -6,6 +6,15 @@ authors = ['Facebook']
 license = "MIT OR Apache-2.0"
 include = ["src/**/*.rs"]
 
+[[bench]]
+name = "map"
+harness = false
+
+[[bench]]
+name = "set"
+harness = false
+
 [dev-dependencies]
+minibench = { git = "https://github.com/facebookexperimental/eden.git", branch = "master" }
 itertools = "0.8"
 quickcheck = "0.9"
