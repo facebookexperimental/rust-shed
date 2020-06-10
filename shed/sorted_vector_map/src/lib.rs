@@ -9,8 +9,8 @@
 
 //! Ordered map implementation using a sorted vector
 
-mod map;
-mod set;
+pub mod map;
+pub mod set;
 
 pub use map::SortedVectorMap;
 pub use set::SortedVectorSet;
