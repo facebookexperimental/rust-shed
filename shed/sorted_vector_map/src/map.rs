@@ -19,6 +19,8 @@ use std::mem;
 use std::ops::{Index, IndexMut, RangeBounds};
 use std::slice::{Iter as VecIter, IterMut as VecIterMut};
 
+use quickcheck::{Arbitrary, Gen};
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
 pub struct SortedVectorMap<K, V>(Vec<(K, V)>);
 
@@ -807,6 +809,25 @@ where
             _ => None,
         };
         (low, high)
+    }
+}
+
+impl<K, V> Arbitrary for SortedVectorMap<K, V>
+where
+    K: Arbitrary + Ord,
+    V: Arbitrary,
+{
+    fn arbitrary<G: Gen>(g: &mut G) -> SortedVectorMap<K, V> {
+        let vec: Vec<(K, V)> = Arbitrary::arbitrary(g);
+        vec.into_iter().collect()
+    }
+
+    fn shrink(&self) -> Box<dyn Iterator<Item = SortedVectorMap<K, V>>> {
+        let vec: Vec<(K, V)> = self.clone().into_iter().collect();
+        Box::new(
+            vec.shrink()
+                .map(|v| v.into_iter().collect::<SortedVectorMap<K, V>>()),
+        )
     }
 }
 

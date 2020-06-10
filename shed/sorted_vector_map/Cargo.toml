@@ -14,7 +14,9 @@ harness = false
 name = "set"
 harness = false
 
+[dependencies]
+quickcheck = "0.9"
+
 [dev-dependencies]
 minibench = { git = "https://github.com/facebookexperimental/eden.git", branch = "master" }
 itertools = "0.8"
-quickcheck = "0.9"
