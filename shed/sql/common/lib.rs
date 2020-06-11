@@ -13,6 +13,7 @@
 #![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
 
 pub mod error;
+pub mod ext;
 pub mod mysql;
 pub mod sqlite;
 pub mod transaction;
