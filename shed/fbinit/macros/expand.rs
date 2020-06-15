@@ -60,7 +60,7 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
             })
         }),
         (true, Mode::Main) => parse_quote!({
-            tokio::runtime::Runtime::new().unwrap().block_on(async {
+            tokio::runtime::Builder::new().threaded_scheduler().enable_all().build().unwrap().block_on(async {
                 #block
             })
         }),
