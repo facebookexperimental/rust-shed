@@ -10,7 +10,7 @@
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::punctuated::Punctuated;
-use syn::{parse_quote, Block, Error, ItemFn, Result};
+use syn::{parse_quote, Error, ItemFn, Result};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Mode {
@@ -48,29 +48,38 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
 
     let block = function.block;
 
-    let body: Block = match (function.sig.asyncness.is_some(), mode) {
-        (true, Mode::CompatTest) => parse_quote!({
-            tokio_compat::runtime::current_thread::Runtime::new().unwrap().block_on_std(async {
-                #block
-            })
-        }),
-        (true, Mode::Test) => parse_quote!({
-            tokio::runtime::Builder::new().basic_scheduler().enable_all().build().unwrap().block_on(async {
-                #block
-            })
-        }),
-        (true, Mode::Main) => parse_quote!({
-            tokio::runtime::Builder::new().threaded_scheduler().enable_all().build().unwrap().block_on(async {
-                #block
-            })
-        }),
+    let body = match (function.sig.asyncness.is_some(), mode) {
+        (true, Mode::CompatTest) => quote! {
+            tokio_compat::runtime::current_thread::Runtime::new()
+                .unwrap()
+                .block_on_std(async #block)
+        },
+        (true, Mode::Test) => quote! {
+            tokio::runtime::Builder::new()
+                .basic_scheduler()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async #block)
+        },
+        (true, Mode::Main) => quote! {
+            tokio::runtime::Builder::new()
+                .threaded_scheduler()
+                .enable_all()
+                .build()
+                .unwrap()
+                .block_on(async #block)
+        },
         (false, Mode::CompatTest) => {
             return Err(Error::new_spanned(
                 function.sig,
                 "#[fbinit::compat_test] should be used only on async functions",
             ));
         }
-        (false, _) => parse_quote!({ #block }),
+        (false, _) => {
+            let stmts = block.stmts;
+            quote! { #(#stmts)* }
+        }
     };
 
     function.block = parse_quote!({
