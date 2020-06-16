@@ -18,7 +18,7 @@ futures = { version = "0.3", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1" }
 lazy_static = "1.0"
 mysql_async = { version = "0.23" }
-rusqlite = { version = "0.23", features = ["bundled"] }
+rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 thiserror = "1.0"
 
 [dev-dependencies]
