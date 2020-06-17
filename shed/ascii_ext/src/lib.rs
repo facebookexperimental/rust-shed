@@ -32,8 +32,8 @@ impl Deref for AsciiString {
 }
 
 impl From<ascii::AsciiString> for AsciiString {
-    fn from(s: ascii::AsciiString) -> Self {
-        AsciiString(s)
+    fn from(ch: ascii::AsciiString) -> Self {
+        AsciiString(ch)
     }
 }
 
