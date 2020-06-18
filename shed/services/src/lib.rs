@@ -10,6 +10,9 @@
 #![deny(warnings)]
 #![cfg_attr(not(fbcode_build), feature(never_type))]
 
+#[cfg(fbcode_build)]
+use fbinit as _; // used in oss
+
 #[cfg(not(fbcode_build))]
 mod oss;
 

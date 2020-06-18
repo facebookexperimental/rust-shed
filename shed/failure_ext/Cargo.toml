@@ -11,4 +11,6 @@ anyhow = "1.0"
 failure = "0.1"
 futures = "0.1"
 slog = { version = "2.5", features = ["max_level_debug"] }
+
+[dev-dependencies]
 thiserror = "1.0"

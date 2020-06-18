@@ -8,5 +8,7 @@ include = ["src/**/*.rs"]
 
 [dependencies]
 anyhow = "1.0"
-quickcheck = "0.9"
 thiserror = "1.0"
+
+[dev-dependencies]
+quickcheck = "0.9"

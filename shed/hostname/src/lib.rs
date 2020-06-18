@@ -23,6 +23,8 @@ pub fn get_hostname() -> Result<String> {
 
     #[cfg(fbcode_build)]
     {
+        use hostname as _; // used in oss
+
         fbwhoami::FbWhoAmI::get()?
             .name
             .clone()
