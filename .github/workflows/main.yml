@@ -51,6 +51,8 @@ jobs:
       continue-on-error: true
   mac:
     runs-on: macOS-latest
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_10.3.app/Contents/Developer
     steps:
     - uses: actions/checkout@v1
     - name: Install Rust Stable
@@ -99,18 +101,23 @@ jobs:
         toolchain: stable
         default: true
         profile: minimal
+    - name: Export boost environment
+      run: "echo ::set-env name=BOOST_ROOT::%BOOST_ROOT_1_69_0%"
+      shell: cmd
+    - name: Fix Git config
+      run: git config --system core.longpaths true
     - name: Build dependencies
-      run: python3 build/fbcode_builder/getdeps.py build --only-deps --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py build --only-deps --src-dir=. rust-shed
     - name: Build rust-shed
-      run: python3 build/fbcode_builder/getdeps.py build --no-deps --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py build --no-deps --src-dir=. rust-shed
     - name: Copy artifacts
-      run: python3 build/fbcode_builder/getdeps.py fixup-dyn-deps --src-dir=. rust-shed _artifacts/windows
+      run: python build/fbcode_builder/getdeps.py fixup-dyn-deps --src-dir=. rust-shed _artifacts/windows
     - uses: actions/upload-artifact@master
       with:
         name: rust-shed
         path: _artifacts
     - name: Test rust-shed
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
     - name: Install Rust Beta
       uses: actions-rs/toolchain@v1
       with:
@@ -118,7 +125,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with beta toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
       continue-on-error: true
     - name: Install Rust Nightly
       uses: actions-rs/toolchain@v1
@@ -127,5 +134,5 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with nightly toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
       continue-on-error: true
