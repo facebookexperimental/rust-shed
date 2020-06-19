@@ -13,6 +13,9 @@
 #[cfg(fbcode_build)]
 use fbinit as _; // used in oss
 
+#[cfg(fbcode_build)]
+use services_common as _; // used in oss
+
 #[cfg(not(fbcode_build))]
 mod oss;
 
