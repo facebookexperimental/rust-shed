@@ -21,11 +21,13 @@ mod handle;
 mod oss;
 mod refreshable_entities;
 mod store;
+mod test_source;
 #[cfg(test)]
 mod tests;
 
 pub use handle::ConfigHandle;
 pub use store::ConfigStore;
+pub use test_source::TestSource;
 
 use anyhow::Result;
 use std::fmt::Debug;
