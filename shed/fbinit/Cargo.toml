@@ -13,13 +13,9 @@ path = "src/lib.rs"
 name = "fbinit_test"
 path = "test/fbinit_test.rs"
 
-[features]
-default = ["tokio"]
-
 [dependencies]
 macros = { path = "macros" }
 quickcheck = "0.9"
-tokio = { version = "=0.2.13", features = ["full"], optional = true }
 
 [dev-dependencies]
 tokio = { version = "=0.2.13", features = ["full"] }

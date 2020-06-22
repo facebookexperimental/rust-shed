@@ -104,9 +104,6 @@ impl Arbitrary for FacebookInit {
 pub mod r#impl {
     pub use super::assume_init as perform_init;
 
-    #[cfg(feature = "tokio")]
-    pub use tokio;
-
     pub struct DestroyGuard;
 
     impl DestroyGuard {

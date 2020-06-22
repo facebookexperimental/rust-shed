@@ -18,11 +18,7 @@ mod oss;
 pub use macros::{compat_test, main, test};
 
 #[cfg(fbcode_build)]
-mod _unused {
-    // used in oss
-    use quickcheck as _;
-    use tokio as _;
-}
+use quickcheck as _; // used in oss
 
 #[cfg(fbcode_build)]
 pub use fbinit::*;
