@@ -21,6 +21,13 @@ pub mod transaction;
 use std::fmt::{self, Debug};
 use std::sync::Arc;
 
+// Used in docs
+#[cfg(test)]
+mod _unused {
+    use sql as _;
+    use sql_tests_lib as _;
+}
+
 /// Enum that generalizes over connections to Sqlite and MyRouter.
 #[derive(Clone)]
 pub enum Connection {
