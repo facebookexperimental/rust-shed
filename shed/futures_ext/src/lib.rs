@@ -1233,7 +1233,6 @@ mod test {
                 break;
             }
             if let Err(ref e) = flush_res {
-                println!("after flush error");
                 assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
             }
         }
@@ -1250,7 +1249,6 @@ mod test {
                 break;
             }
             if let Err(ref e) = shutdown_res {
-                println!("after flush error");
                 assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
             }
         }
