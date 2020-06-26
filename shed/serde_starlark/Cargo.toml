@@ -1,5 +1,5 @@
 [package]
-name = "serde-starlark"
+name = "serde_starlark"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']
