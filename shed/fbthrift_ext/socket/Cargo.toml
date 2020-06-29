@@ -1,0 +1,22 @@
+[package]
+name = "fbthrift_socket"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "MIT OR Apache-2.0"
+include = ["**/*.rs"]
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+fbthrift_framed = { path = "../framed" }
+fbthrift = { git = "https://github.com/facebook/fbthrift.git", branch = "master" }
+anyhow = "1.0"
+bytes = { version = "0.5", features = ["serde"] }
+bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
+futures = { version = "0.3", features = ["async-await", "compat"] }
+tokio-core = "0.1"
+tokio-proto = "0.1"
+tokio-service = "0.1"
+tokio-uds = "0.1"
