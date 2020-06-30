@@ -52,8 +52,10 @@ impl KVCategorizer for InlineCategorizer {
 
 /// Used to properly print `error_chain` `Error`s. It displays the error and it's causes in
 /// separate log lines as well as backtrace if provided.
-/// The `error_chain` `Error` must implement `KV` trait. It is recommended to use `impl_kv_error`
-/// macro to generate the implementation.
+/// The `error_chain` `Error` must implement `KV` trait. It is recommended to
+/// wrap your error with `failure_ext::SlogKVError` to get this implementation
+/// for free. Example:
+///     error!(&logger, "Some error message"; SlogKVError(err))
 pub struct ErrorCategorizer;
 impl KVCategorizer for ErrorCategorizer {
     fn categorize(&self, key: Key) -> KVCategory {
