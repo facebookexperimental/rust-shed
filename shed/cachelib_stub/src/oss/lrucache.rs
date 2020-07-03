@@ -229,9 +229,10 @@ impl LruCachePool {
 
     /// Insert a key->value mapping into the pool. Returns true if the insertion was successful,
     /// false otherwise.
-    pub fn set<K>(&self, _key: K, _value: Bytes) -> Result<bool>
+    pub fn set<K, V>(&self, _key: K, _value: V) -> Result<bool>
     where
         K: AsRef<[u8]>,
+        V: Buf,
     {
         Ok(false)
     }
@@ -301,9 +302,10 @@ impl VolatileLruCachePool {
         Ok(false)
     }
 
-    pub fn set<K>(&self, _key: K, _value: Bytes) -> Result<bool>
+    pub fn set<K, V>(&self, _key: K, _value: V) -> Result<bool>
     where
         K: AsRef<[u8]>,
+        V: Buf,
     {
         Ok(false)
     }
