@@ -228,8 +228,18 @@ impl LruCachePool {
     }
 
     /// Insert a key->value mapping into the pool. Returns true if the insertion was successful,
-    /// false otherwise.
+    /// false otherwise. This will not overwrite existing data.
     pub fn set<K, V>(&self, _key: K, _value: V) -> Result<bool>
+    where
+        K: AsRef<[u8]>,
+        V: Buf,
+    {
+        Ok(false)
+    }
+
+    /// Insert a key->value mapping into the pool. Returns true if the insertion was successful,
+    /// false otherwise. This will overwrite existing data.
+    pub fn set_or_replace<K, V>(&self, _key: K, _value: V) -> Result<bool>
     where
         K: AsRef<[u8]>,
         V: Buf,
@@ -303,6 +313,14 @@ impl VolatileLruCachePool {
     }
 
     pub fn set<K, V>(&self, _key: K, _value: V) -> Result<bool>
+    where
+        K: AsRef<[u8]>,
+        V: Buf,
+    {
+        Ok(false)
+    }
+
+    pub fn set_or_replace<K, V>(&self, _key: K, _value: V) -> Result<bool>
     where
         K: AsRef<[u8]>,
         V: Buf,
