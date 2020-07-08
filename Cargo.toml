@@ -19,6 +19,7 @@ members = [
     "shed/futures_ext",
     "shed/futures_stats",
     "shed/hostname",
+    "shed/limited_async_read",
     "shed/lock_ext",
     "shed/memcache_stub",
     "shed/memcache_stub/common",
