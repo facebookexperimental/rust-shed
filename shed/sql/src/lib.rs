@@ -168,14 +168,14 @@ macro_rules! queries {
     );
 
     (
-        pub read $name:ident (
+        pub $( ( $( $mods:tt )* ) )? read $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) -> ($( $rtype:ty ),* $(,)*) { $q:expr }
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            pub read $name (
+            pub $( ( $( $mods )* ) )? read $name (
                 $( $pname: $ptype ),*
                 $( >list $lname: $ltype )*
             ) -> ($( $rtype ),*) { mysql($q) sqlite($q) }
@@ -184,21 +184,21 @@ macro_rules! queries {
     );
 
     (
-        pub read $name:ident (
+        pub $( ( $( $mods:tt )* ) )? read $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) -> ($( $rtype:ty ),* $(,)*) { mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        pub mod $name {
+        pub $( ( $( $mods )* ) )? mod $name {
             $crate::_read_query_impl!((
                 $( $pname: $ptype, )*
                 $( >list $lname: $ltype )*
             ) -> ($( $rtype ),*) { mysql($mysql_q) sqlite($sqlite_q) });
 
             #[allow(dead_code)]
-            pub fn query(
+            pub $( ( $( $mods )* ) )? fn query(
                 connection: &Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
@@ -209,7 +209,7 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
@@ -279,14 +279,14 @@ macro_rules! queries {
     );
 
     (
-        pub write $name:ident (
+        pub $( ( $( $mods:tt )* ) )? write $name:ident (
             values: ($( $vname:ident: $vtype:ty ),* $(,)*)
             $( , $pname:ident: $ptype:ty )* $(,)*
         ) { $qtype:ident, $q:expr }
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            pub write $name (
+            pub $( ( $( $mods )* ) )? write $name (
                 values: ($( $vname: $vtype ),*)
                 $( , $pname: $ptype )*
             ) { $qtype, mysql($q) sqlite($q) }
@@ -295,14 +295,14 @@ macro_rules! queries {
     );
 
     (
-        pub write $name:ident (
+        pub $( ( $( $mods:tt )* ) )? write $name:ident (
             values: ($( $vname:ident: $vtype:ty ),* $(,)*)
             $( , $pname:ident: $ptype:ty )* $(,)*
         ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        pub mod $name {
+        pub $( ( $( $mods )* ) )? mod $name {
             $crate::_write_query_impl!(values: ($( $vname: $vtype ),*), ($( $pname: $ptype ),* ) {
                 $qtype,
                 mysql($mysql_q)
@@ -310,7 +310,7 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub fn query(
+            pub $( ( $( $mods )* ) )? fn query(
                 connection: &Connection,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
@@ -321,7 +321,7 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? fn query_with_transaction(
                 transaction: Transaction,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
@@ -394,14 +394,14 @@ macro_rules! queries {
     );
 
     (
-        pub write $name:ident (
+        pub $( ( $( $mods:tt )* ) )? write $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) { $qtype:ident, $q:expr }
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            pub write $name (
+            pub $( ( $( $mods )* ) )? write $name (
                 $( $pname: $ptype ),*
                 $( >list $lname: $ltype )*
             ) { $qtype, mysql($q) sqlite($q) }
@@ -410,14 +410,14 @@ macro_rules! queries {
     );
 
     (
-        pub write $name:ident (
+        pub $( ( $( $mods:tt )* ) )? write $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        pub mod $name {
+        pub $( ( $( $mods )* ) )? mod $name {
             $crate::_write_query_impl!(($( $pname: $ptype ),* ) {
                 $qtype,
                 mysql($mysql_q)
@@ -425,7 +425,7 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub fn query(
+            pub $( ( $( $mods )* ) )? fn query(
                 connection: &Connection,
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = WriteResult, Error = Error> {
@@ -435,7 +435,7 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype ),*
             ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
