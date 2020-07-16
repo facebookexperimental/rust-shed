@@ -19,18 +19,20 @@ jobs:
         toolchain: stable
         default: true
         profile: minimal
+    - name: Install system deps
+      run: sudo python3 build/fbcode_builder/getdeps.py --allow-system-packages install-system-deps --recursive mononoke
     - name: Build dependencies
-      run: python3 build/fbcode_builder/getdeps.py build --only-deps --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py build --allow-system-packages --only-deps --src-dir=. rust-shed
     - name: Build rust-shed
-      run: python3 build/fbcode_builder/getdeps.py build --no-deps --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py build --allow-system-packages --no-deps --src-dir=. rust-shed
     - name: Copy artifacts
-      run: python3 build/fbcode_builder/getdeps.py fixup-dyn-deps --src-dir=. rust-shed _artifacts/linux
+      run: python3 build/fbcode_builder/getdeps.py fixup-dyn-deps --allow-system-packages --src-dir=. rust-shed _artifacts/linux
     - uses: actions/upload-artifact@master
       with:
         name: rust-shed
         path: _artifacts
     - name: Test rust-shed
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
     - name: Install Rust Beta
       uses: actions-rs/toolchain@v1
       with:
@@ -38,7 +40,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with beta toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
     - name: Install Rust Nightly
       uses: actions-rs/toolchain@v1
@@ -47,7 +49,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with nightly toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
   mac:
     runs-on: macOS-latest
@@ -61,18 +63,20 @@ jobs:
         toolchain: stable
         default: true
         profile: minimal
+    - name: Install system deps
+      run: sudo python3 build/fbcode_builder/getdeps.py --allow-system-packages install-system-deps --recursive mononoke
     - name: Build dependencies
-      run: python3 build/fbcode_builder/getdeps.py build --only-deps --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py build --allow-system-packages --only-deps --src-dir=. rust-shed
     - name: Build rust-shed
-      run: python3 build/fbcode_builder/getdeps.py build --no-deps --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py build --allow-system-packages --no-deps --src-dir=. rust-shed
     - name: Copy artifacts
-      run: python3 build/fbcode_builder/getdeps.py fixup-dyn-deps --src-dir=. rust-shed _artifacts/mac
+      run: python3 build/fbcode_builder/getdeps.py fixup-dyn-deps --allow-system-packages --src-dir=. rust-shed _artifacts/mac
     - uses: actions/upload-artifact@master
       with:
         name: rust-shed
         path: _artifacts
     - name: Test rust-shed
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
     - name: Install Rust Beta
       uses: actions-rs/toolchain@v1
       with:
@@ -80,7 +84,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with beta toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
     - name: Install Rust Nightly
       uses: actions-rs/toolchain@v1
@@ -89,7 +93,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with nightly toolchain
-      run: python3 build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python3 build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
   windows:
     runs-on: windows-2016
@@ -107,17 +111,17 @@ jobs:
     - name: Fix Git config
       run: git config --system core.longpaths true
     - name: Build dependencies
-      run: python build/fbcode_builder/getdeps.py build --only-deps --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py build --allow-system-packages --only-deps --src-dir=. rust-shed
     - name: Build rust-shed
-      run: python build/fbcode_builder/getdeps.py build --no-deps --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py build --allow-system-packages --no-deps --src-dir=. rust-shed
     - name: Copy artifacts
-      run: python build/fbcode_builder/getdeps.py fixup-dyn-deps --src-dir=. rust-shed _artifacts/windows
+      run: python build/fbcode_builder/getdeps.py fixup-dyn-deps --allow-system-packages --src-dir=. rust-shed _artifacts/windows
     - uses: actions/upload-artifact@master
       with:
         name: rust-shed
         path: _artifacts
     - name: Test rust-shed
-      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
     - name: Install Rust Beta
       uses: actions-rs/toolchain@v1
       with:
@@ -125,7 +129,7 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with beta toolchain
-      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
     - name: Install Rust Nightly
       uses: actions-rs/toolchain@v1
@@ -134,5 +138,5 @@ jobs:
         default: true
         profile: minimal
     - name: Test rust-shed with nightly toolchain
-      run: python build/fbcode_builder/getdeps.py test --src-dir=. rust-shed
+      run: python build/fbcode_builder/getdeps.py test --allow-system-packages --src-dir=. rust-shed
       continue-on-error: true
