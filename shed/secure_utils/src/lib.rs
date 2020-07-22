@@ -111,8 +111,12 @@ pub fn read_x509_stack<P: AsRef<Path>>(cert_pem_file: P) -> Result<Vec<X509>> {
 }
 
 fn read_bytes<T: AsRef<Path>>(path: T) -> Result<Vec<u8>> {
-    let mut f = std::fs::File::open(path)?;
-    let mut buf = Vec::new();
-    f.read_to_end(&mut buf)?;
-    Ok(buf)
+    let path = path.as_ref();
+    (|| -> Result<_> {
+        let mut f = std::fs::File::open(path)?;
+        let mut buf = Vec::new();
+        f.read_to_end(&mut buf)?;
+        Ok(buf)
+    })()
+    .with_context(|| format!("While reading file {}", path.display()))
 }
