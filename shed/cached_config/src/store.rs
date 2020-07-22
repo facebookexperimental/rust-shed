@@ -169,7 +169,14 @@ impl ConfigStore {
 
     fn updater_thread(&self, poll_interval: Duration) {
         loop {
-            let mut clients = self.clients.lock().expect("lock poisoned");
+            let clients = self.clients.lock().expect("lock poisoned");
+
+            // Don't loop when there are no active clients to care about
+            let mut clients = if clients.is_empty() {
+                self.kick.wait(clients).expect("Lock poisoned")
+            } else {
+                clients
+            };
 
             for path in self
                 .source
@@ -187,10 +194,8 @@ impl ConfigStore {
                 !client_list.is_empty()
             });
 
-            if clients.is_empty() {
-                // Don't loop when there are no active clients to care about
-                let _ = self.kick.wait(clients);
-            }
+            // Release clients before going to sleep.
+            std::mem::drop(clients);
 
             thread::sleep(poll_interval);
         }
@@ -200,5 +205,39 @@ impl ConfigStore {
 impl fmt::Debug for ConfigStore {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "ConfigStore({:?})", self.source)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::TestSource;
+    use anyhow::Error;
+    use std::time::Instant;
+
+    #[test]
+    fn test_contention() -> Result<(), Error> {
+        let source = TestSource::new();
+        source.insert_config("foo", "bar", 0);
+
+        let store = ConfigStore::new(Arc::new(source), Some(Duration::from_millis(100)), None);
+
+        // Now, acquire a handle. This will let the updater go to sleep instead of waiting on a
+        // condition variable.
+        let h = store.get_raw_config_handle("foo".to_string())?;
+        thread::sleep(Duration::from_millis(200));
+
+        // Now, try to acquire handles. If the updater released the lock properly, this will work.
+        // Otherwise, we might have to wait 90ms (100 - 10) until it releases, or forever if it
+        // just re-acquires the lock immediately.
+        let t0 = Instant::now();
+        store.get_raw_config_handle("foo".to_string())?;
+        store.get_raw_config_handle("foo".to_string())?;
+        assert!(t0.elapsed().as_millis() < 10);
+
+        // Drop the handle. We do this explicitly to make sure it does not get dropped earlier.
+        std::mem::drop(h);
+
+        Ok(())
     }
 }
