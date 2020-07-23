@@ -9,4 +9,4 @@ include = ["src/**/*.rs"]
 [dependencies]
 bytes = { version = "0.5", features = ["serde"] }
 bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
-ref-cast = "1.0"
+ref-cast = "1.0.2"
