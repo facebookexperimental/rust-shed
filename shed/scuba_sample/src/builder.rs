@@ -17,6 +17,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{Error as IoError, Write};
 use std::num::NonZeroU64;
 use std::path::Path;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
@@ -31,6 +32,7 @@ pub struct ScubaSampleBuilder {
     sample: ScubaSample,
     log_file: Option<Arc<Mutex<File>>>,
     sampling: Sampling,
+    seq: Option<Arc<(String, AtomicU64)>>,
 }
 
 impl ScubaSampleBuilder {
@@ -48,6 +50,7 @@ impl ScubaSampleBuilder {
             sample: ScubaSample::new(),
             log_file: None,
             sampling: Sampling::NoSampling,
+            seq: None,
         }
     }
 
@@ -60,6 +63,14 @@ impl ScubaSampleBuilder {
             .open(log_file)?;
         self.log_file = Some(Arc::new(Mutex::new(log_file)));
         Ok(self)
+    }
+
+    /// Enable log sequencing.  Each sample from this builder (or its clones)
+    /// will get a monotonically incrementing sequence number logged in the
+    /// named field with each log.
+    pub fn with_seq(mut self, key: impl Into<String>) -> Self {
+        self.seq = Some(Arc::new((key.into(), AtomicU64::new(0))));
+        self
     }
 
     /// Return true if a client is not set for this builder. This method will
@@ -114,10 +125,19 @@ impl ScubaSampleBuilder {
         &self.sample
     }
 
+    /// Update the sequence number in preparation for a new log operation.
+    fn next_seq(&mut self) {
+        if let Some((key, seq)) = self.seq.as_deref() {
+            let next_seq = seq.fetch_add(1, Ordering::Relaxed);
+            self.sample.add(key, next_seq);
+        }
+    }
+
     /// Log the internally built sample to the previously configured log file while overriding its
     /// timestamp to the current time. Returns whether the sample passed sampling.
     pub fn log(&mut self) -> bool {
         self.sample.set_time_now();
+        self.next_seq();
 
         if !self.sampling.apply(&mut self.sample) {
             return false;
@@ -138,6 +158,7 @@ impl ScubaSampleBuilder {
     /// timestamp to the provided time. Returns whether the sample passed sampling.
     pub fn log_with_time(&mut self, time: u64) -> bool {
         self.sample.set_time(time);
+        self.next_seq();
 
         if !self.sampling.apply(&mut self.sample) {
             return true;
