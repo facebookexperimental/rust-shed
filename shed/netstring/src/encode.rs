@@ -7,12 +7,12 @@
  * of this source tree.
  */
 
-use std::io::{Cursor, Write};
+use std::fmt::Write;
 use std::marker::PhantomData;
 
 use anyhow::{Error, Result};
 use bytes::{BufMut, BytesMut};
-use tokio_io::codec::Encoder;
+use tokio_util::codec::Encoder;
 
 /// A Netstring encoder.
 ///
@@ -49,16 +49,7 @@ where
         // Assume that 20 digits is long enough for the length
         // <len> ':' <payload> ','
         buf.reserve(20 + 1 + msg.len() + 1);
-
-        unsafe {
-            let adv = {
-                let mut wr = Cursor::new(buf.bytes_mut());
-                write!(wr, "{}:", msg.len()).expect("write to slice failed?");
-                wr.position() as usize
-            };
-            buf.advance_mut(adv);
-        }
-
+        write!(buf, "{}:", msg.len()).expect("write to slice failed?");
         buf.put_slice(msg);
         buf.put_u8(b',');
         Ok(())
@@ -70,7 +61,7 @@ mod test {
     use crate::NetstringDecoder;
     use bytes::BytesMut;
     use quickcheck::quickcheck;
-    use tokio_io::codec::Decoder;
+    use tokio_util::codec::Decoder;
 
     use super::*;
 

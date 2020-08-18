@@ -118,22 +118,43 @@ where
 
 #[cfg(test)]
 mod test {
-    use netstring::NetstringDecoder;
-
     use std::io;
 
+    use anyhow::{Error, Result};
     use bytes_old::Bytes;
     use futures::{stream, Stream};
 
     use super::*;
 
+    #[derive(Default)]
+    struct TestDecoder {}
+
+    impl Decoder for TestDecoder {
+        type Item = BytesMut;
+        type Error = Error;
+
+        fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>> {
+            if !buf.is_empty() {
+                let expected_len: usize = u8::from_le(buf[0]).into();
+                if buf.len() > expected_len {
+                    buf.split_to(1);
+                    Ok(Some(buf.split_to(expected_len)))
+                } else {
+                    Ok(None)
+                }
+            } else {
+                Ok(None)
+            }
+        }
+    }
+
     #[test]
     fn simple() {
         let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
-        let decoder = NetstringDecoder::default();
+        let decoder = TestDecoder::default();
 
-        let inp = stream::iter_ok::<_, io::Error>(vec![Bytes::from(&b"13:hello, world!,"[..])]);
+        let inp = stream::iter_ok::<_, io::Error>(vec![Bytes::from(&b"\x0Dhello, world!"[..])]);
 
         let dec = decode(inp, decoder);
         let out = Vec::new();
@@ -156,10 +177,10 @@ mod test {
     fn large() {
         let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
-        let decoder = NetstringDecoder::default();
+        let decoder = TestDecoder::default();
 
         let inp =
-            stream::iter_ok::<_, io::Error>(vec![Bytes::from("13:hello, world!,".repeat(5000))]);
+            stream::iter_ok::<_, io::Error>(vec![Bytes::from("\x0Dhello, world!".repeat(5000))]);
 
         let dec = decode(inp, decoder);
         let out = Vec::new();
@@ -183,11 +204,11 @@ mod test {
     fn partial() {
         let mut runtime = tokio::runtime::Runtime::new().unwrap();
 
-        let decoder = NetstringDecoder::default();
+        let decoder = TestDecoder::default();
 
         let inp = stream::iter_ok::<_, io::Error>(vec![
-            Bytes::from(&b"13:hel"[..]),
-            Bytes::from(&b"lo, world!,"[..]),
+            Bytes::from(&b"\x0Dhel"[..]),
+            Bytes::from(&b"lo, world!"[..]),
         ]);
 
         let dec = decode(inp, decoder);

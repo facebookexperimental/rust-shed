@@ -10,7 +10,7 @@
 use crate::ErrorKind;
 use anyhow::{bail, ensure, Error, Result};
 use bytes::BytesMut;
-use tokio_io::codec::Decoder;
+use tokio_util::codec::Decoder;
 
 #[derive(Debug, Copy, Clone)]
 enum State {
@@ -178,7 +178,7 @@ impl Decoder for NetstringDecoder {
 #[cfg(test)]
 mod test {
     use bytes::{BufMut, BytesMut};
-    use tokio_io::codec::Decoder;
+    use tokio_util::codec::Decoder;
 
     use super::*;
 
