@@ -10,7 +10,7 @@
 //! This crate contains helpers to work with code that uses both bytes 0.4 and
 //! 0.5.
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all)]
 
 mod collect;
 mod compat;
