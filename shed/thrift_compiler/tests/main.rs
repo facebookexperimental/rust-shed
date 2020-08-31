@@ -163,8 +163,8 @@ fn many_files() {
     let result = run_thrift_expect(
         &["one.thrift", "two.thrift"],
         Some(
-            r#"one _ crate
-two _ crate
+            r#"one crate
+two crate
 "#,
         ),
         &[
@@ -208,9 +208,9 @@ fn include() {
     let result = run_thrift_expect(
         &["one.thrift"],
         Some(
-            r#"sub_one _ subdir
-sub_two _ subdir
-one _ crate
+            r#"sub_one subdir
+sub_two subdir
+one crate
 "#,
         ),
         &[
