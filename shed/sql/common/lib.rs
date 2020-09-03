@@ -15,6 +15,7 @@
 pub mod error;
 pub mod ext;
 pub mod mysql;
+pub mod mysql2;
 pub mod sqlite;
 pub mod transaction;
 

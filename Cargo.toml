@@ -38,6 +38,7 @@ members = [
     "shed/sorted_vector_map",
     "shed/sql",
     "shed/sql/common",
+    "shed/sql/derive",
     "shed/sql/tests_lib",
     "shed/stats",
     "shed/stats/traits",
