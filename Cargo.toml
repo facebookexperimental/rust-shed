@@ -4,6 +4,7 @@ members = [
     "shed/ascii_ext",
     "shed/async_compression",
     "shed/async_unit",
+    "shed/borrowed",
     "shed/bytes_ext",
     "shed/cached_config",
     "shed/cachelib_stub",
