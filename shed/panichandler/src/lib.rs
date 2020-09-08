@@ -100,7 +100,7 @@ fn handler(panic: &PanicInfo<'_>, fate: Fate) {
     let _ = w.into_inner();
 
     match fate {
-        Fate::Continue => (),
+        Fate::Continue => {}
         Fate::Exit(exit) => {
             #[cfg(unix)]
             unsafe {

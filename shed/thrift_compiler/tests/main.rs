@@ -59,7 +59,7 @@ fn run_thrift(
 
         match option_env!("TEST_THRIFT") {
             Some(thrift_bin) if env::var("THRIFT").is_err() => env::set_var("THRIFT", thrift_bin),
-            _ => (),
+            _ => {}
         }
 
         Config::from_env().context("Failed to create thrift compiler")?

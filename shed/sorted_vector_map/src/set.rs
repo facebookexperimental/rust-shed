@@ -665,7 +665,6 @@ macro_rules! sorted_vector_set {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
     use quickcheck::quickcheck;
     use std::collections::BTreeSet;

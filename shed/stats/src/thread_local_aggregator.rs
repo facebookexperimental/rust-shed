@@ -204,13 +204,13 @@ mod tests {
         let _lock = TEST_MUTEX.lock().expect("poisoned lock");
 
         match schedule_stats_aggregation() {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
         }
 
         match schedule_stats_aggregation() {
             Ok(_) => panic!("Scheduler should already be initialized"),
-            Err(StatsScheduledError(_)) => (),
+            Err(StatsScheduledError(_)) => {}
         }
 
         STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);
@@ -221,13 +221,13 @@ mod tests {
         let _lock = TEST_MUTEX.lock().expect("poisoned lock");
 
         match schedule_stats_aggregation_preview() {
-            Ok(_) => (),
+            Ok(_) => {}
             Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
         }
 
         match schedule_stats_aggregation_preview() {
             Ok(_) => panic!("Scheduler should already be initialized"),
-            Err(StatsScheduledErrorPreview(_)) => (),
+            Err(StatsScheduledErrorPreview(_)) => {}
         }
 
         STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);

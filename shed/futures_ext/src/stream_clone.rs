@@ -113,7 +113,7 @@ where
                 for tx in &mut self.senders {
                     match tx.poll_complete() {
                         Err(_) => return Err(()),
-                        Ok(Async::Ready(())) => (),
+                        Ok(Async::Ready(())) => {}
                         Ok(Async::NotReady) => {
                             done = false;
                         }

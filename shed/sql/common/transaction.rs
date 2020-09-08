@@ -165,7 +165,7 @@ impl Drop for Transaction {
                     );
                 }
             }
-            Transaction::Mysql(_) => (),
+            Transaction::Mysql(_) => {}
         }
     }
 }

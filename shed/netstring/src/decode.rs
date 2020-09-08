@@ -190,7 +190,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -207,7 +207,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -215,7 +215,7 @@ mod test {
         }
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"world" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"world" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -232,7 +232,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -240,7 +240,7 @@ mod test {
         }
 
         match codec.decode(&mut buf) {
-            Ok(None) => (),
+            Ok(None) => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -256,7 +256,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(None) => (),
+            Ok(None) => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -266,7 +266,7 @@ mod test {
         buf.put_slice(b"2:hello, world,");
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -282,7 +282,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(None) => (),
+            Ok(None) => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -292,7 +292,7 @@ mod test {
         buf.put_slice(b":hello, world,");
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -308,7 +308,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(None) => (),
+            Ok(None) => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -318,7 +318,7 @@ mod test {
         buf.put_slice(b" world,");
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -334,7 +334,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Ok(None) => (),
+            Ok(None) => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -344,7 +344,7 @@ mod test {
         buf.put_slice(b",");
 
         match codec.decode(&mut buf) {
-            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => (),
+            Ok(Some(ref res)) if res.as_ref() == b"hello, world" => {}
             bad => panic!(
                 "decode failed: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
