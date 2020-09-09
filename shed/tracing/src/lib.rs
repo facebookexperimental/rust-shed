@@ -18,9 +18,9 @@ mod context;
 pub mod global;
 mod guard;
 
+pub use crate::r#async::{EventId, Traced};
 pub use crate::context::{generate_trace_id, TraceContext, TraceId};
 pub use crate::global::{disable, enable, is_enabled};
-pub use crate::r#async::{EventId, Traced};
 pub use serde_json::Value;
 
 /// Macro for assembling a `HashMap<String, serde_json::Value>` that will be added to

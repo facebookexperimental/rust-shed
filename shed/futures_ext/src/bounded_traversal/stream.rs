@@ -44,22 +44,24 @@ where
 {
     let mut unscheduled = VecDeque::from_iter(init);
     let mut scheduled = FuturesUnordered::new();
-    stream::poll_fn(move || loop {
-        if scheduled.is_empty() && unscheduled.is_empty() {
-            return Ok(Async::Ready(None));
-        }
-
-        for item in
-            unscheduled.drain(..std::cmp::min(unscheduled.len(), scheduled_max - scheduled.len()))
-        {
-            scheduled.push(unfold(item).into_future())
-        }
-
-        if let Some((out, children)) = try_ready!(scheduled.poll()) {
-            for child in children {
-                unscheduled.push_front(child);
+    stream::poll_fn(move || {
+        loop {
+            if scheduled.is_empty() && unscheduled.is_empty() {
+                return Ok(Async::Ready(None));
             }
-            return Ok(Async::Ready(Some(out)));
+
+            for item in unscheduled
+                .drain(..std::cmp::min(unscheduled.len(), scheduled_max - scheduled.len()))
+            {
+                scheduled.push(unfold(item).into_future())
+            }
+
+            if let Some((out, children)) = try_ready!(scheduled.poll()) {
+                for child in children {
+                    unscheduled.push_front(child);
+                }
+                return Ok(Async::Ready(Some(out)));
+            }
         }
     })
 }
