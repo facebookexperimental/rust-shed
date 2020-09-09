@@ -9,83 +9,55 @@
 
 use crate::FramedTransport;
 use bytes::Bytes;
-use futures::{stream, Stream};
-use std::io::{self, Cursor};
-use tokio::runtime::Runtime;
-use tokio_proto::pipeline::ClientProto;
+use futures::stream::{self, StreamExt, TryStreamExt};
+use std::io::Cursor;
+use tokio_util::codec::Decoder;
 
-#[test]
-fn framed_transport_encode() {
+#[tokio::test]
+async fn framed_transport_encode() {
     let buf = Cursor::new(Vec::with_capacity(32));
-
-    let trans = FramedTransport.bind_transport(buf).unwrap();
+    let mut trans = FramedTransport.framed(buf);
 
     let input = Bytes::from(vec![0u8, 1, 2, 3, 4, 5, 6, 7]);
+    let stream = stream::once(async { Ok(input) });
 
-    let stream = stream::once::<_, io::Error>(Ok(input));
-
-    let fut = stream.forward(trans);
-
-    let mut runtime = Runtime::new().unwrap();
-
-    let (_stream, trans) = runtime.block_on(fut).unwrap();
+    stream.forward(&mut trans).await.unwrap();
 
     let expected = vec![0, 0, 0, 8, 0, 1, 2, 3, 4, 5, 6, 7];
-
     let encoded = trans.into_inner().into_inner();
-
     assert_eq!(encoded, expected, "encoded frame not equal");
 }
 
-#[test]
-fn framed_transport_decode() {
+#[tokio::test]
+async fn framed_transport_decode() {
     let buf = Cursor::new(vec![0u8, 0, 0, 8, 0, 1, 2, 3, 4, 5, 6, 7]);
+    let trans = FramedTransport.framed(buf);
 
-    let trans = FramedTransport.bind_transport(buf).unwrap();
-
-    let fut = trans.collect();
-
-    let mut runtime = Runtime::new().unwrap();
-
-    let mut decoded = runtime.block_on(fut).unwrap();
-
-    let decoded = decoded.pop().unwrap();
+    let mut decoded = trans.collect::<Vec<_>>().await;
+    let decoded = decoded.pop().unwrap().unwrap();
 
     let expected = vec![0u8, 1, 2, 3, 4, 5, 6, 7];
-
     assert_eq!(decoded.into_inner(), expected, "decoded frame not equal");
 }
 
-#[test]
-fn framed_transport_decode_incomplete_frame() {
+#[tokio::test]
+async fn framed_transport_decode_incomplete_frame() {
     // Promise 8, deliver 7
     let buf = Cursor::new(vec![0u8, 0, 0, 8, 0, 1, 2, 3, 4, 5, 6]);
-
-    let trans = FramedTransport.bind_transport(buf).unwrap();
-
-    let fut = trans.collect();
-
-    let mut runtime = Runtime::new().unwrap();
-
+    let transport = FramedTransport.framed(buf);
     assert!(
-        runtime.block_on(fut).is_err(),
+        transport.try_collect::<Vec<_>>().await.is_err(),
         "returned Ok with bytes left on stream"
     );
 }
 
-#[test]
-fn framed_transport_decode_incomplete_header() {
+#[tokio::test]
+async fn framed_transport_decode_incomplete_header() {
     // Promise 8, deliver 7
     let buf = Cursor::new(vec![0u8, 0, 0]);
-
-    let trans = FramedTransport.bind_transport(buf).unwrap();
-
-    let fut = trans.collect();
-
-    let mut runtime = Runtime::new().unwrap();
-
+    let transport = FramedTransport.framed(buf);
     assert!(
-        runtime.block_on(fut).is_err(),
+        transport.try_collect::<Vec<_>>().await.is_err(),
         "returned Ok with bytes left on stream"
     );
 }
