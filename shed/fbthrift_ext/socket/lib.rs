@@ -24,6 +24,8 @@ use tokio_proto::BindClient;
 use tokio_service::Service;
 use tokio_uds::UnixStream;
 
+pub mod util;
+
 /// ```ignore
 /// let stream = tokio_uds::UnixStream::connect(path, handle)?;
 /// let transport = SocketTransport::new(handle, stream);
