@@ -12,3 +12,4 @@ path = "lib.rs"
 [dependencies]
 sql = { path = ".." }
 futures-old = { package = "futures", version = "0.1" }
+rand = { version = "0.7", features = ["small_rng"] }

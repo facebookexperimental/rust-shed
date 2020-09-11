@@ -59,12 +59,15 @@
 mod tests;
 
 pub use anyhow;
+pub use cloned;
 pub use failure;
 pub use failure_ext;
 pub use futures;
 pub use futures_ext;
+pub use futures_util;
 pub use mysql_async;
 pub use rusqlite;
+pub use sql_common::mysql;
 pub use sql_common::{self, error, sqlite, transaction::Transaction, Connection, WriteResult};
 
 use mysql_async::Value;
@@ -456,18 +459,20 @@ macro_rules! _query_common {
         use std::sync::Arc;
 
         use $crate::anyhow::{Context, Error};
+        use $crate::cloned::cloned;
         use $crate::failure_ext::FutureFailureErrorExt;
         use $crate::futures::{
             future::{lazy, IntoFuture},
             Future,
         };
         use $crate::futures_ext::{BoxFuture, FutureExt};
+        use $crate::futures_util::{FutureExt as NewFutureExt, TryFutureExt};
         use $crate::mysql_async::prelude::*;
         use $crate::rusqlite::{
             types::ToSql as ToSqliteValue, Connection as SqliteConnection, Result as SqliteResult,
             Statement as SqliteStatement,
         };
-        use $crate::sql_common::mysql::{MysqlConnectionExt, MysqlTransactionExt};
+        use $crate::sql_common::deprecated_mysql::{MysqlConnectionExt, MysqlTransactionExt};
         use $crate::{
             sqlite::{SqliteConnectionGuard, SqliteMultithreaded},
             Connection, Transaction, ValueWrapper,
@@ -496,8 +501,18 @@ macro_rules! _read_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_query(multithread_con.clone() $( , $pname )* $( , $lname )*)
                 }
-                Connection::Mysql(con) => {
+                Connection::DeprecatedMysql(con) => {
                     con.read_query(mysql_query($( $pname, )* $( $lname, )*))
+                }
+                Connection::Mysql(conn) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    cloned!(conn);
+                    async move {
+                        conn.read_query(query).map_err(Error::from).await
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 }
             }
         }
@@ -519,13 +534,25 @@ macro_rules! _read_query_impl {
                         })
                         .boxify()
                 }
-                Transaction::Mysql(ref mut transaction) => {
+                Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction.take()
                         .expect("should be Some before transaction ended");
                     transaction
                         .read_query(mysql_query($( $pname, )* $( $lname, )*))
-                        .map(|(tra, result)| (Transaction::Mysql(Some(tra)), result))
+                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                         .boxify()
+                }
+                Transaction::Mysql(ref mut transaction) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut tr = transaction.take()
+                        .expect("should be Some before transaction ended");
+                    async move {
+                        let result = tr.read_query(query).map_err(Error::from).await?;
+                        Ok((Transaction::Mysql(Some(tr)), result))
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 }
             }
         }
@@ -676,8 +703,19 @@ macro_rules! _write_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_exec_query(multithread_con.clone(), values, $( $pname ),*)
                 }
-                Connection::Mysql(con) => {
+                Connection::DeprecatedMysql(con) => {
                     con.write_query(mysql_query(values, $( $pname ),*))
+                }
+                Connection::Mysql(conn) => {
+                    let query = mysql_query(values, $( $pname ),*);
+                    cloned!(conn);
+                    async move {
+                        let res = conn.write_query(query).map_err(Error::from).await?;
+                        Ok(res.into())
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 }
             }
         }
@@ -703,14 +741,26 @@ macro_rules! _write_query_impl {
                         })
                         .boxify()
                 }
-                Transaction::Mysql(ref mut transaction) => {
+                Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction
                         .take()
                         .expect("should be Some before transaction ended");
                     transaction
                         .write_query(mysql_query(values, $( $pname ),*))
-                        .map(|(tra, result)| (Transaction::Mysql(Some(tra)), result))
+                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                         .boxify()
+                }
+                Transaction::Mysql(ref mut transaction) => {
+                    let query = mysql_query(values, $( $pname ),*);
+                    let mut tr = transaction.take()
+                        .expect("should be Some before transaction ended");
+                    async move {
+                        let result = tr.write_query(query).map_err(Error::from).await?;
+                        Ok((Transaction::Mysql(Some(tr)), result.into()))
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 },
             }
         }
@@ -857,8 +907,19 @@ macro_rules! _write_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_exec_query(multithread_con.clone() $( , $pname )* $( , $lname )*)
                 }
-                Connection::Mysql(con) => {
+                Connection::DeprecatedMysql(con) => {
                     con.write_query(mysql_query($( $pname, )* $( $lname, )*))
+                }
+                Connection::Mysql(conn) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    cloned!(conn);
+                    async move {
+                        let res = conn.write_query(query).map_err(Error::from).await?;
+                        Ok(res.into())
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 }
             }
         }
@@ -880,14 +941,26 @@ macro_rules! _write_query_impl {
                         })
                         .boxify()
                 }
-                Transaction::Mysql(ref mut transaction) => {
+                Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction
                         .take()
                         .expect("should be Some before transaction ended");
                     transaction
                         .write_query(mysql_query($( $pname, )* $( $lname, )*))
-                        .map(|(tra, result)| (Transaction::Mysql(Some(tra)), result))
+                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                         .boxify()
+                }
+                Transaction::Mysql(ref mut transaction) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut tr = transaction.take()
+                        .expect("should be Some before transaction ended");
+                    async move {
+                        let result = tr.write_query(query).map_err(Error::from).await?;
+                        Ok((Transaction::Mysql(Some(tr)), result.into()))
+                    }
+                    .boxed()
+                    .compat()
+                    .boxify()
                 },
             }
         }

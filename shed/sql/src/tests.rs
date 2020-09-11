@@ -55,3 +55,53 @@ fn test_transaction_rollback_on_drop_with_sqlite() {
 fn test_transaction_commit_with_sqlite() {
     test_transaction_commit(prepare_sqlite_con(), TestSemantics::Sqlite);
 }
+
+#[cfg(fbcode_build)]
+#[cfg(test)]
+mod mysql {
+    use super::*;
+    use crate::sql_common::mysql::Connection as MysqlConnection;
+
+    use anyhow::{Error, Result};
+    use fbinit::FacebookInit;
+    use mysql_client::{
+        ConnectionPool, ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement,
+        MysqlCppClient,
+    };
+    use sql_tests_lib::{test_basic_query, test_basic_transaction};
+
+    async fn setup_connection(fb: FacebookInit) -> Result<Connection> {
+        let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;
+        let mut client = MysqlCppClient::new(fb, locator)?;
+
+        client
+            .query_raw(
+                "CREATE TABLE IF NOT EXISTS foo(x INT, test CHAR(64), id INT AUTO_INCREMENT, PRIMARY KEY(id))",
+            )
+            .await?;
+
+        let pool_options = ConnectionPoolOptionsBuilder::default()
+            .pool_limit(1)
+            .build()
+            .map_err(Error::msg)?;
+        let pool = ConnectionPool::new(&mut client, &pool_options)?;
+
+        let conn = MysqlConnection::new(pool);
+        Ok(Connection::from(conn))
+    }
+
+    #[fbinit::test]
+    async fn test_mysql2_basic_query(fb: FacebookInit) -> Result<()> {
+        let conn = setup_connection(fb).await?;
+        test_basic_query(conn);
+
+        Ok(())
+    }
+
+    #[fbinit::test]
+    async fn test_mysql2_transaction(fb: FacebookInit) -> Result<()> {
+        let conn = setup_connection(fb).await?;
+        test_basic_transaction(conn);
+        Ok(())
+    }
+}

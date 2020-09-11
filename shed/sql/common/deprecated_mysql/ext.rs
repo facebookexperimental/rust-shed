@@ -23,9 +23,9 @@ use crate::WriteResult;
 type MyBoxFuture<T> = BoxFuture<T, Error>;
 
 /// An extension trait that provides useful methods for Boxed version of
-/// [crate::mysql::MysqlConnection]. Cannot be provided directly on the trait,
-/// because the usage of generics in the methods would prevent from creating
-/// a trait object.
+/// [crate::deprecated_mysql::MysqlConnection]. Cannot be provided directly
+/// on the trait, because the usage of generics in the methods would prevent
+/// from creating a trait object.
 pub trait MysqlConnectionExt {
     /// Perform the string query and collect the result.
     /// See [::mysql_async::QueryResult::collect]
@@ -89,9 +89,9 @@ impl MysqlConnectionExt for BoxMysqlConnection {
 }
 
 /// An extension trait that provides useful methods for Boxed version of
-/// [crate::mysql::MysqlTransaction]. Cannot be provided directly on the trait,
-/// because the usage of generics in the methods would prevent from creating
-/// a trait object.
+/// [crate::deprecated_mysql::MysqlTransaction]. Cannot be provided directly
+/// on the trait, because the usage of generics in the methods would prevent
+/// from creating a trait object.
 pub trait MysqlTransactionExt {
     /// Perform the string query and collect the result.
     /// See [::mysql_async::QueryResult::collect]

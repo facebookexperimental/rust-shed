@@ -10,11 +10,15 @@
 //! Module that provides support for SQL transactions to this library.
 
 use anyhow::Error;
+use cloned::cloned;
+use futures::future::TryFutureExt;
 use futures_ext::{BoxFuture, FutureExt};
 use futures_old::{future::IntoFuture, Future};
+use futures_util::FutureExt as NewFutureExt;
 use mysql_async::TransactionOptions;
 
-use crate::mysql::BoxMysqlTransaction;
+use crate::deprecated_mysql::BoxMysqlTransaction;
+use crate::mysql;
 use crate::sqlite::SqliteConnectionGuard;
 
 impl crate::Connection {
@@ -78,8 +82,13 @@ pub enum Transaction {
     /// sure to call "commit" if they want to persist the transation.
     Sqlite(Option<SqliteConnectionGuard>),
     /// An enum variant for the mysql-based transactions, your structure have to
-    /// implement [crate::mysql::MysqlTransaction] in order to be usable here.
-    Mysql(Option<BoxMysqlTransaction>),
+    /// implement [crate::deprecated_mysql::MysqlTransaction] in order to be usable here.
+    ///
+    /// This backend is based on MyRouter connections and is deprecated soon. Please
+    /// use new Mysql client instead.
+    DeprecatedMysql(Option<BoxMysqlTransaction>),
+    /// A variant used for the new Mysql client connection.
+    Mysql(Option<mysql::Transaction>),
 }
 
 impl Transaction {
@@ -105,10 +114,20 @@ impl Transaction {
                     .map_err(failure_ext::convert)
                     .boxify()
             }
-            super::Connection::Mysql(con) => con
+            super::Connection::DeprecatedMysql(con) => con
                 .transaction_with_options(options)
-                .map(|con| Transaction::Mysql(Some(con)))
+                .map(|con| Transaction::DeprecatedMysql(Some(con)))
                 .boxify(),
+            super::Connection::Mysql(conn) => {
+                cloned!(conn);
+                async move {
+                    let transaction = conn.begin_transaction().map_err(Error::from).await?;
+                    Ok(Transaction::Mysql(Some(transaction)))
+                }
+                .boxed()
+                .compat()
+                .boxify()
+            }
         }
     }
 
@@ -129,8 +148,16 @@ impl Transaction {
 
                 res.into_future().map_err(failure_ext::convert).boxify()
             }
-            Transaction::Mysql(ref mut con) => {
+            Transaction::DeprecatedMysql(ref mut con) => {
                 con.take().expect("Called commit after drop").commit()
+            }
+            Transaction::Mysql(ref mut tr) => {
+                let tr = tr.take().expect("Called commit after drop");
+                async move { tr.commit().await }
+                    .map_err(Error::from)
+                    .boxed()
+                    .compat()
+                    .boxify()
             }
         }
     }
@@ -138,11 +165,19 @@ impl Transaction {
     /// Perform a rollback on this transaction
     pub fn rollback(mut self) -> BoxFuture<(), Error> {
         match self {
-            Transaction::Mysql(ref mut con) => {
+            Transaction::DeprecatedMysql(ref mut con) => {
                 con.take().expect("Called rollback after drop").rollback()
             }
             // Sqlite will rollback on drop
             Transaction::Sqlite(..) => Ok(()).into_future().boxify(),
+            Transaction::Mysql(ref mut tr) => {
+                let tr = tr.take().expect("Called rollback after drop");
+                async move { tr.rollback().await }
+                    .map_err(Error::from)
+                    .boxed()
+                    .compat()
+                    .boxify()
+            }
         }
     }
 }
@@ -165,6 +200,7 @@ impl Drop for Transaction {
                     );
                 }
             }
+            Transaction::DeprecatedMysql(_) => {}
             Transaction::Mysql(_) => {}
         }
     }

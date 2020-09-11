@@ -9,7 +9,7 @@
 
 //! Utilities for interacting with Connection.
 
-use crate::{error::from_failure, mysql::MysqlConnection, Connection};
+use crate::{deprecated_mysql::MysqlConnection, error::from_failure, mysql, Connection};
 use anyhow::Error;
 use futures::{future::FutureExt as _, future::TryFutureExt};
 use futures_ext::{BoxFuture, FutureExt};
@@ -30,12 +30,13 @@ impl ConnectionExt for Connection {
     fn show_replica_lag_secs(&self) -> BoxFuture<Option<u64>, Error> {
         match self {
             Connection::Sqlite(_) => ok(None).boxify(),
-            Connection::Mysql(ref con) => con.show_replica_lag_secs(),
+            Connection::DeprecatedMysql(ref con) => con.show_replica_lag_secs(),
+            Connection::Mysql(_) => ok(None).boxify(),
         }
     }
 }
 
-trait MysqlConnectionExt: MysqlConnection {
+trait MysqlConnectionExt {
     fn show_replica_lag_secs(&self) -> BoxFuture<Option<u64>, Error>;
 }
 
@@ -64,5 +65,15 @@ impl<T: MysqlConnection> MysqlConnectionExt for T {
         )
         .and_then(|()| rx.map_err(|err| err.into()))
         .boxify()
+    }
+}
+
+impl MysqlConnectionExt for mysql::Connection {
+    fn show_replica_lag_secs(&self) -> BoxFuture<Option<u64>, Error> {
+        let this = self.clone();
+        async move { this.get_replica_lag_secs().map_err(Error::from).await }
+            .boxed()
+            .compat()
+            .boxify()
     }
 }

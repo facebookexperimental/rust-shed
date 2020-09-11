@@ -10,8 +10,11 @@
 #![deny(warnings, clippy::all)]
 
 use futures_old::Future;
+use rand::distributions::Alphanumeric;
+use rand::{thread_rng, Rng};
 use sql::mysql_async::prelude::*;
 use sql::mysql_async::{FromValueError, Value};
+use sql::sql_common::mysql;
 use sql::{queries, Connection, Transaction};
 
 pub struct A;
@@ -22,7 +25,7 @@ impl ToValue for A {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, mysql::OptTryFromRowField)]
 pub struct B;
 pub struct IntB;
 
@@ -84,6 +87,39 @@ queries! {
         none,
         "UPDATE foo SET x = {x} WHERE id = {id}"
     }
+    write TestQuery11(x: i64, test: String) {
+        none,
+        "INSERT INTO foo (x, test) VALUES ({x}, {test})"
+    }
+    read TestQuery12(test: String) -> (i64) {
+        "SELECT x FROM foo WHERE test = {test}"
+    }
+}
+
+pub fn test_basic_query(conn: Connection) {
+    let rng = thread_rng();
+    let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
+
+    TestQuery11::query(&conn, &1, &test).wait().unwrap();
+    let res = TestQuery11::query(&conn, &3, &test).wait().unwrap();
+    assert_eq!(res.affected_rows(), 1);
+
+    let res = TestQuery12::query(&conn, &test).wait().unwrap();
+    assert_eq!(res, vec![(1,), (3,)]);
+}
+
+pub fn test_basic_transaction(conn: Connection) {
+    let rng = thread_rng();
+    let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
+
+    let transaction = conn.start_transaction().wait().unwrap();
+    let (transaction, _res) = TestQuery11::query_with_transaction(transaction, &5, &test)
+        .wait()
+        .unwrap();
+    transaction.commit().wait().unwrap();
+
+    let res = TestQuery12::query(&conn, &test).wait().unwrap();
+    assert_eq!(res, vec![(5,)]);
 }
 
 pub fn test_read_query(conn: Connection, semantics: TestSemantics) {

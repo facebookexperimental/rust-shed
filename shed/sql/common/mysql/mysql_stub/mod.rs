@@ -57,6 +57,11 @@ impl Connection {
     pub async fn begin_transaction(&self) -> Result<Transaction, MysqlError> {
         unimplemented!("This is a stub");
     }
+
+    /// Returns the replication lag for a connection.
+    pub async fn get_replica_lag_secs(&self) -> Result<Option<u64>, MysqlError> {
+        unimplemented!("This is a stub");
+    }
 }
 
 /// Transaction object.

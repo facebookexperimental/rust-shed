@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-//! Module introduces a proc macro for sql_common::mysql2.
+//! Module introduces a proc macro for sql_common::mysql.
 
 extern crate proc_macro;
 
@@ -23,9 +23,9 @@ pub fn derive_tryfrom_rowfield(input: TokenStream) -> TokenStream {
     let name = parsed_input.ident;
 
     let expanded = quote! {
-        impl mysql2::OptionalTryFromRowField for #name {
-            fn try_from_opt(field: mysql2::RowField) -> Result<Option<Self>, mysql2::MysqlError> {
-                mysql2::opt_try_from_rowfield(field)
+        impl mysql::OptionalTryFromRowField for #name {
+            fn try_from_opt(field: mysql::RowField) -> Result<Option<Self>, mysql::MysqlError> {
+                mysql::opt_try_from_rowfield(field)
             }
         }
     };
