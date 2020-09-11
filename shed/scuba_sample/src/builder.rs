@@ -86,6 +86,19 @@ impl ScubaSampleBuilder {
         self
     }
 
+    /// Call the internal sample's [super::sample::ScubaSample::add] method
+    /// if the specified value is not `None`.
+    pub fn add_opt<K: Into<String>, V: Into<ScubaValue>>(
+        &mut self,
+        key: K,
+        value: Option<V>,
+    ) -> &mut Self {
+        if let Some(value) = value {
+            self.sample.add(key, value);
+        }
+        self
+    }
+
     /// Call the internal sample's [super::sample::ScubaSample::remove] method
     pub fn remove<K: Into<String>>(&mut self, key: K) -> &mut Self {
         self.sample.remove(key);
