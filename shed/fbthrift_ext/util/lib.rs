@@ -36,7 +36,7 @@ where
 /// # async fn main() {
 /// use std::task::Poll;
 /// use tokio::sync::Mutex;
-/// use fbthrift_socket::util::poll_with_lock;
+/// use fbthrift_util::poll_with_lock;
 ///
 /// struct Foobar(i32);
 /// let lock = Mutex::new(Foobar(132));

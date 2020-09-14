@@ -13,6 +13,7 @@ use anyhow::{Error, Result};
 use bytes::{Bytes, BytesMut};
 use fbthrift::{Framing, FramingDecoded, FramingEncodedFinal, Transport};
 use fbthrift_framed::FramedTransport;
+use fbthrift_util::poll_with_lock;
 use futures::compat::Future01CompatExt;
 use futures::future::{FutureExt, TryFutureExt};
 use std::future::Future;
@@ -28,10 +29,6 @@ use tokio_service::Service as _;
 use tokio_tower::pipeline::client::Client;
 use tokio_util::codec::{Decoder, Framed};
 use tower_service::Service;
-
-pub mod util;
-
-use crate::util::poll_with_lock;
 
 /// ```ignore
 /// let stream = tokio_uds::UnixStream::connect(path, handle)?;

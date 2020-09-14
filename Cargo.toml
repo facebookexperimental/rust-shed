@@ -17,6 +17,7 @@ members = [
     "shed/fbthrift_ext/framed",
     "shed/fbthrift_ext/socket",
     "shed/fbthrift_ext/tcp",
+    "shed/fbthrift_ext/util",
     "shed/futures_ext",
     "shed/futures_stats",
     "shed/hash_memo",

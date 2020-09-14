@@ -11,12 +11,12 @@ path = "lib.rs"
 
 [dependencies]
 fbthrift_framed = { path = "../framed" }
+fbthrift_util = { path = "../util" }
 fbthrift = { git = "https://github.com/facebook/fbthrift.git", branch = "master" }
 anyhow = "1.0"
 bytes = { version = "0.5", features = ["serde"] }
 bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
-futures-util = "0.3"
 tokio = { version = "=0.2.13", features = ["full"] }
 tokio-core = "0.1"
 tokio-proto = "0.1"

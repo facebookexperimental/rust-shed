@@ -1,0 +1,13 @@
+[package]
+name = "fbthrift_util"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook']
+license = "MIT OR Apache-2.0"
+include = ["**/*.rs"]
+
+[lib]
+path = "lib.rs"
+
+[dependencies]
+tokio = { version = "=0.2.13", features = ["full"] }
