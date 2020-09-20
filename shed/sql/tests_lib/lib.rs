@@ -12,6 +12,7 @@
 use futures_old::Future;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
+use sql::anyhow::Error;
 use sql::mysql_async::prelude::*;
 use sql::mysql_async::{FromValueError, Value};
 use sql::sql_common::mysql;
@@ -96,16 +97,18 @@ queries! {
     }
 }
 
-pub fn test_basic_query(conn: Connection) {
+pub fn test_basic_query(conn: Connection) -> Result<(), Error> {
     let rng = thread_rng();
     let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
 
-    TestQuery11::query(&conn, &1, &test).wait().unwrap();
-    let res = TestQuery11::query(&conn, &3, &test).wait().unwrap();
+    TestQuery11::query(&conn, &1, &test).wait()?;
+    let res = TestQuery11::query(&conn, &3, &test).wait()?;
     assert_eq!(res.affected_rows(), 1);
 
-    let res = TestQuery12::query(&conn, &test).wait().unwrap();
+    let res = TestQuery12::query(&conn, &test).wait()?;
     assert_eq!(res, vec![(1,), (3,)]);
+
+    Ok(())
 }
 
 pub fn test_basic_transaction(conn: Connection) {

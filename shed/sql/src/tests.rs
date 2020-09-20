@@ -93,9 +93,7 @@ mod mysql {
     #[fbinit::test]
     async fn test_mysql2_basic_query(fb: FacebookInit) -> Result<()> {
         let conn = setup_connection(fb).await?;
-        test_basic_query(conn);
-
-        Ok(())
+        test_basic_query(conn)
     }
 
     #[fbinit::test]
