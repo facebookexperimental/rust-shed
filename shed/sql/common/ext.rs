@@ -31,7 +31,7 @@ impl ConnectionExt for Connection {
         match self {
             Connection::Sqlite(_) => ok(None).boxify(),
             Connection::DeprecatedMysql(ref con) => con.show_replica_lag_secs(),
-            Connection::Mysql(_) => ok(None).boxify(),
+            Connection::Mysql(ref con) => con.show_replica_lag_secs(),
         }
     }
 }
