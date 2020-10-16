@@ -11,7 +11,7 @@
 //! data viewable in Chrome trace viewer. It also defines useful trait
 //! extensions for easy tracing of [futures::Future] and [futures::Stream].
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 mod r#async;
 mod context;

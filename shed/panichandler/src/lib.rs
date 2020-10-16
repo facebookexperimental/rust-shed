@@ -10,7 +10,7 @@
 //! Defines the [set_panichandler] function that wraps around
 //! [std::panic::set_hook] to make it easier to define a handler for panics
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 use std::io::{self, BufWriter, Write};
 use std::panic::{self, PanicInfo};

@@ -11,7 +11,7 @@
 //! schedule aggregation of stats by calling schedule_stats_aggregation and executing the returned
 //! future.
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 pub mod macros;
 mod noop_stats;

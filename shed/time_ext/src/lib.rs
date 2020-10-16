@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 #![allow(unstable_name_collisions)]
 
 //! Crate extending functionality of [std::time]

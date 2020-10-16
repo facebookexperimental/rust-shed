@@ -9,7 +9,7 @@
 
 //! Enables exposing counters for number of slog records per level
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 use slog::{Drain, Level, OwnedKVList, Record};
 use stats::prelude::*;

@@ -10,7 +10,7 @@
 //! This crate provides a client for accessing Memcache. The version on GitHub
 //! is no-op for now.
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 mod client;
 mod keygen;

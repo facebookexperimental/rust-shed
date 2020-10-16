@@ -15,7 +15,7 @@
 //! See http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool for details
 //! on working with Chrome traces.
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 use anyhow::Result;
 use bytes::Bytes;

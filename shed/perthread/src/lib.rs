@@ -40,7 +40,7 @@
 //! }
 //! ```
 
-#![deny(warnings, missing_docs, clippy::all, intra_doc_link_resolution_failure)]
+#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 use std::collections::HashMap;
 use std::fmt::{self, Debug};
