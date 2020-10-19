@@ -18,12 +18,12 @@ use anyhow::Result;
 pub fn get_hostname() -> Result<String> {
     #[cfg(not(fbcode_build))]
     {
-        Ok(::hostname::get()?.to_string_lossy().into_owned())
+        Ok(::hostname_orig::get()?.to_string_lossy().into_owned())
     }
 
     #[cfg(fbcode_build)]
     {
-        use hostname as _; // used in oss
+        use hostname_orig as _; // used in oss
 
         fbwhoami::FbWhoAmI::get()?
             .name
