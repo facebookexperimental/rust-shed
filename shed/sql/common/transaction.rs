@@ -106,13 +106,17 @@ impl Transaction {
     ) -> BoxFuture<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
-                let con = con.get_sqlite_guard();
-                // Transactions in SQLite are always SERIALIZABLE; no transaction options.
-                con.execute_batch("BEGIN DEFERRED")
-                    .map(move |_| Transaction::Sqlite(Some(con)))
-                    .into_future()
-                    .map_err(failure_ext::convert)
-                    .boxify()
+                cloned!(con);
+                async move {
+                    let con = con.get_sqlite_guard().await;
+                    // Transactions in SQLite are always SERIALIZABLE; no transaction options.
+                    con.execute_batch("BEGIN DEFERRED")
+                        .map(move |_| Transaction::Sqlite(Some(con)))
+                        .map_err(failure_ext::convert)
+                }
+                .boxed()
+                .compat()
+                .boxify()
             }
             super::Connection::DeprecatedMysql(con) => con
                 .transaction_with_options(options)

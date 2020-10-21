@@ -11,17 +11,17 @@
 
 #![allow(clippy::mutex_atomic)]
 
+use futures::lock::{Mutex as AsyncMutex, MutexGuard};
 use lazy_static::lazy_static;
 use rusqlite::Connection as SqliteConnection;
 use std::ops::Deref;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Arc, Mutex as SyncMutex};
 
 lazy_static! {
     /// Lock to ensure that only one connection is in use for writes at a time inside the process
     /// TODO: Remove this lock, and replace by better connection handling (as SQLite will get this right
     /// if we use a single connection to each file). See T59837828
-    static ref CONN_LOCK: Mutex<bool> = Mutex::new(true);
-    static ref CONN_CONDVAR: Condvar = Condvar::new();
+    static ref CONN_LOCK: AsyncMutex<()> = AsyncMutex::new(());
 }
 
 impl crate::Connection {
@@ -32,48 +32,35 @@ impl crate::Connection {
     }
 }
 
+type SqliteMultithreadedConnection = Arc<SyncMutex<Option<SqliteConnection>>>;
+
 /// Wrapper around rusqlite connection that makes it fully thread safe (but not deadlock safe)
 pub struct SqliteMultithreaded {
-    con: Arc<Mutex<Option<SqliteConnection>>>,
-    condvar: Arc<Condvar>,
+    con: SqliteMultithreadedConnection,
 }
 
 /// Returns a guard that grabs a lock and connection. Can be used instead of SqliteConnection
 /// When guard is destroyed then connection is put back and threads that are waiting for it
 /// are notified
 pub struct SqliteConnectionGuard {
-    m: Arc<Mutex<Option<SqliteConnection>>>,
-    condvar: Arc<Condvar>,
+    m: SqliteMultithreadedConnection,
+    global_guard: MutexGuard<'static, ()>,
     // drop() need to remove the connection, so use Option<...> here
-    con: Option<SqliteConnection>,
+    conn: Option<SqliteConnection>,
 }
 
 impl SqliteConnectionGuard {
-    fn new(
-        m: Arc<Mutex<Option<SqliteConnection>>>,
-        condvar: Arc<Condvar>,
-    ) -> SqliteConnectionGuard {
-        let _global_lock =
-            CONN_CONDVAR.wait_while(CONN_LOCK.lock().expect("lock poisoned"), |allowed| {
-                if *allowed {
-                    *allowed = false;
-                    false
-                } else {
-                    true
-                }
-            });
-        let con = {
-            let mut mutexguard = condvar
-                .wait_while(m.lock().expect("poisoned lock"), |con| con.is_none())
-                .expect("poisoned lock");
-
-            mutexguard.take().expect("connection should not be empty")
-        };
-
-        SqliteConnectionGuard {
+    async fn lock(m: SqliteMultithreadedConnection) -> Self {
+        let global_guard = CONN_LOCK.lock().await;
+        let conn = m
+            .lock()
+            .expect("poisoned lock")
+            .take()
+            .expect("Connection should never be empty since we're under the global lock");
+        Self {
             m,
-            condvar,
-            con: Some(con),
+            global_guard,
+            conn: Some(conn),
         }
     }
 }
@@ -82,20 +69,23 @@ impl Deref for SqliteConnectionGuard {
     type Target = SqliteConnection;
 
     fn deref(&self) -> &Self::Target {
-        self.con
+        &self
+            .conn
             .as_ref()
-            .expect("invariant violation - deref called after drop()")
+            .expect("Connection shouldn't be empty, unless deref() is called after drop()")
     }
 }
 
 impl Drop for SqliteConnectionGuard {
     fn drop(&mut self) {
-        *(CONN_LOCK.lock().expect("lock poisoned")) = true;
-        let mut locked_m = self.m.lock().expect("poisoned lock");
-        locked_m.get_or_insert(self.con.take().unwrap());
-        // notify others that wait for this connection
-        self.condvar.notify_one();
-        CONN_CONDVAR.notify_one();
+        self.m.lock().expect("poisoned lock").replace(
+            self.conn
+                .take()
+                .expect("Connection shouldn't be empty, unless drop() is called twice"),
+        );
+        // We need to use the global_guard field somehow so that it's not considered dead code.
+        // The guard will be unlocked when the SqliteConnectionGuard is dropped anyway.
+        *self.global_guard
     }
 }
 
@@ -103,18 +93,14 @@ impl SqliteMultithreaded {
     /// Create a new instance wrapping the provided sqlite connection.
     pub fn new(con: SqliteConnection) -> Self {
         Self {
-            con: Arc::new(Mutex::new(Some(con))),
-            condvar: Arc::new(Condvar::new()),
+            con: Arc::new(SyncMutex::new(Some(con))),
         }
     }
 
     /// Returns a guard that grabs a lock and connection.
-    /// When guard is destroyed then connection is put back and threads that are waiting for it
-    /// are notified
-    /// NOTE: it will block any other `get_sqlite_guard()` calls. So you shouldn't be async i.e.
-    /// if you have a future that calls `get_sqlite_guard()` then it shouldn't return NotReady
-    /// because it can cause a deadlock if another future will try to grab get_sqlite_guard
-    pub fn get_sqlite_guard(&self) -> SqliteConnectionGuard {
-        SqliteConnectionGuard::new(self.con.clone(), self.condvar.clone())
+    /// When guard is destroyed then connection is put back and tasks that are waiting for it
+    /// are resumed
+    pub async fn get_sqlite_guard(&self) -> SqliteConnectionGuard {
+        SqliteConnectionGuard::lock(self.con.clone()).await
     }
 }

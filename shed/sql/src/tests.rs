@@ -103,3 +103,83 @@ mod mysql {
         Ok(())
     }
 }
+
+mod sqlite {
+    use super::*;
+    use crate::queries;
+    use futures::channel::oneshot;
+    use futures_util::compat::Future01CompatExt;
+
+    queries! {
+        write TestInsert(values: (x: i64)) {
+            none,
+            "INSERT INTO foo (x) VALUES {values}"
+        }
+    }
+
+    async fn query_with_suspended_transaction(
+        conn: Connection,
+        notify_transaction_started: oneshot::Sender<()>,
+        transaction_unblocked: oneshot::Receiver<()>,
+    ) {
+        let transaction = conn
+            .start_transaction()
+            .compat()
+            .await
+            .expect("Failed to start transaction");
+        notify_transaction_started
+            .send(())
+            .expect("Transaction started - got global lock");
+        transaction_unblocked
+            .await
+            .expect("Failed to unblock transaction");
+        let (transaction, _res) = TestInsert::query_with_transaction(transaction, &[(&42,)])
+            .compat()
+            .await
+            .expect("TestInsert query failed");
+        transaction
+            .commit()
+            .compat()
+            .await
+            .expect("Failed to commit transaction");
+    }
+
+    #[tokio::test]
+    async fn test_concurrent_transaction() {
+        let conn = prepare_sqlite_con();
+
+        let (notify_unblock_transaction_1, transaction_unblocked_1) = oneshot::channel();
+        let (notify_transaction_started_1, transaction_started_1) = oneshot::channel();
+        let query_1 = tokio::task::spawn(query_with_suspended_transaction(
+            conn.clone(),
+            notify_transaction_started_1,
+            transaction_unblocked_1,
+        ));
+        transaction_started_1
+            .await
+            .expect("Failed to start a transaction 1");
+
+        let (notify_unblock_transaction_2, transaction_unblocked_2) = oneshot::channel();
+        let (notify_transaction_started_2, transaction_started_2) = oneshot::channel();
+        let query_2 = tokio::task::spawn(query_with_suspended_transaction(
+            conn.clone(),
+            notify_transaction_started_2,
+            transaction_unblocked_2,
+        ));
+        tokio::task::yield_now().await;
+
+        notify_unblock_transaction_1
+            .send(())
+            .expect("Unlbocking query #1");
+        query_1.await.expect("query-task #1 crashed");
+
+        transaction_started_2
+            .await
+            .expect("Failed to start a transaction 2");
+
+        notify_unblock_transaction_2
+            .send(())
+            .expect("Unlbocking query #2");
+        query_2.await.expect("query-task #2 crashed");
+    }
+}

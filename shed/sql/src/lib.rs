@@ -24,7 +24,7 @@
 //!
 //! # Example
 //! ```
-//! use futures::Future;
+//! use futures_old::Future;
 //!
 //! use sql::{queries, Connection};
 //! use sql_tests_lib::{A, B};
@@ -62,8 +62,8 @@ pub use anyhow;
 pub use cloned;
 pub use failure;
 pub use failure_ext;
-pub use futures;
 pub use futures_ext;
+pub use futures_old;
 pub use futures_util;
 pub use mysql_async;
 pub use rusqlite;
@@ -455,17 +455,19 @@ macro_rules! queries {
 #[doc(hidden)]
 macro_rules! _query_common {
     () => {
+        #[allow(unused_imports)]
         use std::fmt::Write;
         use std::sync::Arc;
 
-        use $crate::anyhow::{Context, Error};
+        use $crate::anyhow::Error;
         use $crate::cloned::cloned;
         use $crate::failure_ext::FutureFailureErrorExt;
-        use $crate::futures::{
+        use $crate::futures_ext::{BoxFuture, FutureExt};
+        #[allow(unused_imports)]
+        use $crate::futures_old::{
             future::{lazy, IntoFuture},
             Future,
         };
-        use $crate::futures_ext::{BoxFuture, FutureExt};
         use $crate::futures_util::{FutureExt as NewFutureExt, TryFutureExt};
         use $crate::mysql_async::prelude::*;
         use $crate::rusqlite::{
@@ -568,10 +570,10 @@ macro_rules! _read_query_impl {
                 $( >list $lname )*
             );
 
-            lazy(move || {
-                let con = multithread_con.get_sqlite_guard();
+            async move {
+                let con = multithread_con.get_sqlite_guard().await;
 
-                let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                let mut ref_params: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for idx in 0..params.len() {
                     ref_params.push((&params[idx].0, &params[idx].1))
                 }
@@ -601,9 +603,11 @@ macro_rules! _read_query_impl {
                         })?.collect()
                     });
                 res
-            })
-                .from_err()
-                .boxify()
+            }
+            .boxed()
+            .compat()
+            .from_err()
+            .boxify()
         }
 
         fn sqlite_query_with_transaction(
@@ -618,7 +622,7 @@ macro_rules! _read_query_impl {
             );
 
             lazy(move || -> SqliteResult<(SqliteConnectionGuard, Vec<($( $rtype, )*)>)> {
-                let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                let mut ref_params: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for idx in 0..params.len() {
                     ref_params.push((&params[idx].0, &params[idx].1))
                 }
@@ -802,14 +806,14 @@ macro_rules! _write_query_impl {
                 multi_params.push(params);
             }
 
-            lazy(move || -> SqliteResult<WriteResult> {
-                let con = multithread_con.get_sqlite_guard();
+            async move {
+                let con = multithread_con.get_sqlite_guard().await;
 
                 let mut stmt = sqlite_statement(&con)?;
 
                 let mut res = Vec::new();
                 for params in multi_params {
-                    let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                    let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                     for param in &params {
                         param_refs.push((param.0, &param.1));
                     }
@@ -817,13 +821,14 @@ macro_rules! _write_query_impl {
                     res.push(stmt.execute_named(param_refs.as_ref())?);
                 }
 
-                Ok(WriteResult::new(
+                Ok::<WriteResult, Error>(WriteResult::new(
                     Some(con.last_insert_rowid() as u64),
                     res.into_iter().sum::<usize>() as u64,
                 ))
-            })
-                .from_err()
-                .boxify()
+            }
+            .boxed()
+            .compat()
+            .boxify()
         }
 
         fn sqlite_exec_query_with_transaction(
@@ -852,7 +857,7 @@ macro_rules! _write_query_impl {
 
                     let mut res = Vec::new();
                     for params in multi_params {
-                        let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                        let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                         for param in &params {
                             param_refs.push((param.0, &param.1));
                         }
@@ -981,25 +986,26 @@ macro_rules! _write_query_impl {
                 $( >list $lname )*
             );
 
-            lazy(move || -> SqliteResult<WriteResult> {
-                let con = multithread_con.get_sqlite_guard();
+            async move {
+                let con = multithread_con.get_sqlite_guard().await;
 
                 let mut stmt = sqlite_statement(&con  $( , $lname )*)?;
 
-                let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for param in &params {
                     param_refs.push((&param.0, &param.1));
                 }
 
                 let res = stmt.execute_named(param_refs.as_ref())?;
 
-                Ok(WriteResult::new(
+                Ok::<WriteResult, Error>(WriteResult::new(
                     Some(con.last_insert_rowid() as u64),
                     res as u64,
                 ))
-            })
-                .from_err()
-                .boxify()
+            }
+            .boxed()
+            .compat()
+            .boxify()
         }
 
         fn sqlite_exec_query_with_transaction(
@@ -1017,7 +1023,7 @@ macro_rules! _write_query_impl {
                 let res = {
                     let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
 
-                    let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                    let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                     for param in &params {
                         param_refs.push((&param.0, &param.1));
                     }
