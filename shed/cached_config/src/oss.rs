@@ -46,6 +46,18 @@ impl ConfigStore {
 
     /// # Panics
     /// When called in non-fbcode builds
+    pub fn regex_signed_configerator(
+        _: FacebookInit,
+        _: impl Into<Option<Logger>>,
+        _: Vec<(String, String)>,
+        _: impl Into<Option<Duration>>,
+        _: Duration,
+    ) -> Result<Self> {
+        fb_unimplemented!()
+    }
+
+    /// # Panics
+    /// When called in non-fbcode builds
     pub fn materialized_configs(
         _: impl Into<Option<Logger>>,
         _: PathBuf,
