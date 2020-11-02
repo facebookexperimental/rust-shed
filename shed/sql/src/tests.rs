@@ -86,18 +86,18 @@ mod mysql {
             .map_err(Error::msg)?;
         let pool = ConnectionPool::new(&mut client, &pool_options)?;
 
-        let conn = MysqlConnection::new(pool);
+        let conn = MysqlConnection::new(pool, "test".to_string());
         Ok(Connection::from(conn))
     }
 
     #[fbinit::test]
-    async fn test_mysql2_basic_query(fb: FacebookInit) -> Result<()> {
+    async fn test_mysql_basic_query(fb: FacebookInit) -> Result<()> {
         let conn = setup_connection(fb).await?;
         test_basic_query(conn)
     }
 
     #[fbinit::test]
-    async fn test_mysql2_transaction(fb: FacebookInit) -> Result<()> {
+    async fn test_mysql_transaction(fb: FacebookInit) -> Result<()> {
         let conn = setup_connection(fb).await?;
         test_basic_transaction(conn);
         Ok(())

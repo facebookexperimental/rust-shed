@@ -13,7 +13,10 @@ path = "lib.rs"
 cloned = { path = "../../cloned" }
 failure_ext = { path = "../../failure_ext" }
 futures_ext = { path = "../../futures_ext" }
+futures_stats = { path = "../../futures_stats" }
 mysql_derive = { path = "../derive" }
+stats = { path = "../../stats" }
+time_ext = { path = "../../time_ext" }
 anyhow = "1.0"
 auto_impl = "0.4"
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
