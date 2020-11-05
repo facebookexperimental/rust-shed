@@ -12,7 +12,7 @@ path = "lib.rs"
 [dependencies]
 cloned = { path = "../../cloned" }
 failure_ext = { path = "../../failure_ext" }
-futures_ext = { path = "../../futures_ext" }
+futures_ext = { package = "futures_01_ext", path = "../../futures_01_ext" }
 futures_stats = { path = "../../futures_stats" }
 mysql_derive = { path = "../derive" }
 stats = { path = "../../stats" }

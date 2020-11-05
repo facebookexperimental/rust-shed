@@ -1,5 +1,5 @@
 [package]
-name = "futures_ext"
+name = "futures_01_ext"
 edition = "2018"
 version = "0.1.0"
 authors = ['Facebook']

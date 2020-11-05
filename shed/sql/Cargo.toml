@@ -9,7 +9,7 @@ include = ["src/**/*.rs"]
 [dependencies]
 cloned = { path = "../cloned" }
 failure_ext = { path = "../failure_ext" }
-futures_ext = { path = "../futures_ext" }
+futures_ext = { package = "futures_01_ext", path = "../futures_01_ext" }
 sql_common = { path = "common" }
 anyhow = "1.0"
 failure = "0.1"

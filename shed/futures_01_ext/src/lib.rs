@@ -239,7 +239,7 @@ pub trait FutureExt: Future + Sized {
     /// Similar to [`future::Future::inspect`], but runs the function on error
     fn inspect_err<F>(self, f: F) -> InspectErr<Self, F>
     where
-        F: FnOnce(&Self::Error) -> (),
+        F: FnOnce(&Self::Error),
         Self: Sized,
     {
         InspectErr {
@@ -252,7 +252,7 @@ pub trait FutureExt: Future + Sized {
     /// output or error of the Future treating it as a regular [`Result`]
     fn inspect_result<F>(self, f: F) -> InspectResult<Self, F>
     where
-        F: FnOnce(Result<&Self::Item, &Self::Error>) -> (),
+        F: FnOnce(Result<&Self::Item, &Self::Error>),
         Self: Sized,
     {
         InspectResult {
@@ -885,7 +885,7 @@ where
 ///  ```
 /// # use anyhow::Error;
 /// # use futures::Future;
-/// # use futures_ext::{BoxFuture, SinkToAsyncWrite};
+/// # use futures_01_ext::{BoxFuture, SinkToAsyncWrite};
 /// # use tokio::io::AsyncWrite;
 /// # use tokio;
 /// fn async_write_interface(writer: &mut dyn AsyncWrite) -> BoxFuture<(), Error> {
