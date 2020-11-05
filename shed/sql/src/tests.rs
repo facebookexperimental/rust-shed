@@ -65,17 +65,18 @@ mod mysql {
     use anyhow::{Error, Result};
     use fbinit::FacebookInit;
     use mysql_client::{
-        ConnectionPool, ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement,
-        MysqlCppClient,
+        ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement, ShardableConnectionPool,
+        ShardableMysqlCppClient,
     };
     use sql_tests_lib::{test_basic_query, test_basic_transaction};
 
     async fn setup_connection(fb: FacebookInit) -> Result<Connection> {
         let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;
-        let mut client = MysqlCppClient::new(fb, locator)?;
+        let client = ShardableMysqlCppClient::new(fb)?;
 
         client
             .query_raw(
+                &locator,
                 "CREATE TABLE IF NOT EXISTS foo(x INT, test CHAR(64), id INT AUTO_INCREMENT, PRIMARY KEY(id))",
             )
             .await?;
@@ -84,7 +85,7 @@ mod mysql {
             .pool_limit(1)
             .build()
             .map_err(Error::msg)?;
-        let pool = ConnectionPool::new(&mut client, &pool_options)?;
+        let pool = ShardableConnectionPool::new(&client, &pool_options)?.bind(locator);
 
         let conn = MysqlConnection::new(pool, "test".to_string());
         Ok(Connection::from(conn))
