@@ -12,12 +12,14 @@
 mod return_remainder;
 mod weight_limited_buffered_stream;
 
-use futures::{Future, Stream};
+use futures::{Future, Stream, TryFuture, TryStream};
 
 use crate::future::ConservativeReceiver;
 
 pub use self::return_remainder::ReturnRemainder;
-pub use self::weight_limited_buffered_stream::{BufferedParams, WeightLimitedBufferedStream};
+pub use self::weight_limited_buffered_stream::{
+    BufferedParams, WeightLimitedBufferedStream, WeightLimitedBufferedTryStream,
+};
 
 /// A trait implemented by default for all Streams which extends the standard
 /// functionality.
@@ -48,3 +50,23 @@ pub trait FbStreamExt: Stream {
 }
 
 impl<T> FbStreamExt for T where T: Stream {}
+
+/// A trait implemented by default for all TryStreams which extends the standard
+/// functionality.
+pub trait FbTryStreamExt: TryStream {
+    /// Like [futures::stream::StreamExt::buffered] call, but for `TryStream` and
+    /// can also limit number of futures in a buffer by "weight".
+    fn try_buffered_weight_limited<I, Fut, E>(
+        self,
+        params: BufferedParams,
+    ) -> WeightLimitedBufferedTryStream<Self, I, E>
+    where
+        Self: Sized + Send + 'static,
+        Self: TryStream<Ok = (Fut, u64), Error = E>,
+        Fut: TryFuture<Ok = I, Error = E>,
+    {
+        WeightLimitedBufferedTryStream::new(params, self)
+    }
+}
+
+impl<T> FbTryStreamExt for T where T: TryStream {}
