@@ -26,7 +26,7 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 /// Certificates for the TLS acceptor
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SslConfig {
     ca_pem: String,
     cert: String,
