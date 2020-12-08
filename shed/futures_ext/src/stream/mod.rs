@@ -49,7 +49,7 @@ pub trait FbStreamExt: Stream {
     }
 }
 
-impl<T> FbStreamExt for T where T: Stream {}
+impl<T> FbStreamExt for T where T: Stream + ?Sized {}
 
 /// A trait implemented by default for all TryStreams which extends the standard
 /// functionality.
@@ -69,4 +69,4 @@ pub trait FbTryStreamExt: TryStream {
     }
 }
 
-impl<T> FbTryStreamExt for T where T: TryStream {}
+impl<T> FbTryStreamExt for T where T: TryStream + ?Sized {}
