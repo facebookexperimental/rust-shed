@@ -104,8 +104,7 @@ jobs:
         default: true
         profile: minimal
     - name: Export boost environment
-      run: "echo ::set-env name=BOOST_ROOT::%BOOST_ROOT_1_69_0%"
-      shell: cmd
+      run: "echo name=BOOST_ROOT::%BOOST_ROOT_1_69_0% >> $GITHUB_ENV"
     - name: Fix Git config
       run: git config --system core.longpaths true
     - name: Build dependencies
