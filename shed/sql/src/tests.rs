@@ -87,7 +87,7 @@ mod mysql {
             .map_err(Error::msg)?;
         let pool = ShardableConnectionPool::new(&client, &pool_options)?.bind(locator);
 
-        let conn = MysqlConnection::new(pool, "test".to_string());
+        let conn = MysqlConnection::new(pool);
         Ok(Connection::from(conn))
     }
 
