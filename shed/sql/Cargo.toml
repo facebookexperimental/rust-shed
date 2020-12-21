@@ -14,7 +14,7 @@ sql_common = { path = "common" }
 anyhow = "1.0"
 failure = "0.1"
 futures = "0.1"
-futures-util = "0.3"
+futures-util = "0.3.7"
 mysql_async = { version = "0.23" }
 rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 
