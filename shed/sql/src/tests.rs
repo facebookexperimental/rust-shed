@@ -65,8 +65,8 @@ mod mysql {
     use anyhow::{Error, Result};
     use fbinit::FacebookInit;
     use mysql_client::{
-        ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement, MysqlCppClient,
-        ShardableConnectionPool,
+        ConnectionPool, ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement,
+        MysqlCppClient,
     };
     use sql_tests_lib::{test_basic_query, test_basic_transaction};
 
@@ -85,7 +85,7 @@ mod mysql {
             .pool_limit(1)
             .build()
             .map_err(Error::msg)?;
-        let pool = ShardableConnectionPool::new(&client, &pool_options)?.bind(locator);
+        let pool = ConnectionPool::new(&client, &pool_options)?.bind(locator);
 
         let conn = MysqlConnection::new(pool);
         Ok(Connection::from(conn))
