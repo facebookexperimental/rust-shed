@@ -65,14 +65,14 @@ mod mysql {
     use anyhow::{Error, Result};
     use fbinit::FacebookInit;
     use mysql_client::{
-        ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement, ShardableConnectionPool,
-        ShardableMysqlCppClient,
+        ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement, MysqlCppClient,
+        ShardableConnectionPool,
     };
     use sql_tests_lib::{test_basic_query, test_basic_transaction};
 
     async fn setup_connection(fb: FacebookInit) -> Result<Connection> {
         let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;
-        let client = ShardableMysqlCppClient::new(fb)?;
+        let client = MysqlCppClient::new(fb)?;
 
         client
             .query_raw(
