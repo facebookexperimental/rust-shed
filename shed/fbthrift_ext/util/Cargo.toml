@@ -10,4 +10,4 @@ include = ["**/*.rs"]
 path = "lib.rs"
 
 [dependencies]
-tokio = { version = "=0.2.13", features = ["full"] }
+tokio = { version = "=0.2.13", features = ["full", "test-util"] }

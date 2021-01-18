@@ -20,4 +20,4 @@ rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 
 [dev-dependencies]
 sql_tests_lib = { path = "tests_lib" }
-tokio = { version = "=0.2.13", features = ["full"] }
+tokio = { version = "=0.2.13", features = ["full", "test-util"] }
