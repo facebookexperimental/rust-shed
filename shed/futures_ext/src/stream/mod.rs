@@ -10,13 +10,16 @@
 //! Module extending functionality of [`futures::stream`] module
 
 mod return_remainder;
+mod stream_with_timeout;
 mod weight_limited_buffered_stream;
 
 use futures::{Future, Stream, TryFuture, TryStream};
+use std::time::Duration;
 
 use crate::future::ConservativeReceiver;
 
 pub use self::return_remainder::ReturnRemainder;
+pub use self::stream_with_timeout::{StreamTimeoutError, StreamWithTimeout};
 pub use self::weight_limited_buffered_stream::{
     BufferedParams, WeightLimitedBufferedStream, WeightLimitedBufferedTryStream,
 };
@@ -46,6 +49,14 @@ pub trait FbStreamExt: Stream {
         Fut: Future<Output = I>,
     {
         WeightLimitedBufferedStream::new(params, self)
+    }
+
+    /// Construct a new [self::stream_with_timeout::StreamWithTimeout].
+    fn whole_stream_timeout(self, timeout: Duration) -> StreamWithTimeout<Self>
+    where
+        Self: Sized,
+    {
+        StreamWithTimeout::new(self, timeout)
     }
 }
 
