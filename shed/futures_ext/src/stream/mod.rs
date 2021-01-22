@@ -13,7 +13,7 @@ mod return_remainder;
 mod stream_with_timeout;
 mod weight_limited_buffered_stream;
 
-use futures::{Future, Stream, TryFuture, TryStream};
+use futures::{Future, Stream, StreamExt, TryFuture, TryStream};
 use std::time::Duration;
 
 use crate::future::ConservativeReceiver;
@@ -77,6 +77,31 @@ pub trait FbTryStreamExt: TryStream {
         Fut: TryFuture<Ok = I, Error = E>,
     {
         WeightLimitedBufferedTryStream::new(params, self)
+    }
+
+    /// Convert a Stream of Result<Result<I, E1>, E2> into a Stream of Result<I, E1>, assuming E2
+    /// can convert into E1.
+    #[allow(clippy::type_complexity)]
+    fn flatten_err<I, E1, E2>(
+        self,
+    ) -> futures::stream::Map<Self, fn(Result<Result<I, E1>, E2>) -> Result<I, E1>>
+    where
+        Self: Sized,
+        Self: Stream<Item = Result<Result<I, E1>, E2>>,
+        E1: From<E2>,
+    {
+        fn flatten_err<I, E1, E2>(e: Result<Result<I, E1>, E2>) -> Result<I, E1>
+        where
+            E1: From<E2>,
+        {
+            match e {
+                Ok(Ok(i)) => Ok(i),
+                Ok(Err(e1)) => Err(e1),
+                Err(e2) => Err(E1::from(e2)),
+            }
+        }
+
+        self.map(flatten_err)
     }
 }
 
