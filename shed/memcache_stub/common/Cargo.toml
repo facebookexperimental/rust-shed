@@ -13,4 +13,4 @@ path = "lib.rs"
 fbinit = { path = "../../fbinit" }
 anyhow = "1.0"
 bytes = { version = "0.5", features = ["serde"] }
-futures = "0.1"
+futures = "0.1.30"

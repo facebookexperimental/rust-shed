@@ -10,4 +10,4 @@ include = ["src/**/*.rs"]
 tokio-io = "0.1"
 
 [dev-dependencies]
-futures = "0.1"
+futures = "0.1.30"

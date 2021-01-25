@@ -10,7 +10,7 @@ include = ["src/**/*.rs"]
 bytes = { version = "0.4", features = ["serde"] }
 bzip2 = { version = "0.3", features = ["tokio"] }
 flate2 = { version = "1.0", features = ["tokio", "rust_backend"], default-features = false }
-futures = "0.1"
+futures = "0.1.30"
 tokio-io = "0.1"
 zstd = "=0.5.3+zstd.1.4.5"
 

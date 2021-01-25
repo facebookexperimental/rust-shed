@@ -9,7 +9,7 @@ include = ["src/**/*.rs"]
 [dependencies]
 anyhow = "1.0"
 bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
-futures = "0.1"
+futures = "0.1.30"
 tokio = "0.1"
 tokio-io = "0.1"
 tokio-threadpool = "0.1"

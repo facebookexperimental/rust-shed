@@ -13,11 +13,11 @@ futures_ext = { package = "futures_01_ext", path = "../futures_01_ext" }
 sql_common = { path = "common" }
 anyhow = "1.0"
 failure = "0.1"
-futures = "0.1"
+futures = "0.1.30"
 futures-util = "0.3.7"
 mysql_async = { version = "0.23" }
 rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 
 [dev-dependencies]
 sql_tests_lib = { path = "tests_lib" }
-tokio = { version = "=0.2.13", features = ["full", "test-util"] }
+tokio = { version = "0.2.24", features = ["full", "test-util"] }

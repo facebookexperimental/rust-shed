@@ -9,7 +9,7 @@ include = ["src/**/*.rs"]
 [dependencies]
 chrome-trace = { path = "../chrome_trace" }
 time_ext = { path = "../time_ext" }
-futures = "0.1"
+futures = "0.1.30"
 lazy_static = "1.0"
 maplit = "1.0"
 parking_lot = "0.10.2"
