@@ -91,8 +91,14 @@ impl ToSqliteValue for ValueWrapper {
             Value::UInt(u) => ToSqliteOutput::Owned(SqliteValue::Integer(*u as i64)),
             Value::Float(f) => ToSqliteOutput::Owned(SqliteValue::Real((*f).into())),
             Value::Double(f) => ToSqliteOutput::Owned(SqliteValue::Real(*f)),
-            Value::Date(..) | Value::Time(..) => {
-                unimplemented!("TODO(luk) implement date and time for sqlite")
+            Value::Date(year, month, day, hour, min, sec, micro) => {
+                ToSqliteOutput::Owned(SqliteValue::Text(format!(
+                    "{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:06}",
+                    year, month, day, hour, min, sec, micro
+                )))
+            }
+            Value::Time(..) => {
+                unimplemented!("TODO(luk) implement time for sqlite")
             }
         })
     }

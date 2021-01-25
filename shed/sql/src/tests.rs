@@ -10,7 +10,7 @@
 #![deny(warnings)]
 
 use sql_tests_lib::{
-    test_read_query, test_transaction_commit, test_transaction_rollback,
+    test_datetime_query, test_read_query, test_transaction_commit, test_transaction_rollback,
     test_transaction_rollback_on_drop, test_write_query, TestSemantics,
 };
 
@@ -29,11 +29,20 @@ fn prepare_sqlite_con() -> Connection {
     let conn = SqliteConnection::open_in_memory().unwrap();
     conn.execute_batch(
         "BEGIN;
-            CREATE TABLE foo(x INTEGER, id INTEGER PRIMARY KEY AUTOINCREMENT);
+            CREATE TABLE foo(
+                x INTEGER,
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                y DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
             COMMIT;",
     )
     .unwrap();
     Connection::with_sqlite(conn)
+}
+
+#[test]
+fn test_datetime_query_with_sqlite() {
+    test_datetime_query(prepare_sqlite_con());
 }
 
 #[test]
@@ -77,7 +86,13 @@ mod mysql {
         client
             .query_raw(
                 &locator,
-                "CREATE TABLE IF NOT EXISTS foo(x INT, test CHAR(64), id INT AUTO_INCREMENT, PRIMARY KEY(id))",
+                "CREATE TABLE IF NOT EXISTS foo(
+                    x INT,
+                    y DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    test CHAR(64),
+                    id INT AUTO_INCREMENT,
+                    PRIMARY KEY(id)
+                )",
             )
             .await?;
 

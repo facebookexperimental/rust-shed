@@ -9,6 +9,7 @@
 
 #![deny(warnings, clippy::all)]
 
+use chrono::{NaiveDate, NaiveDateTime};
 use futures_old::Future;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
@@ -95,6 +96,15 @@ queries! {
     read TestQuery12(test: String) -> (i64) {
         "SELECT x FROM foo WHERE test = {test}"
     }
+
+    write TestQuery13(x: i64, y: NaiveDateTime) {
+        none,
+        "INSERT INTO foo (x, y) VALUES ({x}, {y})"
+    }
+
+    read TestQuery14(date: NaiveDateTime) -> (String) {
+        "SELECT datetime(y) FROM foo WHERE y = {date}"
+    }
 }
 
 pub fn test_basic_query(conn: Connection) -> Result<(), Error> {
@@ -107,7 +117,6 @@ pub fn test_basic_query(conn: Connection) -> Result<(), Error> {
 
     let res = TestQuery12::query(&conn, &test).wait()?;
     assert_eq!(res, vec![(1,), (3,)]);
-
     Ok(())
 }
 
@@ -138,6 +147,15 @@ pub fn test_read_query(conn: Connection, semantics: TestSemantics) {
             TestSemantics::Sqlite => 7i64,
         },)]
     );
+}
+
+pub fn test_datetime_query(conn: Connection) {
+    let date = NaiveDate::from_ymd(2021, 1, 21).and_hms(21, 21, 21);
+    let res = TestQuery13::query(&conn, &3, &date).wait().unwrap();
+    assert_eq!(res.affected_rows(), 1);
+
+    let res = TestQuery14::query(&conn, &date).wait().unwrap();
+    assert_eq!(res, vec![("2021-01-21 21:21:21".to_owned(),)]);
 }
 
 pub fn test_write_query(conn: Connection) {
