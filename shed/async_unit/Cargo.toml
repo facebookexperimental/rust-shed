@@ -2,8 +2,12 @@
 name = "async_unit"
 edition = "2018"
 version = "0.1.0"
-authors = ['Facebook']
+authors = ['Facebook', 'Daniel Xu <dlxu@fb.com>']
 license = "MIT OR Apache-2.0"
+description = "Provides tokio_unit_test helper function for async unit tests that use Tokio"
+homepage = "https://github.com/facebookexperimental/rust-shed/"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+readme = "../../README.md"
 include = ["src/lib.rs"]
 
 [dependencies]

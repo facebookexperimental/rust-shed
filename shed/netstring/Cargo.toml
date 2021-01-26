@@ -2,8 +2,12 @@
 name = "netstring"
 edition = "2018"
 version = "0.1.0"
-authors = ['Facebook']
+authors = ['Facebook', 'Daniel Xu <dlxu@fb.com>']
 license = "MIT OR Apache-2.0"
+description = "Tokio based implementation of netstrings"
+homepage = "https://github.com/facebookexperimental/rust-shed/"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+readme = "../../README.md"
 include = ["src/**/*.rs"]
 
 [dependencies]
