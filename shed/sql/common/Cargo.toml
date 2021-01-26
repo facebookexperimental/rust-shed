@@ -10,13 +10,13 @@ include = ["**/*.rs"]
 path = "lib.rs"
 
 [dependencies]
-cloned = { path = "../../cloned" }
-failure_ext = { path = "../../failure_ext" }
-futures_ext = { package = "futures_01_ext", path = "../../futures_01_ext" }
-futures_stats = { path = "../../futures_stats" }
-mysql_derive = { path = "../derive" }
-stats = { path = "../../stats" }
-time_ext = { path = "../../time_ext" }
+cloned = { path = "../../cloned", version = "0.1.0" }
+failure_ext = { path = "../../failure_ext", version = "0.1.0" }
+futures_ext = { package = "futures_01_ext", path = "../../futures_01_ext", version = "0.1.0" }
+futures_stats = { path = "../../futures_stats", version = "0.1.0" }
+mysql_derive = { path = "../derive", version = "0.1.0" }
+stats = { path = "../../stats", version = "0.1.0" }
+time_ext = { path = "../../time_ext", version = "0.1.0" }
 anyhow = "1.0"
 auto_impl = "0.4"
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
@@ -28,5 +28,5 @@ rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 thiserror = "1.0"
 
 [dev-dependencies]
-sql = { path = ".." }
-sql_tests_lib = { path = "../tests_lib" }
+sql = { path = "..", version = "0.1.0" }
+sql_tests_lib = { path = "../tests_lib", version = "0.1.0" }

@@ -7,10 +7,10 @@ license = "MIT OR Apache-2.0"
 include = ["src/**/*.rs"]
 
 [dependencies]
-fbinit = { path = "../fbinit" }
-futures_ext = { package = "futures_01_ext", path = "../futures_01_ext" }
-perthread = { path = "../perthread" }
-stats_traits = { path = "traits" }
+fbinit = { path = "../fbinit", version = "0.1.0" }
+futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
+perthread = { path = "../perthread", version = "0.1.0" }
+stats_traits = { path = "traits", version = "0.1.0" }
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1.30" }
 lazy_static = "1.0"

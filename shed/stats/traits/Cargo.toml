@@ -10,5 +10,5 @@ include = ["**/*.rs"]
 path = "lib.rs"
 
 [dependencies]
-fbinit = { path = "../../fbinit" }
+fbinit = { path = "../../fbinit", version = "0.1.0" }
 auto_impl = "0.4"

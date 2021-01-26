@@ -7,4 +7,4 @@ license = "MIT OR Apache-2.0"
 include = ["src/*.rs"]
 
 [dependencies]
-memcache_common = { path = "common" }
+memcache_common = { path = "common", version = "0.1.0" }

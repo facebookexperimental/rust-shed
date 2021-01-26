@@ -7,4 +7,4 @@ license = "MIT OR Apache-2.0"
 include = ["src/**/*.rs"]
 
 [dependencies]
-scuba_sample = { path = "../scuba_sample" }
+scuba_sample = { path = "../scuba_sample", version = "0.1.0" }

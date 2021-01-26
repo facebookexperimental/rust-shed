@@ -7,10 +7,10 @@ license = "MIT OR Apache-2.0"
 include = ["src/**/*.rs"]
 
 [dependencies]
-cloned = { path = "../cloned" }
-failure_ext = { path = "../failure_ext" }
-futures_ext = { package = "futures_01_ext", path = "../futures_01_ext" }
-sql_common = { path = "common" }
+cloned = { path = "../cloned", version = "0.1.0" }
+failure_ext = { path = "../failure_ext", version = "0.1.0" }
+futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
+sql_common = { path = "common", version = "0.1.0" }
 anyhow = "1.0"
 failure = "0.1"
 futures = "0.1.30"
@@ -19,5 +19,5 @@ mysql_async = { version = "0.23" }
 rusqlite = { version = "0.23", features = ["blob", "bundled"] }
 
 [dev-dependencies]
-sql_tests_lib = { path = "tests_lib" }
+sql_tests_lib = { path = "tests_lib", version = "0.1.0" }
 tokio = { version = "0.2.24", features = ["full", "test-util"] }

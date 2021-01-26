@@ -10,7 +10,7 @@ include = ["**/*.rs"]
 path = "lib.rs"
 
 [dependencies]
-sql = { path = ".." }
+sql = { path = "..", version = "0.1.0" }
 chrono = { version = "0.4", features = ["serde"] }
 futures-old = { package = "futures", version = "0.1.30" }
 rand = { version = "0.7", features = ["small_rng"] }

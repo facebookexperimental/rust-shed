@@ -15,8 +15,8 @@ tokio-io = "0.1"
 tokio-threadpool = "0.1"
 
 [dev-dependencies]
-cloned = { path = "../cloned" }
-lock_ext = { path = "../lock_ext" }
+cloned = { path = "../cloned", version = "0.1.0" }
+lock_ext = { path = "../lock_ext", version = "0.1.0" }
 assert_matches = "1.3"
 maplit = "1.0"
 pretty_assertions = "0.6"

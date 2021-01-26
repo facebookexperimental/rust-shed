@@ -7,8 +7,8 @@ license = "MIT OR Apache-2.0"
 include = ["src/**/*.rs"]
 
 [dependencies]
-chrome-trace = { path = "../chrome_trace" }
-time_ext = { path = "../time_ext" }
+chrome-trace = { path = "../chrome_trace", version = "0.1.0" }
+time_ext = { path = "../time_ext", version = "0.1.0" }
 futures = "0.1.30"
 lazy_static = "1.0"
 maplit = "1.0"

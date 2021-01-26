@@ -10,9 +10,9 @@ include = ["**/*.rs"]
 path = "lib.rs"
 
 [dependencies]
-fbthrift_framed = { path = "../framed" }
-fbthrift_util = { path = "../util" }
-fbthrift = { git = "https://github.com/facebook/fbthrift.git", branch = "master" }
+fbthrift_framed = { path = "../framed", version = "0.1.0" }
+fbthrift_util = { path = "../util", version = "0.1.0" }
+fbthrift = { git = "https://github.com/facebook/fbthrift.git", branch = "master", version = "0.0.1+unstable" }
 anyhow = "1.0"
 bytes = { version = "0.5", features = ["serde"] }
 bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
