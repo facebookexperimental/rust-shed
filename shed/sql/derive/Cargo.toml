@@ -2,10 +2,9 @@
 name = "mysql_derive"
 edition = "2018"
 version = "0.1.0"
-authors = ['Facebook', 'Daniel Xu <dlxu@fb.com>']
+authors = ['Facebook <opensource+rust-shed@fb.com>']
 license = "MIT OR Apache-2.0"
 description = "proc macro for sql_common::mysql"
-homepage = "https://github.com/facebookexperimental/rust-shed/"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../../README.md"
 include = ["*.rs"]
