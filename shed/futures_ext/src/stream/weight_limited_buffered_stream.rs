@@ -18,6 +18,7 @@ use pin_project::pin_project;
 use std::pin::Pin;
 
 /// Params for [crate::FbStreamExt::buffered_weight_limited] and [WeightLimitedBufferedStream]
+#[derive(Clone, Copy, Debug)]
 pub struct BufferedParams {
     /// Limit for the sum of weights in the [WeightLimitedBufferedStream] stream
     pub weight_limit: u64,
