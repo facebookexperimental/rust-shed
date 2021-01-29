@@ -27,9 +27,9 @@ pub struct BufferedParams {
 
 /// Like [stream::Buffered], but can also limit number of futures in a buffer by "weight".
 #[pin_project]
-pub struct WeightLimitedBufferedStream<S, I> {
+pub struct WeightLimitedBufferedStream<'a, S, I> {
     #[pin]
-    queue: stream::FuturesOrdered<BoxFuture<'static, (I, u64)>>,
+    queue: stream::FuturesOrdered<BoxFuture<'a, (I, u64)>>,
     current_weight: u64,
     weight_limit: u64,
     max_buffer_size: usize,
@@ -37,7 +37,7 @@ pub struct WeightLimitedBufferedStream<S, I> {
     stream: stream::Fuse<S>,
 }
 
-impl<S, I> WeightLimitedBufferedStream<S, I>
+impl<S, I> WeightLimitedBufferedStream<'_, S, I>
 where
     S: Stream,
 {
@@ -53,10 +53,10 @@ where
     }
 }
 
-impl<S, Fut, I: 'static> Stream for WeightLimitedBufferedStream<S, I>
+impl<'a, S, Fut, I: 'a> Stream for WeightLimitedBufferedStream<'a, S, I>
 where
     S: Stream<Item = (Fut, u64)>,
-    Fut: Future<Output = I> + Send + 'static,
+    Fut: Future<Output = I> + Send + 'a,
 {
     type Item = I;
 
@@ -97,9 +97,9 @@ where
 /// Like [stream::Buffered], but is for TryStream and can also
 /// limit number of futures in a buffer by "weight"
 #[pin_project]
-pub struct WeightLimitedBufferedTryStream<S, I, E> {
+pub struct WeightLimitedBufferedTryStream<'a, S, I, E> {
     #[pin]
-    queue: stream::FuturesOrdered<BoxFuture<'static, (Result<I, E>, u64)>>,
+    queue: stream::FuturesOrdered<BoxFuture<'a, (Result<I, E>, u64)>>,
     current_weight: u64,
     weight_limit: u64,
     max_buffer_size: usize,
@@ -107,7 +107,7 @@ pub struct WeightLimitedBufferedTryStream<S, I, E> {
     stream: stream::Fuse<S>,
 }
 
-impl<S, I, E> WeightLimitedBufferedTryStream<S, I, E>
+impl<S, I, E> WeightLimitedBufferedTryStream<'_, S, I, E>
 where
     S: TryStream,
 {
@@ -123,11 +123,11 @@ where
     }
 }
 
-impl<S, Fut, I: 'static, E> Stream for WeightLimitedBufferedTryStream<S, I, E>
+impl<'a, S, Fut, I: 'a, E> Stream for WeightLimitedBufferedTryStream<'a, S, I, E>
 where
     S: Stream<Item = Result<(Fut, u64), E>>,
-    Fut: Future<Output = Result<I, E>> + Send + 'static,
-    E: Send + 'static,
+    Fut: Future<Output = Result<I, E>> + Send + 'a,
+    E: Send + 'a,
     I: Send,
 {
     type Item = Result<I, E>;

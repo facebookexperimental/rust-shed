@@ -39,12 +39,12 @@ pub trait FbStreamExt: Stream {
 
     /// Like [futures::stream::StreamExt::buffered] call,
     /// but can also limit number of futures in a buffer by "weight".
-    fn buffered_weight_limited<I, Fut>(
+    fn buffered_weight_limited<'a, I, Fut>(
         self,
         params: BufferedParams,
-    ) -> WeightLimitedBufferedStream<Self, I>
+    ) -> WeightLimitedBufferedStream<'a, Self, I>
     where
-        Self: Sized + Send + 'static,
+        Self: Sized + Send + 'a,
         Self: Stream<Item = (Fut, u64)>,
         Fut: Future<Output = I>,
     {
@@ -67,12 +67,12 @@ impl<T> FbStreamExt for T where T: Stream + ?Sized {}
 pub trait FbTryStreamExt: TryStream {
     /// Like [futures::stream::StreamExt::buffered] call, but for `TryStream` and
     /// can also limit number of futures in a buffer by "weight".
-    fn try_buffered_weight_limited<I, Fut, E>(
+    fn try_buffered_weight_limited<'a, I, Fut, E>(
         self,
         params: BufferedParams,
-    ) -> WeightLimitedBufferedTryStream<Self, I, E>
+    ) -> WeightLimitedBufferedTryStream<'a, Self, I, E>
     where
-        Self: Sized + Send + 'static,
+        Self: Sized + Send + 'a,
         Self: TryStream<Ok = (Fut, u64), Error = E>,
         Fut: TryFuture<Ok = I, Error = E>,
     {
