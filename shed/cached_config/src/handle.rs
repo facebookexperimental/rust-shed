@@ -73,3 +73,14 @@ where
         }
     }
 }
+
+impl<T> From<T> for ConfigHandle<T>
+where
+    T: Send + Sync + 'static,
+{
+    fn from(other: T) -> Self {
+        Self {
+            inner: ConfigHandleImpl::Fixed(Arc::new(other)),
+        }
+    }
+}
