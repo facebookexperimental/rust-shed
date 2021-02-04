@@ -7,11 +7,14 @@
  * of this source tree.
  */
 
-//! Note: this code is from https://docs.rs/futures-util/0.2.0-beta/src/futures_util/stream/select_all.rs.html#23-25
-//! with a couple of modifications to make it work with futures 0.1.*.
+//! An unbounded set of streams
+//!
+//! Note: this code is from [upstream futures-util][1] with a couple of
+//! modifications to make it work with futures 0.1.*.
+//!
 //! TODO(stash): When futures 0.2 will be supported, then we need to use upstream stream_all()
 //!
-//! An unbounded set of streams
+//! [1]: https://docs.rs/futures-util/0.2.0-beta/src/futures_util/stream/select_all.rs.html#23-25
 
 use std::fmt::{self, Debug};
 

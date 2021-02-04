@@ -82,15 +82,17 @@ impl ScubaSample {
         self.values.get(&key.into())
     }
 
-    /// Set the "subset" of this sample. See https://fburl.com/qa/xqm9hsxx for
-    /// more info on the subject.
+    /// Set the [subset] of this sample.
+    ///
+    /// [subset]: https://fburl.com/qa/xqm9hsxx
     pub fn set_subset<S: Into<String>>(&mut self, subset: S) -> &mut Self {
         self.subset = Some(subset.into());
         self
     }
 
-    /// Clear the "subset" of this sample. See https://fburl.com/qa/xqm9hsxx for
-    /// more info on the subject.
+    /// Clear the [subset] of this sample.
+    ///
+    /// [subset]: https://fburl.com/qa/xqm9hsxx
     pub fn clear_subset(&mut self) -> &mut Self {
         self.subset = None;
         self

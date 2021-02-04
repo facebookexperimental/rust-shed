@@ -26,7 +26,7 @@ pub enum NullScubaValue {
     Double,
     /// Basically a String type
     Normal,
-    /// A deprecated String type, see https://fburl.com/qa/ep3v9a1h
+    /// A deprecated String type, see <https://fburl.com/qa/ep3v9a1h>
     Denorm,
     /// A list of String
     NormVector,
@@ -43,7 +43,7 @@ pub enum ScubaValue {
     Double(f64),
     /// Basically a String type
     Normal(String),
-    /// A deprecated String type, see https://fburl.com/qa/ep3v9a1h
+    /// A deprecated String type, see <https://fburl.com/qa/ep3v9a1h>
     Denorm(String),
     /// A list of String
     NormVector(Vec<String>),

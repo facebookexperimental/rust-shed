@@ -7,13 +7,15 @@
  * of this source tree.
  */
 
-//! Crate for writing Trace Event JSON files that can be read by Google Chrome's Trace Event
-//! Profiling Tool (about:tracing). The format of these files is documented here:
+//! Crate for writing Trace Event JSON files that can be read by Google
+//! Chrome's Trace Event Profiling Tool (about:tracing). The format of these
+//! files is documented [in this document][1]
 //!
-//! https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
+//! See [the trace event profiling tool documentation][2] for details on
+//! working with Chrome traces.
 //!
-//! See http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool for details
-//! on working with Chrome traces.
+//! [1]: https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
+//! [2]: http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool
 
 #![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
