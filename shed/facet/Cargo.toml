@@ -1,0 +1,16 @@
+[package]
+name = "facet"
+edition = "2018"
+version = "0.1.0"
+authors = ['Facebook <opensource+rust-shed@fb.com>']
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+readme = "../../README.md"
+include = ["src/**/*.rs"]
+
+[dependencies]
+facet_proc_macros = { path = "proc_macros", version = "0.1.0" }
+anyhow = "1.0"
+async-trait = "0.1.29"
+futures = { version = "0.3.5", features = ["async-await", "compat"] }
+thiserror = "1.0"

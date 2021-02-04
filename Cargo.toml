@@ -11,6 +11,8 @@ members = [
     "shed/chrome_trace",
     "shed/cloned",
     "shed/codegen_includer_proc_macro",
+    "shed/facet",
+    "shed/facet/proc_macros",
     "shed/failure_ext",
     "shed/fbinit",
     "shed/fbinit/macros",
