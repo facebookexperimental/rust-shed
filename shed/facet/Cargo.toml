@@ -6,7 +6,30 @@ authors = ['Facebook <opensource+rust-shed@fb.com>']
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
+include = ["src/**/*.rs", "test/async_test.rs", "test/basic_test.rs", "test/deps_test.rs", "test/fallible_test.rs", "test/params_test.rs"]
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "facet_async_test"
+path = "test/async_test.rs"
+
+[[test]]
+name = "facet_basic_test"
+path = "test/basic_test.rs"
+
+[[test]]
+name = "facet_deps_test"
+path = "test/deps_test.rs"
+
+[[test]]
+name = "facet_fallible_test"
+path = "test/fallible_test.rs"
+
+[[test]]
+name = "facet_params_test"
+path = "test/params_test.rs"
 
 [dependencies]
 facet_proc_macros = { path = "proc_macros", version = "0.1.0" }
@@ -14,3 +37,6 @@ anyhow = "1.0"
 async-trait = "0.1.29"
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
 thiserror = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }

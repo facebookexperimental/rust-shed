@@ -24,7 +24,7 @@
 //! into a trait object can be a facet trait.  To make a trait into a facet,
 //! add the `#[facet::facet]` attribute:
 //!
-//! ```ignore
+//! ```
 //! #[facet::facet]
 //! trait MyTrait {
 //!     fn do_something(&self);
@@ -46,7 +46,8 @@
 //! parts of the program, and is the preferred way to hand around
 //! references to an implementation of the facet trait.  For example:
 //!
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait MyTrait { fn do_something(&self); }
 //! fn my_function(container: impl MyTraitRef) {
 //!     container.my_trait().do_something();
 //! }
@@ -59,7 +60,12 @@
 //! of the trait implementation, for when detaching a handle to the
 //! implementation is necessary.
 //!
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait MyTrait {}
+//! fn send(_my_trait: ArcMyTrait) {
+//!     // ...
+//! }
+//!
 //! fn my_function(container: impl MyTraitArc) {
 //!     let arc_impl = container.my_trait_arc();
 //!     send(arc_impl);
@@ -108,7 +114,25 @@
 //! implementation it returns.  It should wrap this as a facet in an `Arc`
 //! using `Arc::new(...)`.
 //!
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait MyTrait {}
+//! # #[facet::facet] trait OtherTrait {}
+//! # use anyhow::Error;
+//! # use std::sync::Arc;
+//! # struct MyTraitImpl { config: () }
+//! # impl MyTrait for MyTraitImpl {}
+//! # impl MyTraitImpl {
+//! #     fn new(_name: &str, _config: &str) -> Result<MyTraitImpl, Error> {
+//! #         Ok(MyTraitImpl { config: () })
+//! #     }
+//! # }
+//! # struct OtherTraitImpl;
+//! # impl OtherTrait for OtherTraitImpl {}
+//! # impl OtherTraitImpl {
+//! #     fn new(_my_trait: ArcMyTrait, value: u32) -> OtherTraitImpl {
+//! #         OtherTraitImpl
+//! #     }
+//! # }
 //! struct MyFactory {
 //!     config: String,
 //! }
@@ -117,7 +141,7 @@
 //! impl MyFactory {
 //!     fn my_trait(&self, name: &str) -> Result<ArcMyTrait, Error> {
 //!         Ok(Arc::new(
-//!             MyTraitImpl::new(name.as_str(), self.config.as_str())?
+//!             MyTraitImpl::new(name, self.config.as_str())?
 //!         ))
 //!     }
 //!
@@ -150,7 +174,8 @@
 //!
 //! For example:
 //!
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait OtherTrait { fn get_name(&self) -> &str; }
 //! #[facet::container]
 //! struct MyContainer {
 //!     #[init(other_trait.get_name().to_string())]
@@ -165,10 +190,16 @@
 //! The build method must be passed the parameters defined on the factory
 //! attribute and these will be used as inputs for building this container.
 //!
-//! ```ignore
+//! ```
+//! # struct MyFactory { config: String }
+//! # #[facet::factory(name: String, value: u32)] impl MyFactory {}
+//! # #[facet::container] struct MyContainer {}
+//! # fn main() -> Result<(), anyhow::Error> {
 //! let factory = MyFactory { config: String::from("config") };
 //! let name = String::from("name");
-//! let my_container = factory.build::<MyContainer>(name)?;
+//! let my_container = factory.build::<MyContainer>(name, 42)?;
+//! #     Ok(())
+//! # }
 //! ```
 //!
 //! The `build` method always returns `Result<Container, FactoryError>`, even
@@ -181,18 +212,39 @@
 //!
 //! Async factory methods are supported.  To make a factory async, mark one or
 //! more methods as `async`:
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait MyTrait {}
 //! #[facet::facet]
 //! #[async_trait::async_trait]
 //! trait OtherTrait {
 //!     async fn do_something(&self);
 //! }
 //!
+//! # use anyhow::Error;
+//! # use std::sync::Arc;
+//! # struct MyTraitImpl { config: () }
+//! # impl MyTrait for MyTraitImpl {}
+//! # impl MyTraitImpl {
+//! #     async fn new(_name: &str, _config: &str) -> Result<MyTraitImpl, Error> {
+//! #         Ok(MyTraitImpl { config: () })
+//! #     }
+//! # }
+//! # struct OtherTraitImpl;
+//! # #[async_trait::async_trait]
+//! # impl OtherTrait for OtherTraitImpl {
+//! #     async fn do_something(&self) {}
+//! # }
+//! # impl OtherTraitImpl {
+//! #     fn new(_my_trait: ArcMyTrait, value: u32) -> OtherTraitImpl {
+//! #         OtherTraitImpl
+//! #     }
+//! # }
+//! # struct MyAsyncFactory { config: String }
 //! #[facet::factory(name: String, value: u32)]
 //! impl MyAsyncFactory {
 //!     async fn my_trait(&self, name: &str) -> Result<ArcMyTrait, Error> {
 //!         Ok(Arc::new(
-//!             MyTraitImpl::new(name.as_str(), self.config.as_str()).await?
+//!             MyTraitImpl::new(name, self.config.as_str()).await?
 //!         ))
 //!     }
 //!
@@ -204,10 +256,25 @@
 //!
 //! For async factories, the build method is async:
 //!
-//! ```ignore
+//! ```
+//! # #[facet::facet] trait MyTrait {}
+//! # struct MyTraitImpl;
+//! # impl MyTrait for MyTraitImpl {}
+//! # struct MyAsyncFactory { config: String }
+//! # #[facet::factory(name: String, value: u32)]
+//! # impl MyAsyncFactory {
+//! #     async fn my_trait(&self) -> ArcMyTrait {
+//! #        std::sync::Arc::new(MyTraitImpl)
+//! #     }
+//! # }
+//! # #[facet::container] struct MyContainer {}
+//! # #[tokio::main]
+//! # async fn main() -> Result<(), anyhow::Error> {
 //! let factory = MyAsyncFactory { config: String::from("config") };
 //! let name = String::from("name");
-//! let my_container = factory.build::<MyContainer>(name).await?;
+//! let my_container = factory.build::<MyContainer>(name, 42).await?;
+//! #     Ok(())
+//! # }
 //! ```
 //!
 //! The build method will attempt to build facets concurrently where it can.
