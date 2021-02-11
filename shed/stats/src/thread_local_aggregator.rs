@@ -159,6 +159,38 @@ pub fn schedule_stats_aggregation_preview() -> Result<SchedulerPreview, StatsSch
     }
 }
 
+/// Upon the first call to this function it will return a future that results in
+/// periodically calling aggregation of stats.
+/// On subsequent calls it will return `Error::StatsScheduled` that contain the
+/// future, so that the caller might still use it, but knows that it is not the
+/// first this function was called.
+///
+/// # Examples
+///
+/// ```no_run
+/// use stats::schedule_stats_aggregation_preview;
+/// use tokio::spawn;
+///
+/// let s = schedule_stats_aggregation_preview().unwrap();
+/// spawn(s);
+/// ```
+pub fn schedule_stats_aggregation_10() -> Result<SchedulerPreview, StatsScheduledErrorPreview> {
+    // note that the type can be the same as 0.2 as its all just std::future now
+
+    let start = tokio_10::time::Instant::now() + Duration::from_secs(1);
+    let period = Duration::from_secs(1);
+
+    let scheduler = schedule_stats_on_stream_preview(tokio_stream::wrappers::IntervalStream::new(
+        tokio_10::time::interval_at(start, period),
+    ));
+
+    if STATS_SCHEDULED.swap(true, atomic::Ordering::Relaxed) {
+        Err(StatsScheduledErrorPreview(scheduler))
+    } else {
+        Ok(scheduler)
+    }
+}
+
 /// Schedules aggregation of stats on the provided stream. This method should not
 /// be used directly, it is here for testing purposes
 #[doc(hidden)]
@@ -231,5 +263,28 @@ mod tests {
         }
 
         STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);
+    }
+
+    #[test]
+    fn test_schedule_stats_aggregation_10() {
+        let runtime = tokio_10::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        runtime.block_on(async {
+            let _lock = TEST_MUTEX.lock().expect("poisoned lock");
+            match schedule_stats_aggregation_10() {
+                Ok(_) => {}
+                Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
+            }
+
+            match schedule_stats_aggregation_10() {
+                Ok(_) => panic!("Scheduler should already be initialized"),
+                Err(StatsScheduledErrorPreview(_)) => {}
+            }
+
+            STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);
+        });
     }
 }

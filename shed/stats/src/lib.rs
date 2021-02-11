@@ -48,7 +48,7 @@ use stats_traits::{
 };
 
 pub use self::thread_local_aggregator::{
-    schedule_stats_aggregation, schedule_stats_aggregation_preview,
+    schedule_stats_aggregation, schedule_stats_aggregation_10, schedule_stats_aggregation_preview,
 };
 
 lazy_static! {

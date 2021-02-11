@@ -18,4 +18,6 @@ futures = { version = "0.3.5", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1.30" }
 lazy_static = "1.0"
 tokio = { version = "0.2.24", features = ["full", "test-util"] }
+tokio-10 = { package = "tokio", version = "1", features = ["full", "test-util"] }
 tokio-old = { package = "tokio", version = "0.1" }
+tokio-stream = { version = "0.1", features=["fs", "net", "io-util", "time"]}
