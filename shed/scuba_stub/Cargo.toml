@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Stub for scuba client"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 scuba_sample = { path = "../scuba_sample", version = "0.1.0" }

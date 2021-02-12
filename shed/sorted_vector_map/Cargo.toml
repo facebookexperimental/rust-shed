@@ -9,7 +9,6 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 readme = "README.md"
 keywords = ["map", "set"]
 categories = ["data-structures"]
-include = ["README.*", "benches/**/*.rs", "src/**/*.rs"]
 
 [[bench]]
 name = "map"

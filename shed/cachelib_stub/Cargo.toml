@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Cache library"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }

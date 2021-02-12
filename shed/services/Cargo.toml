@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Stubs for facebook services"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 fbinit = { path = "../fbinit", version = "0.1.0" }

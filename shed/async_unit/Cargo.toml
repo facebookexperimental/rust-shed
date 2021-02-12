@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Provides tokio_unit_test helper function for async unit tests that use Tokio"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/lib.rs"]
 
 [dependencies]
 futures-preview = { package = "futures", version = "0.3.5", features = ["async-await", "compat"] }

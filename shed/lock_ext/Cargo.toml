@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Extensions to std::sync::Mutex"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 parking_lot = "0.10.2"

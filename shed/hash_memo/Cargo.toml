@@ -9,7 +9,6 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 readme = "README.md"
 keywords = ["hash", "memo", "memoize", "cache", "map", "set"]
 categories = ["data-structures"]
-include = ["src/**/*.rs"]
 
 [dependencies]
 once_cell = "1.4"

@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "proc macro for sql_common::mysql"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../../README.md"
-include = ["*.rs"]
 
 [lib]
 path = "lib.rs"

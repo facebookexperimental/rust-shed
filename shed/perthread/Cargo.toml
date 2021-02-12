@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Provides ThreadMap structure for accessing PerThread thread local variables form a static context"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dev-dependencies]
 lazy_static = "1.0"
