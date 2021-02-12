@@ -15,5 +15,5 @@ tokio-compat = "0.1"
 
 [dev-dependencies]
 futures = "0.1.30"
-tokio = { version = "0.2.24", features = ["full", "test-util"] }
+tokio = { version = "0.2.25", features = ["full", "test-util"] }
 tokio-old = { package = "tokio", version = "0.1" }

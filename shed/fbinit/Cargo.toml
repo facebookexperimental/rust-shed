@@ -21,4 +21,4 @@ macros = { path = "macros", version = "0.1.0" }
 quickcheck = "0.9"
 
 [dev-dependencies]
-tokio = { version = "0.2.24", features = ["full", "test-util"] }
+tokio = { version = "0.2.25", features = ["full", "test-util"] }
