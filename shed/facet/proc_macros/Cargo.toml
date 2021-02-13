@@ -6,7 +6,6 @@ authors = ['Facebook <opensource+rust-shed@fb.com>']
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["*.rs"]
 
 [lib]
 path = "lib.rs"

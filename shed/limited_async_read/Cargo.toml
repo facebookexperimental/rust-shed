@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "AsyncRead implementation that operates over limited buffer size"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 tokio-io = "0.1"

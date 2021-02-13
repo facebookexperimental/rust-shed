@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Makes it easier to define a handler for panics"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/*.rs", "test/test.rs", "test/test_deep.rs", "test/testmultithread.rs", "test/testmultithread_abort.rs", "test/testrunner.rs"]
 
 [lib]
 path = "src/lib.rs"

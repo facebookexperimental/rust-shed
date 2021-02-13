@@ -7,4 +7,3 @@ license = "MIT OR Apache-2.0"
 description = "Borrow macro"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]

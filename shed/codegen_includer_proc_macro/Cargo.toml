@@ -8,7 +8,6 @@ description = "Workaround for https://github.com/rust-lang/rfcs/issues/752"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
 build = "build.rs"
-include = ["src/**/*.rs", "tests/**/*.rs"]
 
 [lib]
 path = "src/lib.rs"

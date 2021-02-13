@@ -7,7 +7,6 @@ license = "MIT OR Apache-2.0"
 description = "Crate with useful security utilities"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
-include = ["src/**/*.rs"]
 
 [dependencies]
 anyhow = "1.0"
