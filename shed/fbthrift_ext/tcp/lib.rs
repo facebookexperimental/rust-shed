@@ -12,67 +12,16 @@ use bytes::{Bytes, BytesMut};
 use fbthrift::{Framing, FramingDecoded, FramingEncodedFinal, Transport};
 use fbthrift_framed::FramedTransport;
 use fbthrift_util::poll_with_lock;
-use futures::compat::Future01CompatExt;
-use futures::future::{FutureExt, TryFutureExt};
+use futures::future::FutureExt;
 use std::future::Future;
-use std::io::{self, Cursor};
-use std::marker::Sync;
-use std::net::SocketAddr;
+use std::io::Cursor;
 use std::pin::Pin;
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
-use tokio_core::net::TcpStream as TcpStreamLegacy;
-use tokio_core::reactor::Handle;
-use tokio_proto::pipeline::ClientService;
-use tokio_proto::TcpClient;
-use tokio_service::Service as _;
 use tokio_tower::pipeline::client::Client;
 use tokio_util::codec::{Decoder, Framed};
 use tower_service::Service;
-
-/// ```ignore
-/// let transport = TcpTransportLegacy::connect(addr, handle).await?;
-/// let client = fb303::client::FacebookService::new(CompactProtocol, transport);
-/// ```
-pub struct TcpTransportLegacy {
-    service: ClientService<TcpStreamLegacy, FramedTransport>,
-}
-
-impl TcpTransportLegacy {
-    pub fn connect(
-        addr: &SocketAddr,
-        handle: &Handle,
-    ) -> impl Future<Output = Result<Self, io::Error>> {
-        TcpClient::new(FramedTransport)
-            .connect(addr, handle)
-            .compat()
-            .map_ok(|service| TcpTransportLegacy { service })
-    }
-}
-
-impl Framing for TcpTransportLegacy {
-    type EncBuf = BytesMut;
-    type DecBuf = Cursor<bytes_old::Bytes>;
-    type Meta = ();
-
-    fn enc_with_capacity(cap: usize) -> Self::EncBuf {
-        BytesMut::with_capacity(cap)
-    }
-
-    fn get_meta(&self) {}
-}
-
-impl Transport for TcpTransportLegacy {
-    fn call(
-        &self,
-        req: FramingEncodedFinal<Self>,
-    ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
-        self.service.call(req).compat().map_err(Error::new).boxed()
-    }
-}
-
-unsafe impl Sync for TcpTransportLegacy {}
 
 /// ```ignore
 /// let stream = tokio::net::TcpStream::connect(path)?;
