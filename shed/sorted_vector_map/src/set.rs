@@ -11,8 +11,8 @@
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
-use std::collections::Bound;
 use std::collections::Bound::*;
+use std::collections::{BTreeSet, Bound};
 use std::fmt::{self, Debug};
 use std::iter::{FromIterator, Peekable};
 use std::mem;
@@ -628,6 +628,14 @@ where
 
     fn bitor(self, rhs: &SortedVectorSet<T>) -> SortedVectorSet<T> {
         self.union(rhs).cloned().collect()
+    }
+}
+
+impl<T> From<BTreeSet<T>> for SortedVectorSet<T> {
+    fn from(bset: BTreeSet<T>) -> SortedVectorSet<T> {
+        // The BTreeSet will iterate in sorted order.
+        let v = bset.into_iter().collect();
+        SortedVectorSet(v)
     }
 }
 

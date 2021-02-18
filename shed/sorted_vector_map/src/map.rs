@@ -11,8 +11,8 @@
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
-use std::collections::Bound;
 use std::collections::Bound::*;
+use std::collections::{BTreeMap, Bound};
 use std::fmt::{self, Debug};
 use std::iter::{FromIterator, Peekable};
 use std::mem;
@@ -809,6 +809,14 @@ where
             _ => None,
         };
         (low, high)
+    }
+}
+
+impl<K, V> From<BTreeMap<K, V>> for SortedVectorMap<K, V> {
+    fn from(bmap: BTreeMap<K, V>) -> SortedVectorMap<K, V> {
+        // The BTreeMap will iterate in sorted order.
+        let v = bmap.into_iter().collect();
+        SortedVectorMap(v)
     }
 }
 
