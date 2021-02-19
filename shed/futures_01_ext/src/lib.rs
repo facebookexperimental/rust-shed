@@ -14,15 +14,12 @@
 
 use bytes_old::Bytes;
 use futures::sync::{mpsc, oneshot};
-use futures::{
-    future, stream, try_ready, Async, AsyncSink, Future, IntoFuture, Poll, Sink, Stream,
-};
+use futures::{future, stream, try_ready, Async, AsyncSink, Future, Poll, Sink, Stream};
 use std::{fmt::Debug, io as std_io};
 use tokio_io::{
     codec::{Decoder, Encoder},
     AsyncWrite,
 };
-use tokio_threadpool::blocking;
 
 pub mod bounded_traversal;
 mod bytes_stream;
@@ -30,19 +27,15 @@ pub mod decode;
 pub mod encode;
 mod futures_ordered;
 pub mod io;
-mod launch;
 mod select_all;
 mod split_err;
-mod stream_clone;
 mod stream_wrappers;
 mod streamfork;
 
 pub use crate::bytes_stream::{BytesStream, BytesStreamFuture};
 pub use crate::futures_ordered::{futures_ordered, FuturesOrdered};
-pub use crate::launch::top_level_launch;
 pub use crate::select_all::{select_all, SelectAll};
 pub use crate::split_err::split_err;
-pub use crate::stream_clone::stream_clone;
 pub use crate::stream_wrappers::{CollectNoConsume, CollectTo};
 
 // Re-exports. Those are used by the macros in this crate in order to reference a stable version of
@@ -763,63 +756,6 @@ macro_rules! try_left_future {
     };
 }
 
-/// Take a future, and run it on its own task, returning the result to the caller. This permits
-/// Rust to run the spawned future on a different thread to the task that spawned it, thus adding
-/// parallelism if used sensibly.
-/// Note that the spawning here is lazy - the new task will not be spawned if the returned future
-/// is dropped before it's polled.
-pub fn spawn_future<T, E, Fut, IntoFut>(f: IntoFut) -> impl Future<Item = T, Error = E>
-where
-    IntoFut: IntoFuture<Item = T, Error = E, Future = Fut>,
-    Fut: Future<Item = T, Error = E> + Send + 'static,
-    T: Send + 'static,
-    E: From<futures::Canceled> + Send + 'static,
-{
-    let (tx, rx) = oneshot::channel();
-
-    let fut = f.into_future().then(|res| {
-        let _ = tx.send(res);
-        Ok(())
-    });
-
-    future::lazy(move || {
-        let _ = tokio::spawn(fut);
-        rx.from_err().and_then(|v| v)
-    })
-}
-
-/// Given an `FnMut` closure, create a `Future` that will eventually execute the closure using
-/// Tokio's `blocking` mechanism, so that it is safe to call blocking code inside the closure
-/// without preventing other tasks from making progress.
-/// This returns a lazy future - it will not even attempt to run the blocking code until you poll
-/// the future.
-/// Note that this does not spawn the future onto its own task - use `asynchronize` below if you
-/// need to run the blocking code on its own thread, rather than letting it block this task.
-pub fn closure_to_blocking_future<T, E, Func>(f: Func) -> impl Future<Item = T, Error = E>
-where
-    Func: FnMut() -> Result<T, E>,
-    E: From<tokio_threadpool::BlockingError>,
-{
-    let mut func = f;
-    future::lazy(|| future::poll_fn(move || blocking(&mut func)))
-        .map_err(E::from)
-        .and_then(|res| res) // flatten Ok(res) => res
-}
-
-///  This method allows us to take synchronous code, schedule it on the default tokio thread pool
-/// and convert it to the future. It's the combination of `spawn_future` (which runs a future on
-/// another thread) and `closure_to_blocking_future` (which turns a closure into a future).
-pub fn asynchronize<Func, T, E>(f: Func) -> impl Future<Item = T, Error = E>
-where
-    Func: FnMut() -> Result<T, E> + Send + 'static,
-    T: Send + 'static,
-    E: From<tokio_threadpool::BlockingError> + From<futures::Canceled> + Send + 'static,
-{
-    let fut = closure_to_blocking_future(f);
-
-    spawn_future(fut)
-}
-
 /// Simple adapter from `Sink` interface to `AsyncWrite` interface.
 /// It can be useful to convert from the interface that supports only AsyncWrite, and get
 /// Stream as a result. See pseudocode below
@@ -970,12 +906,11 @@ impl<S: Stream> Stream for BatchStream<S> {
 mod test {
     use super::*;
 
-    use std::time::{self, Duration};
-
     use anyhow::Result;
     use assert_matches::assert_matches;
     use futures::stream;
     use futures::sync::mpsc;
+    use futures::IntoFuture;
     use futures::Stream;
 
     use cloned::cloned;
@@ -991,42 +926,6 @@ mod test {
         fn from(_: mpsc::SendError<T>) -> Self {
             MyErr
         }
-    }
-
-    #[test]
-    #[ignore]
-    // In some cases it fails with a longer duration than specified
-    fn asynchronize_parallel() {
-        const SLEEP_TIME: Duration = time::Duration::from_millis(20);
-        // Thread count must be bigger than 10 to prove parallelism
-        const THREAD_COUNT: usize = 20;
-
-        let mut runtime = tokio::runtime::Builder::new()
-            .name_prefix("my-runtime-worker-")
-            .core_threads(THREAD_COUNT)
-            .build()
-            .unwrap();
-        fn sleep() -> Result<()> {
-            std::thread::sleep(SLEEP_TIME);
-            Ok(())
-        }
-
-        let futures: Vec<_> = std::iter::repeat_with(|| asynchronize(sleep))
-            // This count needs to be much greater than 2, so that if we serialize operations, we see
-            // an issue
-            .take(THREAD_COUNT)
-            .collect();
-        let start = time::Instant::now();
-        let _ = runtime.block_on(future::join_all(futures));
-        let run_time = start.elapsed();
-        assert!(
-            run_time < SLEEP_TIME * 2,
-            "Parallel sleep time {:#?} much greater than {:#?} for {:#?} threads - each thread sleeps for {:#?}",
-            run_time,
-            SLEEP_TIME * 2,
-            THREAD_COUNT,
-            SLEEP_TIME
-        );
     }
 
     #[test]

@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-//! Extends the functionality of [std::io] and [::tokio::io]
+//! Extends the functionality of [std::io] and [::tokio_io]
 
 use std::io::{self, Read, Write};
 
