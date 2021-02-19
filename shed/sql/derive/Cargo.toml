@@ -1,19 +1,19 @@
 [package]
 name = "mysql_derive"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "proc macro for sql_common::mysql"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [lib]
 path = "lib.rs"
-proc-macro = true
 test = false
 doctest = false
+proc-macro = true
 
 [dependencies]
 quote = "1.0"
-syn = { version = "1.0", features = ["full", "visit", "visit-mut", "fold", "extra-traits"] }
+syn = { version = "1.0", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }

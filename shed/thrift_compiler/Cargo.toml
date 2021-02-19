@@ -1,12 +1,12 @@
 [package]
 name = "thrift_compiler"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Calls fbthrift compiler to produce unified lib.rs from thrift files"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [lib]
 path = "src/lib.rs"

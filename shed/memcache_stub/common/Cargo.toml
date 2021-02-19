@@ -1,17 +1,17 @@
 [package]
 name = "memcache_common"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/facebookexperimental/rust-shed/"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 readme = "../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [lib]
 path = "lib.rs"
 
 [dependencies]
-fbinit = { path = "../../fbinit", version = "0.1.0" }
 anyhow = "1.0"
 bytes = { version = "0.5", features = ["serde"] }
+fbinit = { path = "../../fbinit", version = "0.1.0" }
 futures = "0.1.30"

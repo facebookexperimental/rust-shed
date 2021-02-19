@@ -1,22 +1,22 @@
 [package]
 name = "stats"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Stats library"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 fbinit = { path = "../fbinit", version = "0.1.0" }
-futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
-perthread = { path = "../perthread", version = "0.1.0" }
-stats_traits = { path = "traits", version = "0.1.0" }
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1.30" }
+futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
 lazy_static = "1.0"
+perthread = { path = "../perthread", version = "0.1.0" }
+stats_traits = { path = "traits", version = "0.1.0" }
 tokio = { version = "0.2.25", features = ["full", "test-util"] }
 tokio-10 = { package = "tokio", version = "1", features = ["full", "test-util"] }
 tokio-old = { package = "tokio", version = "0.1" }
-tokio-stream = { version = "0.1", features=["fs", "net", "io-util", "time"]}
+tokio-stream = { version = "0.1", features = ["fs", "io-util", "net", "time"] }

@@ -1,18 +1,18 @@
 [package]
 name = "sql_tests_lib"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Test library for sql crate"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [lib]
 path = "lib.rs"
 
 [dependencies]
-sql = { path = "..", version = "0.1.0" }
 chrono = { version = "0.4", features = ["serde"] }
 futures-old = { package = "futures", version = "0.1.30" }
 rand = { version = "0.7", features = ["small_rng"] }
+sql = { path = "..", version = "0.1.0" }

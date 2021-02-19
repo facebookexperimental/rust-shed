@@ -1,12 +1,12 @@
 [package]
 name = "async_unit"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Provides tokio_unit_test helper function for async unit tests that use Tokio"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 futures-preview = { package = "futures", version = "0.3.5", features = ["async-await", "compat"] }

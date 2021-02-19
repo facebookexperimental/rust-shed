@@ -1,17 +1,17 @@
 [package]
 name = "stats_traits"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Traits for stats crate"
+readme = "../../README.md"
 homepage = "https://github.com/facebookexperimental/rust-shed/"
 repository = "https://github.com/facebookexperimental/rust-shed/"
-readme = "../../README.md"
+license = "MIT OR Apache-2.0"
 
 [lib]
 path = "lib.rs"
 
 [dependencies]
-fbinit = { path = "../../fbinit", version = "0.1.0" }
 auto_impl = "0.4"
+fbinit = { path = "../../fbinit", version = "0.1.0" }

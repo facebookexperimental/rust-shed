@@ -1,13 +1,13 @@
 [package]
 name = "hash_memo"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+crates-hash-memo@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+crates-hash-memo@fb.com>"]
+edition = "2018"
 description = "memoization/caching of hash values by Hash and Hasher implementations"
-repository = "https://github.com/facebookexperimental/rust-shed"
 readme = "README.md"
-keywords = ["hash", "memo", "memoize", "cache", "map", "set"]
+repository = "https://github.com/facebookexperimental/rust-shed"
+license = "MIT OR Apache-2.0"
+keywords = ["cache", "hash", "map", "memo", "memoize", "set"]
 categories = ["data-structures"]
 
 [dependencies]

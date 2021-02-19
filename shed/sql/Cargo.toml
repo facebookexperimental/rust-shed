@@ -1,24 +1,24 @@
 [package]
 name = "sql"
-edition = "2018"
 version = "0.1.0"
-authors = ['Facebook <opensource+rust-shed@fb.com>']
-license = "MIT OR Apache-2.0"
+authors = ["Facebook <opensource+rust-shed@fb.com>"]
+edition = "2018"
 description = "Crate for accessing sql databases"
-repository = "https://github.com/facebookexperimental/rust-shed/"
 readme = "../../README.md"
+repository = "https://github.com/facebookexperimental/rust-shed/"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
-cloned = { path = "../cloned", version = "0.1.0" }
-failure_ext = { path = "../failure_ext", version = "0.1.0" }
-futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
-sql_common = { path = "common", version = "0.1.0" }
 anyhow = "1.0"
+cloned = { path = "../cloned", version = "0.1.0" }
 failure = "0.1"
+failure_ext = { path = "../failure_ext", version = "0.1.0" }
 futures = "0.1.30"
 futures-util = "0.3.7"
-mysql_async = { version = "0.23" }
+futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
+mysql_async = "0.23"
 rusqlite = { version = "0.23", features = ["blob", "bundled"] }
+sql_common = { path = "common", version = "0.1.0" }
 
 [dev-dependencies]
 sql_tests_lib = { path = "tests_lib", version = "0.1.0" }
