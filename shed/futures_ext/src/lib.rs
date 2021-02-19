@@ -14,5 +14,5 @@
 pub mod future;
 pub mod stream;
 
-pub use crate::future::FbFutureExt;
+pub use crate::future::{FbFutureExt, FbTryFutureExt};
 pub use crate::stream::{BufferedParams, FbStreamExt, FbTryStreamExt};

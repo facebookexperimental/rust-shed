@@ -25,6 +25,20 @@ pub use self::try_shared::TryShared;
 /// A trait implemented by default for all Futures which extends the standard
 /// functionality.
 pub trait FbFutureExt: Future {
+    /// Construct a new [tokio::time::Timeout].
+    fn timeout(self, timeout: Duration) -> Timeout<Self>
+    where
+        Self: Sized,
+    {
+        tokio::time::timeout(timeout, self)
+    }
+}
+
+impl<T> FbFutureExt for T where T: Future + ?Sized {}
+
+/// A trait implemented by default for all Futures which extends the standard
+/// functionality.
+pub trait FbTryFutureExt: Future {
     /// Create a cloneable handle to this future where all handles will resolve
     /// to the same result.
     ///
@@ -38,14 +52,6 @@ pub trait FbFutureExt: Future {
     {
         self::try_shared::try_shared(self)
     }
-
-    /// Construct a new [tokio::time::Timeout].
-    fn timeout(self, timeout: Duration) -> Timeout<Self>
-    where
-        Self: Sized,
-    {
-        tokio::time::timeout(timeout, self)
-    }
 }
 
-impl<T> FbFutureExt for T where T: Future + ?Sized {}
+impl<T> FbTryFutureExt for T where T: TryFuture + ?Sized {}
