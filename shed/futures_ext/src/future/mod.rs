@@ -14,6 +14,8 @@ mod try_shared;
 
 use anyhow::Error;
 use futures::{future::TryFuture, Future};
+use std::time::Duration;
+use tokio::time::Timeout;
 
 pub use shared_error::anyhow::SharedError;
 
@@ -35,6 +37,14 @@ pub trait FbFutureExt: Future {
         <Self as TryFuture>::Ok: Clone,
     {
         self::try_shared::try_shared(self)
+    }
+
+    /// Construct a new [tokio::time::Timeout].
+    fn timeout(self, timeout: Duration) -> Timeout<Self>
+    where
+        Self: Sized,
+    {
+        tokio::time::timeout(timeout, self)
     }
 }
 
