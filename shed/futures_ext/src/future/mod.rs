@@ -13,7 +13,7 @@ mod conservative_receiver;
 mod try_shared;
 
 use anyhow::Error;
-use futures::{future::TryFuture, Future};
+use futures::future::{Future, FutureExt, TryFuture};
 use std::time::Duration;
 use tokio::time::Timeout;
 
@@ -51,6 +51,31 @@ pub trait FbTryFutureExt: Future {
         <Self as TryFuture>::Ok: Clone,
     {
         self::try_shared::try_shared(self)
+    }
+
+    /// Convert a Future of Result<Result<I, E1>, E2> into a Future of Result<I, E1>, assuming E2
+    /// can convert into E1.
+    #[allow(clippy::type_complexity)]
+    fn flatten_err<I, E1, E2>(
+        self,
+    ) -> futures::future::Map<Self, fn(Result<Result<I, E1>, E2>) -> Result<I, E1>>
+    where
+        Self: Sized,
+        Self: Future<Output = Result<Result<I, E1>, E2>>,
+        E1: From<E2>,
+    {
+        fn flatten_err<I, E1, E2>(e: Result<Result<I, E1>, E2>) -> Result<I, E1>
+        where
+            E1: From<E2>,
+        {
+            match e {
+                Ok(Ok(i)) => Ok(i),
+                Ok(Err(e1)) => Err(e1),
+                Err(e2) => Err(E1::from(e2)),
+            }
+        }
+
+        self.map(flatten_err)
     }
 }
 
