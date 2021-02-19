@@ -12,18 +12,12 @@
 
 //! Crate extending functionality of [`futures`] crate
 
-use anyhow::format_err;
 use bytes_old::Bytes;
 use futures::sync::{mpsc, oneshot};
 use futures::{
     future, stream, try_ready, Async, AsyncSink, Future, IntoFuture, Poll, Sink, Stream,
 };
-use std::{
-    fmt::Debug,
-    io as std_io,
-    time::{Duration, Instant},
-};
-use tokio::timer::Delay;
+use std::{fmt::Debug, io as std_io};
 use tokio_io::{
     codec::{Decoder, Encoder},
     AsyncWrite,
@@ -401,18 +395,6 @@ pub trait StreamExt: Stream {
         StreamEither::B(self)
     }
 
-    /// It's different from [tokio::timer::Timeout] in that it sets a timeout on the whole Stream,
-    /// not just on a single Stream item
-    fn whole_stream_timeout(self, duration: Duration) -> StreamWithTimeout<Self>
-    where
-        Self: Sized,
-    {
-        StreamWithTimeout {
-            stream: self,
-            delay: Delay::new(Instant::now() + duration),
-        }
-    }
-
     /// Similar to [Stream::chunks], but returns earlier if [futures::Async::NotReady]
     /// was returned.
     fn batch(self, limit: usize) -> BatchStream<Self>
@@ -689,46 +671,6 @@ impl<In: Stream> Stream for ReturnRemainder<In> {
         }
 
         Ok(Async::Ready(maybe_item))
-    }
-}
-
-/// Error returned by [StreamWithTimeout]
-pub enum StreamTimeoutError {
-    /// The original error returned
-    Error(anyhow::Error),
-    /// Error returned when timeout was reached
-    Timeout,
-}
-
-/// A stream wrapper returned by [StreamExt::whole_stream_timeout]
-pub struct StreamWithTimeout<S> {
-    delay: Delay,
-    stream: S,
-}
-
-impl<S: Stream<Error = anyhow::Error>> Stream for StreamWithTimeout<S> {
-    type Item = S::Item;
-    type Error = StreamTimeoutError;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.delay.poll() {
-            Ok(Async::Ready(())) => {
-                return Err(StreamTimeoutError::Timeout);
-            }
-            Err(err) => {
-                return Err(StreamTimeoutError::Error(format_err!(
-                    "internal error: timeout failed {}",
-                    err
-                )));
-            }
-            _ => {}
-        };
-
-        match self.stream.poll() {
-            Ok(Async::Ready(item)) => Ok(Async::Ready(item)),
-            Ok(Async::NotReady) => Ok(Async::NotReady),
-            Err(err) => Err(StreamTimeoutError::Error(err)),
-        }
     }
 }
 
@@ -1030,7 +972,7 @@ mod test {
 
     use std::time::{self, Duration};
 
-    use anyhow::{Error, Result};
+    use anyhow::Result;
     use assert_matches::assert_matches;
     use futures::stream;
     use futures::sync::mpsc;
@@ -1284,38 +1226,6 @@ mod test {
 
         let res = rt.block_on(rx.collect()).unwrap();
         assert_eq!(res.len(), messages_num);
-    }
-
-    #[test]
-    fn whole_stream_timeout_test() {
-        use futures::Stream;
-        use tokio::timer::Interval;
-
-        let count = Arc::new(AtomicUsize::new(0));
-        let mut runtime = Runtime::new().unwrap();
-        let f = Interval::new(Instant::now(), Duration::new(1, 0))
-            .map({
-                let count = count.clone();
-                move |item| {
-                    count.fetch_add(1, Ordering::Relaxed);
-                    item
-                }
-            })
-            .map_err(|_| Error::msg("error"))
-            .take(10)
-            .whole_stream_timeout(Duration::new(3, 0))
-            .collect();
-
-        let res = runtime.block_on(f);
-        assert!(res.is_err());
-        match res {
-            Err(StreamTimeoutError::Timeout) => {}
-            _ => {
-                panic!("expected timeout");
-            }
-        };
-
-        assert!(count.load(Ordering::Relaxed) < 5);
     }
 
     #[test]

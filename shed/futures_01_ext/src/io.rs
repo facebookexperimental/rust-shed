@@ -12,7 +12,7 @@
 use std::io::{self, Read, Write};
 
 use futures::Poll;
-use tokio::io::{AsyncRead, AsyncWrite};
+use tokio_io::{AsyncRead, AsyncWrite};
 
 /// Like [::futures::future::Either], combines two different types implementing
 /// the same trait into a single type.
