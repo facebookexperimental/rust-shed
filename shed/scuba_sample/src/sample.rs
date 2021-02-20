@@ -47,6 +47,13 @@ impl ScubaSample {
         }
     }
 
+    /// Joins the values from another scuba sample to the current one
+    pub fn join_values(&mut self, sample: &ScubaSample) {
+        for (k, v) in sample.values.iter() {
+            self.values.insert(k.to_owned(), v.clone());
+        }
+    }
+
     /// Create a new empty sample with the provided timestamp as the timestamp of
     /// this sample
     pub fn with_timestamp(seconds_since_epoch: u64) -> Self {
