@@ -50,6 +50,7 @@ members = [
     "shed/stats/traits",
     "shed/thrift_compiler",
     "shed/time_ext",
+    "shed/tokio_shim",
 ]
 
 [patch.crates-io]
