@@ -47,9 +47,7 @@ use stats_traits::{
     stats_manager::{BoxStatsManager, StatsManagerFactory},
 };
 
-pub use self::thread_local_aggregator::{
-    schedule_stats_aggregation, schedule_stats_aggregation_preview,
-};
+pub use self::thread_local_aggregator::schedule_stats_aggregation_preview;
 
 lazy_static! {
     static ref STATS_MANAGER_FACTORY: RwLock<Option<Box<dyn StatsManagerFactory + Send + Sync>>> =

@@ -24,11 +24,9 @@
 use std::fmt;
 use std::future::Future as NewFuture;
 use std::sync::{atomic, Arc, Mutex};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use futures::{future::ready, FutureExt as _, Stream as NewStream, StreamExt as _};
-use futures_ext::{BoxFuture, FutureExt};
-use futures_old::Stream;
 use lazy_static::lazy_static;
 use perthread::ThreadMap;
 use stats_traits::stats_manager::{BoxStatsManager, StatsManager};
@@ -37,28 +35,6 @@ lazy_static! {
     static ref STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);
     static ref STATS_AGGREGATOR: StatsAggregator = StatsAggregator(Mutex::new(Vec::new()));
 }
-
-/// Type alias for the future that must be spawned on tokio.
-pub type Scheduler = BoxFuture<(), tokio_old::timer::Error>;
-
-/// This error is returned to indicate that the stats scheduler was already
-/// retrieved before and potentially is already running, but might be retrieved
-/// again from this error
-pub struct StatsScheduledError(pub Scheduler);
-
-impl fmt::Debug for StatsScheduledError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Stats aggregation was already scheduled")
-    }
-}
-
-impl fmt::Display for StatsScheduledError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Stats aggregation was already scheduled")
-    }
-}
-
-impl ::std::error::Error for StatsScheduledError {}
 
 type SchedulerPreview = std::pin::Pin<Box<dyn NewFuture<Output = ()> + Send>>;
 
@@ -110,35 +86,6 @@ pub fn create_map() -> Arc<ThreadMap<BoxStatsManager>> {
 /// # Examples
 ///
 /// ```no_run
-/// use futures_old::Future;
-/// use stats::schedule_stats_aggregation;
-/// use tokio_old::executor::spawn;
-///
-/// let s = schedule_stats_aggregation().unwrap();
-/// spawn(s.map_err(|e| panic!("Stats problem: {:?}", e)));
-/// ```
-pub fn schedule_stats_aggregation() -> Result<Scheduler, StatsScheduledError> {
-    let at = Instant::now() + Duration::from_secs(1);
-    let interval = Duration::from_secs(1);
-
-    let scheduler = schedule_stats_on_stream(tokio_old::timer::Interval::new(at, interval));
-
-    if STATS_SCHEDULED.swap(true, atomic::Ordering::Relaxed) {
-        Err(StatsScheduledError(scheduler))
-    } else {
-        Ok(scheduler)
-    }
-}
-
-/// Upon the first call to this function it will return a future that results in
-/// periodically calling aggregation of stats.
-/// On subsequent calls it will return `Error::StatsScheduled` that contain the
-/// future, so that the caller might still use it, but knows that it is not the
-/// first this function was called.
-///
-/// # Examples
-///
-/// ```no_run
 /// use stats::schedule_stats_aggregation_preview;
 /// use tokio::spawn;
 ///
@@ -155,37 +102,6 @@ pub fn schedule_stats_aggregation_preview() -> Result<SchedulerPreview, StatsSch
     } else {
         Ok(scheduler)
     }
-}
-
-/// Upon the first call to this function it will return a future that results in
-/// periodically calling aggregation of stats.
-/// On subsequent calls it will return `Error::StatsScheduled` that contain the
-/// future, so that the caller might still use it, but knows that it is not the
-/// first this function was called.
-///
-/// # Examples
-///
-/// ```no_run
-/// use stats::schedule_stats_aggregation_preview;
-/// use tokio::spawn;
-///
-/// let s = schedule_stats_aggregation_preview().unwrap();
-/// spawn(s);
-/// ```
-/// Schedules aggregation of stats on the provided stream. This method should not
-/// be used directly, it is here for testing purposes
-#[doc(hidden)]
-pub fn schedule_stats_on_stream<S>(stream: S) -> BoxFuture<(), S::Error>
-where
-    S: Stream + Send + 'static,
-    <S as Stream>::Error: Send,
-{
-    stream
-        .for_each(|_| {
-            STATS_AGGREGATOR.aggregate();
-            Ok(())
-        })
-        .boxify()
 }
 
 /// Schedules aggregation of stats on the provided stream. This method should not
@@ -210,23 +126,6 @@ mod tests {
     lazy_static! {
         // Those tests work on global state so they cannot be run in parallel
         static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
-    }
-
-    #[test]
-    fn test_schedule_stats_aggregation() {
-        let _lock = TEST_MUTEX.lock().expect("poisoned lock");
-
-        match schedule_stats_aggregation() {
-            Ok(_) => {}
-            Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
-        }
-
-        match schedule_stats_aggregation() {
-            Ok(_) => panic!("Scheduler should already be initialized"),
-            Err(StatsScheduledError(_)) => {}
-        }
-
-        STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);
     }
 
     #[tokio::test]
