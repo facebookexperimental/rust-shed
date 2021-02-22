@@ -16,7 +16,8 @@ futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version 
 lazy_static = "1.0"
 perthread = { path = "../perthread", version = "0.1.0" }
 stats_traits = { path = "traits", version = "0.1.0" }
-tokio = { version = "0.2.25", features = ["full", "test-util"] }
-tokio-10 = { package = "tokio", version = "1", features = ["full", "test-util"] }
 tokio-old = { package = "tokio", version = "0.1" }
-tokio-stream = { version = "0.1", features = ["fs", "io-util", "net", "time"] }
+tokio_shim = { path = "../tokio_shim", version = "0.1.0" }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full", "test-util"] }
