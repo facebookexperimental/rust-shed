@@ -16,7 +16,6 @@ use syn::{parse_quote, Error, ItemFn, Result};
 pub enum Mode {
     Main,
     Test,
-    CompatTest,
 }
 
 pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
@@ -40,7 +39,7 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
                 panic!("fbinit must be performed in the crate root on the main function");
             }
         }),
-        Mode::Test | Mode::CompatTest => None,
+        Mode::Test => None,
     };
 
     let assignment = function.sig.inputs.first().map(|arg| quote!(let #arg =));
@@ -49,11 +48,6 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
     let block = function.block;
 
     let body = match (function.sig.asyncness.is_some(), mode) {
-        (true, Mode::CompatTest) => quote! {
-            tokio_compat::runtime::current_thread::Runtime::new()
-                .unwrap()
-                .block_on_std(async #block)
-        },
         (true, Mode::Test) => quote! {
             tokio::runtime::Builder::new()
                 .basic_scheduler()
@@ -70,12 +64,6 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
                 .unwrap()
                 .block_on(async #block)
         },
-        (false, Mode::CompatTest) => {
-            return Err(Error::new_spanned(
-                function.sig,
-                "#[fbinit::compat_test] should be used only on async functions",
-            ));
-        }
         (false, _) => {
             let stmts = block.stmts;
             quote! { #(#stmts)* }
@@ -93,7 +81,7 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
 
     function.sig.asyncness = None;
 
-    if mode == Mode::Test || mode == Mode::CompatTest {
+    if mode == Mode::Test {
         function.attrs.push(parse_quote!(#[test]));
     }
 

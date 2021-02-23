@@ -15,7 +15,7 @@
 #[cfg(not(fbcode_build))]
 mod oss;
 
-pub use macros::{compat_test, main, test};
+pub use macros::{main, test};
 
 #[cfg(fbcode_build)]
 use quickcheck as _; // used in oss
