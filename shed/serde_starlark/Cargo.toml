@@ -17,4 +17,4 @@ path = "test/starlark_test.rs"
 
 [dependencies]
 maplit = "1.0"
-serde = { version = "1.0", features = ["derive", "rc"] }
+serde = { version = "=1.0.118", features = ["derive", "rc"] }
