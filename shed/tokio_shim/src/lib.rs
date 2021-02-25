@@ -90,6 +90,49 @@ pub mod time {
         panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
 
+    #[derive(Debug, thiserror::Error)]
+    #[error("deadline has elapsed")]
+    pub struct Elapsed;
+
+    #[pin_project(project = TimeoutProj)]
+    pub enum Timeout<F> {
+        Tokio02(#[pin] tokio_02::time::Timeout<F>),
+        Tokio10(#[pin] tokio_10::time::Timeout<F>),
+    }
+
+    impl<F> Future for Timeout<F>
+    where
+        F: Future,
+    {
+        type Output = Result<<F as Future>::Output, Elapsed>;
+
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            let res = match self.project() {
+                TimeoutProj::Tokio02(f) => {
+                    ready!(f.poll(cx)).map_err(|_: tokio_02::time::Elapsed| Elapsed)
+                }
+                TimeoutProj::Tokio10(f) => {
+                    ready!(f.poll(cx)).map_err(|_: tokio_10::time::error::Elapsed| Elapsed)
+                }
+            };
+
+            Poll::Ready(res)
+        }
+    }
+
+    pub fn timeout<F: Future>(duration: Duration, fut: F) -> Timeout<F> {
+        if tokio_02::runtime::Handle::try_current().is_ok() {
+            return Timeout::Tokio02(tokio_02::time::timeout(duration, fut));
+        }
+
+        if tokio_10::runtime::Handle::try_current().is_ok() {
+            return Timeout::Tokio10(tokio_10::time::timeout(duration, fut));
+        }
+
+        // This is what tokio::time::timeout would do.
+        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+    }
+
     #[pin_project(project = IntervalStreamProj)]
     pub enum IntervalStream {
         Tokio02(#[pin] tokio_02::time::Interval),
@@ -145,6 +188,13 @@ mod test {
         rt.block_on(async {
             time::interval_stream(Duration::from_millis(1)).next().await;
         });
+        rt.block_on(async {
+            assert!(
+                time::timeout(Duration::from_millis(1), future::pending::<()>())
+                    .await
+                    .is_err()
+            );
+        });
 
 
         Ok(())
@@ -161,6 +211,13 @@ mod test {
             time::sleep(Duration::from_millis(1)).await;
         });
         rt.block_on(async { time::interval_stream(Duration::from_millis(1)).next().await });
+        rt.block_on(async {
+            assert!(
+                time::timeout(Duration::from_millis(1), future::pending::<()>())
+                    .await
+                    .is_err()
+            );
+        });
 
         Ok(())
     }
