@@ -33,7 +33,7 @@ path = "test/params_test.rs"
 [dependencies]
 anyhow = "1.0"
 async-trait = "0.1.29"
-facet_proc_macros = { path = "proc_macros", version = "0.1.0" }
+facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
 futures = { version = "0.3.5", features = ["async-await", "compat"] }
 thiserror = "1.0"
 

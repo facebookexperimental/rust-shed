@@ -9,4 +9,4 @@ repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-memcache_common = { path = "common", version = "0.1.0" }
+memcache_common = { version = "0.1.0", path = "common" }

@@ -13,5 +13,5 @@ path = "lib.rs"
 [dependencies]
 anyhow = "1.0"
 bytes = { version = "0.5", features = ["serde"] }
-fbinit = { path = "../../fbinit", version = "0.1.0" }
+fbinit = { version = "0.1.0", path = "../../fbinit" }
 futures = "0.1.30"

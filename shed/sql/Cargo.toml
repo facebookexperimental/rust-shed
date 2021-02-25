@@ -10,16 +10,16 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0"
-cloned = { path = "../cloned", version = "0.1.0" }
+cloned = { version = "0.1.0", path = "../cloned" }
 failure = "0.1"
-failure_ext = { path = "../failure_ext", version = "0.1.0" }
+failure_ext = { version = "0.1.0", path = "../failure_ext" }
 futures = "0.1.30"
 futures-util = "0.3.7"
-futures_ext = { package = "futures_01_ext", path = "../futures_01_ext", version = "0.1.0" }
+futures_ext = { package = "futures_01_ext", version = "0.1.0", path = "../futures_01_ext" }
 mysql_async = "0.23"
 rusqlite = { version = "0.23", features = ["blob", "bundled"] }
-sql_common = { path = "common", version = "0.1.0" }
+sql_common = { version = "0.1.0", path = "common" }
 
 [dev-dependencies]
-sql_tests_lib = { path = "tests_lib", version = "0.1.0" }
+sql_tests_lib = { version = "0.1.0", path = "tests_lib" }
 tokio = { version = "0.2.25", features = ["full", "test-util"] }

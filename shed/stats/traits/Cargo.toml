@@ -14,4 +14,4 @@ path = "lib.rs"
 
 [dependencies]
 auto_impl = "0.4"
-fbinit = { path = "../../fbinit", version = "0.1.0" }
+fbinit = { version = "0.1.0", path = "../../fbinit" }

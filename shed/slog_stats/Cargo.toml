@@ -10,4 +10,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 slog = { version = "2.5", features = ["max_level_debug"] }
-stats = { path = "../stats", version = "0.1.0" }
+stats = { version = "0.1.0", path = "../stats" }

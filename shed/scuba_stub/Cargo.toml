@@ -9,4 +9,4 @@ repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-scuba_sample = { path = "../scuba_sample", version = "0.1.0" }
+scuba_sample = { version = "0.1.0", path = "../scuba_sample" }
