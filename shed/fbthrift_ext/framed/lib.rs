@@ -17,11 +17,10 @@ use tokio_util::codec::{Decoder, Encoder};
 
 pub struct FramedTransport;
 
-impl Encoder for FramedTransport {
-    type Item = Bytes;
+impl Encoder<Bytes> for FramedTransport {
     type Error = io::Error;
 
-    fn encode(&mut self, item: Self::Item, dst: &mut BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, item: Bytes, dst: &mut BytesMut) -> Result<(), Self::Error> {
         dst.reserve(4 + item.len());
         dst.put_u32(item.len() as u32);
         dst.put(item);

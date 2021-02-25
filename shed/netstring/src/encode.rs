@@ -36,14 +36,13 @@ where
     }
 }
 
-impl<Out> Encoder for NetstringEncoder<Out>
+impl<Out> Encoder<Out> for NetstringEncoder<Out>
 where
     Out: AsRef<[u8]>,
 {
-    type Item = Out;
     type Error = Error;
 
-    fn encode(&mut self, msg: Self::Item, buf: &mut BytesMut) -> Result<()> {
+    fn encode(&mut self, msg: Out, buf: &mut BytesMut) -> Result<()> {
         let msg = msg.as_ref();
 
         // Assume that 20 digits is long enough for the length
