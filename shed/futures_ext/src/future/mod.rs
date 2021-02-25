@@ -15,7 +15,7 @@ mod try_shared;
 use anyhow::Error;
 use futures::future::{Future, FutureExt, TryFuture};
 use std::time::Duration;
-use tokio::time::Timeout;
+use tokio_shim::time::Timeout;
 
 pub use shared_error::anyhow::SharedError;
 
@@ -25,12 +25,12 @@ pub use self::try_shared::TryShared;
 /// A trait implemented by default for all Futures which extends the standard
 /// functionality.
 pub trait FbFutureExt: Future {
-    /// Construct a new [tokio::time::Timeout].
+    /// Construct a new [tokio_shim::time::Timeout].
     fn timeout(self, timeout: Duration) -> Timeout<Self>
     where
         Self: Sized,
     {
-        tokio::time::timeout(timeout, self)
+        tokio_shim::time::timeout(timeout, self)
     }
 }
 

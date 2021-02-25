@@ -8,7 +8,7 @@
  */
 
 use futures::{
-    future::FutureExt,
+    future::Future,
     stream::Stream,
     task::{Context, Poll},
 };
@@ -16,7 +16,7 @@ use pin_project::pin_project;
 use std::pin::Pin;
 use std::time::Duration;
 use thiserror::Error;
-use tokio::time::Delay;
+use tokio_shim::time::Sleep;
 
 /// Error returned when a StreamWithTimeout exceeds its deadline.
 #[derive(Debug, Error)]
@@ -31,7 +31,8 @@ pub struct StreamWithTimeout<S> {
     inner: S,
     duration: Duration,
     done: bool,
-    deadline: Option<Delay>,
+    #[pin]
+    deadline: Option<Sleep>,
 }
 
 impl<S> StreamWithTimeout<S> {
@@ -50,7 +51,7 @@ impl<S: Stream> Stream for StreamWithTimeout<S> {
     type Item = Result<<S as Stream>::Item, StreamTimeoutError>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
-        let this = self.project();
+        let mut this = self.project();
 
         if *this.done {
             return Poll::Ready(None);
@@ -58,11 +59,12 @@ impl<S: Stream> Stream for StreamWithTimeout<S> {
 
         let duration = *this.duration;
 
-        let deadline = this
-            .deadline
-            .get_or_insert_with(|| tokio::time::delay_for(duration));
+        if this.deadline.is_none() {
+            this.deadline.set(Some(tokio_shim::time::sleep(duration)));
+        }
 
-        match deadline.poll_unpin(cx) {
+        // NOTE: This unwrap() is safe as we just set the value.
+        match this.deadline.as_pin_mut().unwrap().poll(cx) {
             Poll::Ready(()) => {
                 *this.done = true;
                 return Poll::Ready(Some(Err(StreamTimeoutError(duration))));
@@ -100,7 +102,7 @@ mod test {
             yield Result::<(), Error>::Ok(());
         };
 
-        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1));
+        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1)).boxed();
 
         assert!(s.try_next().await?.is_some());
         assert!(s.try_next().await.is_err());
@@ -118,7 +120,7 @@ mod test {
             yield Result::<(), Error>::Ok(());
         };
 
-        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1));
+        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1)).boxed();
 
         assert!(s.try_next().await?.is_some());
         assert!(s.try_next().await?.is_some());
@@ -139,7 +141,7 @@ mod test {
             yield Result::<(), Error>::Ok(());
             yield Result::<(), Error>::Ok(());
         };
-        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1));
+        let mut s = StreamWithTimeout::new(s.boxed(), Duration::from_secs(1)).boxed();
 
         tokio::time::advance(Duration::from_secs(2)).await;
 
