@@ -90,6 +90,23 @@ pub mod time {
         panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
 
+    pub fn sleep_until(instant: Instant) -> Sleep {
+        if tokio_02::runtime::Handle::try_current().is_ok() {
+            return Sleep::Tokio02(tokio_02::time::delay_until(
+                tokio_02::time::Instant::from_std(instant),
+            ));
+        }
+
+        if tokio_10::runtime::Handle::try_current().is_ok() {
+            return Sleep::Tokio10(tokio_10::time::sleep_until(
+                tokio_10::time::Instant::from_std(instant),
+            ));
+        }
+
+        // This is what tokio::time::sleep would do.
+        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+    }
+
     #[derive(Debug, thiserror::Error)]
     #[error("deadline has elapsed")]
     pub struct Elapsed;
@@ -174,6 +191,21 @@ mod test {
 
     use futures::{future, stream::StreamExt};
 
+    async fn test() {
+        task::spawn(future::ready(())).await.unwrap();
+
+        time::sleep(Duration::from_millis(1)).await;
+        time::sleep_until(Instant::now() + Duration::from_millis(1)).await;
+
+        time::interval_stream(Duration::from_millis(1)).next().await;
+
+        assert!(
+            time::timeout(Duration::from_millis(1), future::pending::<()>())
+                .await
+                .is_err()
+        );
+    }
+
     #[test]
     fn test_02() -> Result<(), Error> {
         let mut rt = tokio_02::runtime::Builder::new()
@@ -181,21 +213,7 @@ mod test {
             .basic_scheduler()
             .build()?;
 
-        rt.block_on(async { task::spawn(future::ready(())).await })?;
-        rt.block_on(async {
-            time::sleep(Duration::from_millis(1)).await;
-        });
-        rt.block_on(async {
-            time::interval_stream(Duration::from_millis(1)).next().await;
-        });
-        rt.block_on(async {
-            assert!(
-                time::timeout(Duration::from_millis(1), future::pending::<()>())
-                    .await
-                    .is_err()
-            );
-        });
-
+        rt.block_on(test());
 
         Ok(())
     }
@@ -206,18 +224,7 @@ mod test {
             .enable_all()
             .build()?;
 
-        rt.block_on(async { task::spawn(future::ready(())).await })?;
-        rt.block_on(async {
-            time::sleep(Duration::from_millis(1)).await;
-        });
-        rt.block_on(async { time::interval_stream(Duration::from_millis(1)).next().await });
-        rt.block_on(async {
-            assert!(
-                time::timeout(Duration::from_millis(1), future::pending::<()>())
-                    .await
-                    .is_err()
-            );
-        });
+        rt.block_on(test());
 
         Ok(())
     }
