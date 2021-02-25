@@ -8,26 +8,48 @@
  */
 
 use anyhow::Error;
-use futures::{
-    future::{BoxFuture, Future, FutureExt, TryFutureExt},
-    stream::{Stream, StreamExt},
-};
+use futures::{future::Future, ready, stream::Stream};
+use pin_project::pin_project;
+use std::pin::Pin;
+use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 
 pub mod task {
     use super::*;
 
-    pub fn spawn<F>(fut: F) -> BoxFuture<'static, Result<F::Output, Error>>
+    #[pin_project(project = JoinHandleProj)]
+    pub enum JoinHandle<T> {
+        Tokio02(#[pin] tokio_02::task::JoinHandle<T>),
+        Tokio10(#[pin] tokio_10::task::JoinHandle<T>),
+    }
+
+    impl<T> Future for JoinHandle<T>
+    where
+        T: Send + 'static,
+    {
+        type Output = Result<T, Error>;
+
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            let ret = match self.project() {
+                JoinHandleProj::Tokio02(f) => ready!(f.poll(cx)).map_err(Error::from),
+                JoinHandleProj::Tokio10(f) => ready!(f.poll(cx)).map_err(Error::from),
+            };
+
+            Poll::Ready(ret)
+        }
+    }
+
+    pub fn spawn<F>(fut: F) -> JoinHandle<<F as Future>::Output>
     where
         F: Future + Send + 'static,
         F::Output: Send + 'static,
     {
         if let Ok(handle) = tokio_02::runtime::Handle::try_current() {
-            return handle.spawn(fut).map_err(Into::into).boxed();
+            return JoinHandle::Tokio02(handle.spawn(fut));
         }
 
         if let Ok(handle) = tokio_10::runtime::Handle::try_current() {
-            return handle.spawn(fut).map_err(Into::into).boxed();
+            return JoinHandle::Tokio10(handle.spawn(fut));
         }
 
         // This is what tokio::spawn would give you, so we don't try to do better here.
@@ -38,40 +60,68 @@ pub mod task {
 pub mod time {
     use super::*;
 
-    pub async fn sleep(duration: Duration) {
+    #[pin_project(project = SleepProj)]
+    pub enum Sleep {
+        Tokio02(#[pin] tokio_02::time::Delay),
+        Tokio10(#[pin] tokio_10::time::Sleep),
+    }
+
+    impl Future for Sleep {
+        type Output = ();
+
+        fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+            match self.project() {
+                SleepProj::Tokio02(f) => f.poll(cx),
+                SleepProj::Tokio10(f) => f.poll(cx),
+            }
+        }
+    }
+
+    pub fn sleep(duration: Duration) -> Sleep {
         if tokio_02::runtime::Handle::try_current().is_ok() {
-            return tokio_02::time::delay_for(duration).await;
+            return Sleep::Tokio02(tokio_02::time::delay_for(duration));
         }
 
         if tokio_10::runtime::Handle::try_current().is_ok() {
-            return tokio_10::time::sleep(duration).await;
+            return Sleep::Tokio10(tokio_10::time::sleep(duration));
         }
 
-        // This is what tokio::time::sleep would do (note that it panics when polled, not when
-        // created).
+        // This is what tokio::time::sleep would do.
         panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
 
-    pub fn interval_stream(period: Duration) -> impl Stream<Item = Instant> + 'static + Send {
-        async move {
-            if tokio_02::runtime::Handle::try_current().is_ok() {
-                return tokio_02::time::interval(period)
-                    .map(|i| i.into_std())
-                    .boxed();
-            }
+    #[pin_project(project = IntervalStreamProj)]
+    pub enum IntervalStream {
+        Tokio02(#[pin] tokio_02::time::Interval),
+        Tokio10(#[pin] tokio_10_stream::wrappers::IntervalStream),
+    }
 
-            if tokio_10::runtime::Handle::try_current().is_ok() {
-                let interval = tokio_10::time::interval(period);
-                return tokio_10_stream::wrappers::IntervalStream::new(interval)
-                    .map(|i| i.into_std())
-                    .boxed();
-            }
+    impl Stream for IntervalStream {
+        type Item = Instant;
 
-            // This is what tokio::time::interval_at would do (note that it panics when polled, not
-            // when created).
-            panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+            let ret = match self.project() {
+                IntervalStreamProj::Tokio02(f) => ready!(f.poll_next(cx)).map(|i| i.into_std()),
+                IntervalStreamProj::Tokio10(f) => ready!(f.poll_next(cx)).map(|i| i.into_std()),
+            };
+
+            Poll::Ready(ret)
         }
-        .flatten_stream()
+    }
+
+    pub fn interval_stream(period: Duration) -> IntervalStream {
+        if tokio_02::runtime::Handle::try_current().is_ok() {
+            return IntervalStream::Tokio02(tokio_02::time::interval(period));
+        }
+
+        if tokio_10::runtime::Handle::try_current().is_ok() {
+            let interval = tokio_10::time::interval(period);
+            let stream = tokio_10_stream::wrappers::IntervalStream::new(interval);
+            return IntervalStream::Tokio10(stream);
+        }
+
+        // This is what tokio::time::interval_at would do.
+        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
 }
 
@@ -79,7 +129,7 @@ pub mod time {
 mod test {
     use super::*;
 
-    use futures::future;
+    use futures::{future, stream::StreamExt};
 
     #[test]
     fn test_02() -> Result<(), Error> {
@@ -89,12 +139,12 @@ mod test {
             .build()?;
 
         rt.block_on(async { task::spawn(future::ready(())).await })?;
-        rt.block_on(time::sleep(Duration::from_millis(1)));
-        rt.block_on(
-            time::interval_stream(Duration::from_millis(1))
-                .boxed()
-                .next(),
-        );
+        rt.block_on(async {
+            time::sleep(Duration::from_millis(1)).await;
+        });
+        rt.block_on(async {
+            time::interval_stream(Duration::from_millis(1)).next().await;
+        });
 
 
         Ok(())
@@ -107,21 +157,11 @@ mod test {
             .build()?;
 
         rt.block_on(async { task::spawn(future::ready(())).await })?;
-        rt.block_on(time::sleep(Duration::from_millis(1)));
-        rt.block_on(
-            time::interval_stream(Duration::from_millis(1))
-                .boxed()
-                .next(),
-        );
+        rt.block_on(async {
+            time::sleep(Duration::from_millis(1)).await;
+        });
+        rt.block_on(async { time::interval_stream(Duration::from_millis(1)).next().await });
 
         Ok(())
-    }
-
-    #[test]
-    fn test_auto_traits() {
-        fn assert_static_send<T: 'static + Send>(_: T) {}
-
-        assert_static_send(time::sleep(Duration::from_millis(1)));
-        assert_static_send(time::interval_stream(Duration::from_millis(1)));
     }
 }
