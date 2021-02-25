@@ -9,6 +9,7 @@
 
 //! Module extending functionality of [`futures::future`] module
 
+mod abort_handle_ref;
 mod conservative_receiver;
 mod try_shared;
 
@@ -19,6 +20,7 @@ use tokio_shim::time::Timeout;
 
 pub use shared_error::anyhow::SharedError;
 
+pub use self::abort_handle_ref::{spawn_controlled, ControlledHandle};
 pub use self::conservative_receiver::ConservativeReceiver;
 pub use self::try_shared::TryShared;
 
