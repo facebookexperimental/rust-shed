@@ -113,6 +113,12 @@ impl ConfigStore {
         self.get_config_handle_with_deserializer(path, deserialize_raw)
     }
 
+    /// By default configs are updated once in `poll_interval`. Call this to force update them.
+    /// Meant to be used in tests
+    pub fn force_update_configs(&self) {
+        self.updater_thread_iteration();
+    }
+
     fn get_config_handle_with_deserializer<T>(
         &self,
         path: String,
@@ -169,36 +175,36 @@ impl ConfigStore {
 
     fn updater_thread(&self, poll_interval: Duration) {
         loop {
-            let clients = self.clients.lock().expect("lock poisoned");
-
-            // Don't loop when there are no active clients to care about
-            let mut clients = if clients.is_empty() {
-                self.kick.wait(clients).expect("Lock poisoned")
-            } else {
-                clients
-            };
-
-            for path in self
-                .source
-                .paths_to_refresh(&mut clients.keys().map(|x| -> &str { x }))
-            {
-                if let Some(client_list) = clients.get(path) {
-                    self.refresh_client_list(client_list);
-                }
-            }
-
-            // Remove lost clients
-            clients.retain(|_, client_list| {
-                // Remove all vanished clients from the list, then check if it's empty
-                client_list.retain(|client| client.upgrade().is_some());
-                !client_list.is_empty()
-            });
-
-            // Release clients before going to sleep.
-            std::mem::drop(clients);
-
+            self.updater_thread_iteration();
             thread::sleep(poll_interval);
         }
+    }
+
+    fn updater_thread_iteration(&self) {
+        let clients = self.clients.lock().expect("lock poisoned");
+
+        // Don't loop when there are no active clients to care about
+        let mut clients = if clients.is_empty() {
+            self.kick.wait(clients).expect("Lock poisoned")
+        } else {
+            clients
+        };
+
+        for path in self
+            .source
+            .paths_to_refresh(&mut clients.keys().map(|x| -> &str { x }))
+        {
+            if let Some(client_list) = clients.get(path) {
+                self.refresh_client_list(client_list);
+            }
+        }
+
+        // Remove lost clients
+        clients.retain(|_, client_list| {
+            // Remove all vanished clients from the list, then check if it's empty
+            client_list.retain(|client| client.upgrade().is_some());
+            !client_list.is_empty()
+        });
     }
 }
 
