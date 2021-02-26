@@ -14,11 +14,11 @@ use futures::future::{abortable, AbortHandle};
 
 /// Spawns a new task returning an abort handle for it.
 ///
-/// It is similar to [tokio::spawn] but instad of returning a [tokio::task::JoinHandle] it will
-/// return an [ControlledHandle]. The [ControlledHandle] can be used to directly abort the task that
-/// was spawned. [ControlledHandle] can be cloned resulting in a new handle to the same underlying
-/// task. Dropping all [ControlledHandle] instances pointing to a given task will result in the abort
-/// of that task.
+/// It is similar to [tokio_shim::task::spawn] but instad of returning a JoinHandle it will return
+/// an [ControlledHandle]. The [ControlledHandle] can be used to directly abort the task that was
+/// spawned. [ControlledHandle] can be cloned resulting in a new handle to the same underlying
+/// task. Dropping all [ControlledHandle] instances pointing to a given task will result in the
+/// abort of that task.
 ///
 /// The use case this function is tasks that "run in the background" and are tied to a specific
 /// object. We attach the [ControlledHandle] to the object in question so that the background task is
