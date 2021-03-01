@@ -9,8 +9,9 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
+use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{parse_quote, Error, ItemFn, Result};
+use syn::{parse_quote, Error, ItemFn, LitInt, Result, Token};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Mode {
@@ -18,7 +19,46 @@ pub enum Mode {
     Test,
 }
 
-pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
+mod kw {
+    syn::custom_keyword!(disable_fatal_signals);
+}
+
+pub enum Arg {
+    DisableFatalSignals {
+        kw_token: kw::disable_fatal_signals,
+        eq_token: Token![=],
+        value: LitInt,
+    },
+}
+
+impl Parse for Arg {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let lookahead = input.lookahead1();
+        if lookahead.peek(kw::disable_fatal_signals) {
+            Ok(Self::DisableFatalSignals {
+                kw_token: input.parse()?,
+                eq_token: input.parse()?,
+                value: input.parse()?,
+            })
+        } else {
+            Err(lookahead.error())
+        }
+    }
+}
+
+pub fn expand(
+    mode: Mode,
+    args: Punctuated<Arg, Token![,]>,
+    mut function: ItemFn,
+) -> Result<TokenStream> {
+    let mut disable_fatal_signals = None;
+
+    for arg in args {
+        match arg {
+            Arg::DisableFatalSignals { value, .. } => disable_fatal_signals = Some(value),
+        }
+    }
+
     if function.sig.inputs.len() > 1 {
         return Err(Error::new_spanned(
             function.sig,
@@ -70,10 +110,23 @@ pub fn expand(mode: Mode, mut function: ItemFn) -> Result<TokenStream> {
         }
     };
 
+    let perform_init = match disable_fatal_signals {
+        Some(disable_fatal_signals) => {
+            quote! {
+                fbinit::r#impl::perform_init_with_disable_signals(#disable_fatal_signals)
+            }
+        }
+        None => {
+            quote! {
+                fbinit::r#impl::perform_init()
+            }
+        }
+    };
+
     function.block = parse_quote!({
         #guard
         #assignment unsafe {
-            fbinit::r#impl::perform_init()
+            #perform_init
         };
         let destroy_guard = unsafe { fbinit::r#impl::DestroyGuard::new() };
         #body

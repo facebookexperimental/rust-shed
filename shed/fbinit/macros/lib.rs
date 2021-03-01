@@ -13,8 +13,8 @@ mod expand;
 
 use self::expand::{expand, Mode};
 use proc_macro::TokenStream;
-use syn::parse::Nothing;
 use syn::parse_macro_input;
+use syn::punctuated::Punctuated;
 
 // Expand from:
 //
@@ -31,12 +31,22 @@ use syn::parse_macro_input;
 //     }
 //
 // If async, also add a #[tokio::main] attribute.
+//
+// Accepts optional attribute argument disable_fatal_signals to disable adding
+// handler to fatal signals in perform_init().
+// Argument must be an int literal that represents the signal bit mask. For
+// example, the following disables SIGTERM:
+//
+//      #[fbinit::main(disable_fatal_signals = 0x8000)
 #[proc_macro_attribute]
 pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
-    parse_macro_input!(args as Nothing);
-    expand(Mode::Main, parse_macro_input!(input))
-        .unwrap_or_else(|err| err.to_compile_error())
-        .into()
+    expand(
+        Mode::Main,
+        parse_macro_input!(args with Punctuated::parse_terminated),
+        parse_macro_input!(input),
+    )
+    .unwrap_or_else(|err| err.to_compile_error())
+    .into()
 }
 
 // Same thing, expand:
@@ -55,10 +65,20 @@ pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
 //     }
 //
 // with either #[test] or #[tokio::test] attribute.
+//
+// Accepts optional attribute argument disable_fatal_signals to disable adding
+// handler to fatal signals in perform_init().
+// Argument must be an int literal that represents the signal bit mask. For
+// example, the following disables SIGTERM:
+//
+//      #[fbinit::main(disable_fatal_signals = 0x8000)
 #[proc_macro_attribute]
 pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
-    parse_macro_input!(args as Nothing);
-    expand(Mode::Test, parse_macro_input!(input))
-        .unwrap_or_else(|err| err.to_compile_error())
-        .into()
+    expand(
+        Mode::Test,
+        parse_macro_input!(args with Punctuated::parse_terminated),
+        parse_macro_input!(input),
+    )
+    .unwrap_or_else(|err| err.to_compile_error())
+    .into()
 }

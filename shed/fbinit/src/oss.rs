@@ -103,6 +103,11 @@ impl Arbitrary for FacebookInit {
 #[doc(hidden)]
 pub mod r#impl {
     pub use super::assume_init as perform_init;
+    use crate::FacebookInit;
+
+    pub const unsafe fn perform_init_with_disable_signals(_: u64) -> FacebookInit {
+        perform_init()
+    }
 
     pub struct DestroyGuard;
 

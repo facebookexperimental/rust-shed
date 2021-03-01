@@ -24,6 +24,13 @@ fn test_expect_init() {
     fbinit::expect_init();
 }
 
+/// Also works with disable_fatal_signals set
+#[cfg(fbcode_build)]
+#[fbinit::test(disable_fatal_signals = 0x8000)]
+fn test_expect_init_with_disable_signals() {
+    fbinit::expect_init();
+}
+
 /// On non-fbcode builds asserting the proof will always panic, even in fbinit::test
 #[cfg(not(fbcode_build))]
 #[fbinit::test]
@@ -92,4 +99,13 @@ fn test_main_with_proof() {
 mod submodule {
     #[fbinit::main]
     fn main() {}
+}
+
+#[test]
+fn test_main_with_disable_signals() {
+    // Disable SIGTERM handler (1 << 15)
+    #[fbinit::main(disable_fatal_signals = 0x8000)]
+    fn main() {}
+
+    main();
 }
