@@ -7,9 +7,6 @@ readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
-[lib]
-path = "src/lib.rs"
-
 [[test]]
 name = "facet_async_test"
 path = "test/async_test.rs"

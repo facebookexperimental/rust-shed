@@ -24,7 +24,7 @@ futures_stats = { version = "0.1.0", path = "../../futures_stats" }
 lazy_static = "1.0"
 mysql_async = "0.23"
 mysql_derive = { version = "0.1.0", path = "../derive" }
-rusqlite = { version = "0.23", features = ["blob", "bundled"] }
+rusqlite = { version = "0.23", features = ["blob"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "1.0"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
@@ -32,3 +32,6 @@ time_ext = { version = "0.1.0", path = "../../time_ext" }
 [dev-dependencies]
 sql = { version = "0.1.0", path = ".." }
 sql_tests_lib = { version = "0.1.0", path = "../tests_lib" }
+
+[features]
+default = ["rusqlite/bundled"]
