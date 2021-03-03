@@ -8,7 +8,11 @@
  */
 
 #![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
-#![allow(clippy::needless_doctest_main, clippy::new_without_default)]
+#![allow(
+    clippy::needless_doctest_main,
+    clippy::new_without_default,
+    elided_lifetimes_in_paths
+)]
 //! Provides [FacebookInit] structure that must be used in Facebook code that
 //! requires pre-initialization, e.g. like C++'s logging.
 

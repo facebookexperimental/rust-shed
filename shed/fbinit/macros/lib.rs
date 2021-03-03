@@ -7,6 +7,9 @@
  * of this source tree.
  */
 
+#![allow(elided_lifetimes_in_paths)]
+
+#[allow(unused_extern_crates)]
 extern crate proc_macro;
 
 mod expand;
