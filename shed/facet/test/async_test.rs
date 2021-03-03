@@ -113,10 +113,10 @@ pub mod containers {
     #[facet::container]
     pub struct Basic {
         #[facet]
-        one: One,
+        one: dyn One,
 
         #[facet]
-        two: Two,
+        two: dyn Two,
     }
 }
 

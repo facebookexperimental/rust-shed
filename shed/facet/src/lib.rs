@@ -182,7 +182,7 @@
 //!     name: String,
 //!
 //!     #[facet]
-//!     other_trait: OtherTrait,
+//!     other_trait: dyn OtherTrait,
 //! }
 //! ```
 //!

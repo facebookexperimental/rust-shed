@@ -138,25 +138,25 @@ pub mod containers {
     #[facet::container]
     pub struct Deps {
         #[facet]
-        one: One,
+        one: dyn One,
 
         #[facet]
-        two: Two,
+        two: dyn Two,
 
         #[facet]
-        three: Three,
+        three: dyn Three,
     }
 
     #[facet::container]
     pub struct TwoOnly {
         #[facet]
-        two: Two,
+        two: dyn Two,
     }
 
     #[facet::container]
     pub struct ThreeOnly {
         #[facet]
-        three: Three,
+        three: dyn Three,
     }
 }
 

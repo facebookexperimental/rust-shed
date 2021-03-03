@@ -79,10 +79,10 @@ pub mod containers {
     #[facet::container]
     pub struct Parameterised {
         #[facet]
-        name: Name,
+        name: dyn Name,
 
         #[facet]
-        value: Value,
+        value: dyn Value,
 
         #[init(format!("{}({})", name.obtain(), value.get()))]
         pub debug: String,
