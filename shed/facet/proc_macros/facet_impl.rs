@@ -9,7 +9,8 @@
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
-use syn::{parse_macro_input, Error, ItemTrait};
+use syn::spanned::Spanned;
+use syn::{parse_macro_input, Error, Item};
 
 use crate::facet_crate_name;
 
@@ -18,7 +19,7 @@ pub fn facet(
     item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let _ = parse_macro_input!(attr as syn::parse::Nothing);
-    let facet = parse_macro_input!(item as ItemTrait);
+    let facet = parse_macro_input!(item as Item);
 
     match gen_attribute(facet) {
         Ok(output) => output,
@@ -27,44 +28,64 @@ pub fn facet(
     .into()
 }
 
-fn gen_attribute(facet: ItemTrait) -> Result<TokenStream, Error> {
+fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
+    let vis;
+    let name;
+    let facet_ty;
+
+    match &facet {
+        Item::Trait(facet) => {
+            vis = &facet.vis;
+            name = &facet.ident;
+            facet_ty = quote!(dyn #name + ::std::marker::Send + ::std::marker::Sync + 'static);
+        }
+        Item::Struct(facet) => {
+            vis = &facet.vis;
+            name = &facet.ident;
+            facet_ty = quote!(#name);
+        }
+        Item::Enum(facet) => {
+            vis = &facet.vis;
+            name = &facet.ident;
+            facet_ty = quote!(#name);
+        }
+        _ => return Err(Error::new(facet.span(), "expected trait, struct or enum")),
+    }
+
     let facet_crate = format_ident!("{}", facet_crate_name());
-    let vis = &facet.vis;
-    let name = &facet.ident;
     let snake_name = snakify_pascal_case(name.to_string());
     let trait_ref_name = format_ident!("{}Ref", name);
     let trait_ref_method = format_ident!("{}", snake_name, span = name.span());
     let trait_arc_name = format_ident!("{}Arc", name);
     let trait_arc_method = format_ident!("{}_arc", snake_name, span = name.span());
     let arc_trait_name = format_ident!("Arc{}", name);
-    let send_sync = quote!(::std::marker::Send + ::std::marker::Sync);
 
     Ok(quote! {
         #facet
 
         #vis trait #trait_ref_name {
-            fn #trait_ref_method(&self) -> &(dyn #name + #send_sync);
+            fn #trait_ref_method(&self) -> &(#facet_ty);
         }
 
-        impl<T: ::#facet_crate::FacetRef<dyn #name + #send_sync>> #trait_ref_name for T {
+        impl<T: ::#facet_crate::FacetRef<#facet_ty>> #trait_ref_name for T {
             #[inline]
-            fn #trait_ref_method(&self) -> &(dyn #name + #send_sync) {
+            fn #trait_ref_method(&self) -> &(#facet_ty) {
                 self.facet_ref()
             }
         }
 
         #vis trait #trait_arc_name: #trait_ref_name {
-            fn #trait_arc_method(&self) -> ::std::sync::Arc<dyn #name + #send_sync>;
+            fn #trait_arc_method(&self) -> ::std::sync::Arc<#facet_ty>;
         }
 
-        impl<T: ::#facet_crate::FacetArc<dyn #name + #send_sync> + ::#facet_crate::FacetRef<dyn #name + #send_sync>> #trait_arc_name for T {
+        impl<T: ::#facet_crate::FacetArc<#facet_ty> + ::#facet_crate::FacetRef<#facet_ty>> #trait_arc_name for T {
             #[inline]
-            fn #trait_arc_method(&self) -> ::std::sync::Arc<dyn #name + #send_sync> {
+            fn #trait_arc_method(&self) -> ::std::sync::Arc<#facet_ty> {
                 self.facet_arc()
             }
         }
 
-        #vis type #arc_trait_name = ::std::sync::Arc<dyn #name + #send_sync>;
+        #vis type #arc_trait_name = ::std::sync::Arc<#facet_ty>;
     })
 }
 

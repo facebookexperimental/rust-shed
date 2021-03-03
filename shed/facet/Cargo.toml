@@ -27,6 +27,10 @@ path = "test/fallible_test.rs"
 name = "facet_params_test"
 path = "test/params_test.rs"
 
+[[test]]
+name = "facet_static_test"
+path = "test/static_test.rs"
+
 [dependencies]
 anyhow = "1.0"
 async-trait = "0.1.29"
