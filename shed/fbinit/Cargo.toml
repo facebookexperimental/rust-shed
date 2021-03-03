@@ -21,4 +21,4 @@ macros = { version = "0.1.0", path = "macros" }
 quickcheck = "0.9"
 
 [dev-dependencies]
-tokio = { version = "0.2.25", features = ["full", "test-util"] }
+fbinit-tokio-02 = { version = "0.1.0", path = "fbinit-tokio-02" }

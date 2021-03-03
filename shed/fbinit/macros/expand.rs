@@ -89,20 +89,10 @@ pub fn expand(
 
     let body = match (function.sig.asyncness.is_some(), mode) {
         (true, Mode::Test) => quote! {
-            tokio::runtime::Builder::new()
-                .basic_scheduler()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async #block)
+            fbinit_tokio::tokio_test(async #block )
         },
         (true, Mode::Main) => quote! {
-            tokio::runtime::Builder::new()
-                .threaded_scheduler()
-                .enable_all()
-                .build()
-                .unwrap()
-                .block_on(async #block)
+            fbinit_tokio::tokio_main(async #block )
         },
         (false, _) => {
             let stmts = block.stmts;
