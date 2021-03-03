@@ -138,6 +138,27 @@ impl ScubaSampleBuilder {
         &self.sample
     }
 
+    /// Get a mutable reference to the internally built sample.
+    pub fn get_sample_mut(&mut self) -> &mut ScubaSample {
+        &mut self.sample
+    }
+
+    /// Set the [subset] of this sample.
+    ///
+    /// [subset]: https://fburl.com/qa/xqm9hsxx
+    pub fn set_subset<S: Into<String>>(&mut self, subset: S) -> &mut Self {
+        self.sample.set_subset(subset);
+        self
+    }
+
+    /// Clear the [subset] of this sample.
+    ///
+    /// [subset]: https://fburl.com/qa/xqm9hsxx
+    pub fn clear_subset(&mut self) -> &mut Self {
+        self.sample.clear_subset();
+        self
+    }
+
     /// Update the sequence number in preparation for a new log operation.
     fn next_seq(&mut self) {
         if let Some((key, seq)) = self.seq.as_deref() {

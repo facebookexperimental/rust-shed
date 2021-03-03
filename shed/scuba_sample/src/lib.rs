@@ -8,6 +8,7 @@
  */
 
 #![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![allow(elided_lifetimes_in_paths)]
 
 //! Defines the [sample::ScubaSample] structure and the
 //! [builder::ScubaSampleBuilder] helper structure to build a sample for
