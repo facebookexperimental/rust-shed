@@ -71,8 +71,6 @@ members = [
   "shed/sql",
   "shed/sql/common",
   "shed/sql/derive",
-  "shed/sql/queries01",
-  "shed/sql/queries01_tests",
   "shed/sql/tests_lib",
   "shed/stats",
   "shed/stats/traits",
