@@ -55,6 +55,23 @@ pub mod task {
         // This is what tokio::spawn would give you, so we don't try to do better here.
         panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
+
+    pub fn spawn_blocking<F, R>(f: F) -> JoinHandle<R>
+    where
+        F: FnOnce() -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        if let Ok(handle) = tokio_02::runtime::Handle::try_current() {
+            return JoinHandle::Tokio02(handle.spawn_blocking(f));
+        }
+
+        if let Ok(handle) = tokio_10::runtime::Handle::try_current() {
+            return JoinHandle::Tokio10(handle.spawn_blocking(f));
+        }
+
+        // This is what tokio::spawn_blocking would give you, so we don't try to do better here.
+        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+    }
 }
 
 pub mod time {
@@ -193,6 +210,7 @@ mod test {
 
     async fn test() {
         task::spawn(future::ready(())).await.unwrap();
+        task::spawn_blocking(|| ()).await.unwrap();
 
         time::sleep(Duration::from_millis(1)).await;
         time::sleep_until(Instant::now() + Duration::from_millis(1)).await;
