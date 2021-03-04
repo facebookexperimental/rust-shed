@@ -10,7 +10,6 @@
 #![deny(warnings, clippy::all)]
 
 use chrono::{NaiveDate, NaiveDateTime};
-use futures::compat::Future01CompatExt;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use sql::anyhow::Error;
@@ -124,11 +123,11 @@ pub async fn test_basic_transaction(conn: Connection) {
     let rng = thread_rng();
     let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
 
-    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = conn.start_transaction().await.unwrap();
     let (transaction, _res) = TestQuery11::query_with_transaction(transaction, &5, &test)
         .await
         .unwrap();
-    transaction.commit().compat().await.unwrap();
+    transaction.commit().await.unwrap();
 
     let res = TestQuery12::query(&conn, &test).await.unwrap();
     assert_eq!(res, vec![(5,)]);
@@ -252,15 +251,15 @@ pub async fn in_transaction(transaction: Transaction, semantics: TestSemantics) 
 }
 
 pub async fn test_transaction_rollback(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = conn.start_transaction().await.unwrap();
     let transaction = in_transaction(transaction, semantics).await;
-    transaction.rollback().compat().await.unwrap();
+    transaction.rollback().await.unwrap();
 
     assert_eq!(TestQuery4::query(&conn, &1, &3).await.unwrap(), vec![]);
 }
 
 pub async fn test_transaction_rollback_on_drop(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = conn.start_transaction().await.unwrap();
     // dropping transaction here should trigger rollback
     let _ = in_transaction(transaction, semantics);
 
@@ -268,9 +267,9 @@ pub async fn test_transaction_rollback_on_drop(conn: Connection, semantics: Test
 }
 
 pub async fn test_transaction_commit(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = conn.start_transaction().await.unwrap();
     let transaction = in_transaction(transaction, semantics).await;
-    transaction.commit().compat().await.unwrap();
+    transaction.commit().await.unwrap();
 
     assert_eq!(
         TestQuery4::query(&conn, &1, &3).await.unwrap(),

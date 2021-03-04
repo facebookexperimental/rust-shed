@@ -10,11 +10,8 @@
 //! Module that provides support for SQL transactions to this library.
 
 use anyhow::Error;
-use cloned::cloned;
+use futures::compat::Future01CompatExt;
 use futures::future::TryFutureExt;
-use futures_ext::{BoxFuture, FutureExt};
-use futures_old::{future::IntoFuture, Future};
-use futures_util::FutureExt as NewFutureExt;
 use mysql_async::TransactionOptions;
 
 use crate::deprecated_mysql::BoxMysqlTransaction;
@@ -24,17 +21,17 @@ use crate::sqlite::SqliteConnectionGuard;
 impl crate::Connection {
     /// Start an SQL transaction for this connection. Refer to `transaction::Transaction` docs for
     /// more info
-    pub fn start_transaction(&self) -> BoxFuture<Transaction, Error> {
-        Transaction::new(self)
+    pub async fn start_transaction(&self) -> Result<Transaction, Error> {
+        Transaction::new(self).await
     }
 
     /// Start an SQL transaction for this connection. Refer to `transaction::Transaction` docs for
     /// more info
-    pub fn start_transaction_with_options(
+    pub async fn start_transaction_with_options(
         &self,
         options: TransactionOptions,
-    ) -> BoxFuture<Transaction, Error> {
-        Transaction::new_with_options(self, options)
+    ) -> Result<Transaction, Error> {
+        Transaction::new_with_options(self, options).await
     }
 }
 
@@ -43,9 +40,7 @@ impl crate::Connection {
 /// # Example
 /// ```
 /// use anyhow::Error;
-/// use futures::compat::Future01CompatExt;
-/// use futures::future::{FutureExt, TryFutureExt};
-/// use futures_old::Future;
+/// use futures::Future;
 ///
 /// use sql::{queries, Connection};
 /// use sql_tests_lib::{A, B};
@@ -60,17 +55,13 @@ impl crate::Connection {
 ///     }
 /// }
 ///
-/// fn foo(conn: Connection) -> impl Future<Item=(), Error=Error> {
-///     conn.start_transaction()
-///         .and_then(|transaction| {
-///             MySelect::query_with_transaction(transaction, &A, &44).boxed().compat()
-///         })
-///         .and_then(|(transation, read_result)| {
-///             MyInsert::query_with_transaction(transation, &[(&2,)]).boxed().compat()
-///         })
-///         .and_then(|(transaction, write_result)| {
-///             transaction.commit()
-///         })
+/// async fn foo(conn: Connection) -> Result<(), Error> {
+///     let transaction = conn.start_transaction().await?;
+///     let (transaction, read_result) =
+///         MySelect::query_with_transaction(transaction, &A, &44).await?;
+///     let (transaction, write_result) =
+///         MyInsert::query_with_transaction(transaction, &[(&2,)]).await?;
+///     transaction.commit().await
 /// }
 /// #
 /// # fn main() {}
@@ -96,45 +87,37 @@ pub enum Transaction {
 impl Transaction {
     /// Create a new transaction for the provided connection using default
     /// transaction options.
-    pub fn new(connection: &super::Connection) -> BoxFuture<Transaction, Error> {
-        Transaction::new_with_options(connection, TransactionOptions::new())
+    pub async fn new(connection: &super::Connection) -> Result<Transaction, Error> {
+        Transaction::new_with_options(connection, TransactionOptions::new()).await
     }
 
     /// Create a new transaction for the provided connection using provided
     /// transaction options.
-    pub fn new_with_options(
+    pub async fn new_with_options(
         connection: &super::Connection,
         options: TransactionOptions,
-    ) -> BoxFuture<Transaction, Error> {
+    ) -> Result<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
                 let con = con.get_sqlite_guard();
                 // Transactions in SQLite are always SERIALIZABLE; no transaction options.
                 con.execute_batch("BEGIN DEFERRED")
                     .map(move |_| Transaction::Sqlite(Some(con)))
-                    .into_future()
                     .map_err(failure_ext::convert)
-                    .boxify()
             }
-            super::Connection::DeprecatedMysql(con) => con
-                .transaction_with_options(options)
-                .map(|con| Transaction::DeprecatedMysql(Some(con)))
-                .boxify(),
+            super::Connection::DeprecatedMysql(con) => {
+                let transaction = con.transaction_with_options(options).compat().await?;
+                Ok(Transaction::DeprecatedMysql(Some(transaction)))
+            }
             super::Connection::Mysql(conn) => {
-                cloned!(conn);
-                async move {
-                    let transaction = conn.begin_transaction().map_err(Error::from).await?;
-                    Ok(Transaction::Mysql(Some(transaction)))
-                }
-                .boxed()
-                .compat()
-                .boxify()
+                let transaction = conn.begin_transaction().map_err(Error::from).await?;
+                Ok(Transaction::Mysql(Some(transaction)))
             }
         }
     }
 
     /// Perform a commit on this transaction
-    pub fn commit(mut self) -> BoxFuture<(), Error> {
+    pub async fn commit(mut self) -> Result<(), Error> {
         match self {
             Transaction::Sqlite(ref mut con) => {
                 let actual_con = con.take().unwrap();
@@ -148,37 +131,37 @@ impl Transaction {
                     }
                 };
 
-                res.into_future().map_err(failure_ext::convert).boxify()
+                Ok(res?)
             }
             Transaction::DeprecatedMysql(ref mut con) => {
-                con.take().expect("Called commit after drop").commit()
+                con.take()
+                    .expect("Called commit after drop")
+                    .commit()
+                    .compat()
+                    .await
             }
             Transaction::Mysql(ref mut tr) => {
                 let tr = tr.take().expect("Called commit after drop");
-                async move { tr.commit().await }
-                    .map_err(Error::from)
-                    .boxed()
-                    .compat()
-                    .boxify()
+                Ok(tr.commit().await?)
             }
         }
     }
 
     /// Perform a rollback on this transaction
-    pub fn rollback(mut self) -> BoxFuture<(), Error> {
+    pub async fn rollback(mut self) -> Result<(), Error> {
         match self {
             Transaction::DeprecatedMysql(ref mut con) => {
-                con.take().expect("Called rollback after drop").rollback()
+                con.take()
+                    .expect("Called rollback after drop")
+                    .rollback()
+                    .compat()
+                    .await
             }
             // Sqlite will rollback on drop
-            Transaction::Sqlite(..) => Ok(()).into_future().boxify(),
+            Transaction::Sqlite(..) => Ok(()),
             Transaction::Mysql(ref mut tr) => {
                 let tr = tr.take().expect("Called rollback after drop");
-                async move { tr.rollback().await }
-                    .map_err(Error::from)
-                    .boxed()
-                    .compat()
-                    .boxify()
+                Ok(tr.rollback().await?)
             }
         }
     }
