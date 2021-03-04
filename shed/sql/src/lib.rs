@@ -24,6 +24,7 @@
 //!
 //! # Example
 //! ```
+//! use anyhow::Error;
 //! use futures::Future;
 //!
 //! use sql::{queries, Connection};
@@ -39,15 +40,16 @@
 //!     }
 //! }
 //!
-//! fn foo(conn: Connection) {
+//! async fn foo(conn: Connection) -> Result<(), Error> {
 //!     assert_eq!(
-//!         MySelect::query(&conn, &A, &72).wait().unwrap(),
+//!         MySelect::query(&conn, &A, &72).await?,
 //!         vec![(44, B, B, 72)]
 //!     );
 //!
-//!     let res = MyInsert::query(&conn, &[(&44,)]).wait().unwrap();
+//!     let res = MyInsert::query(&conn, &[(&44,)]).await?;
 //!     assert_eq!(res.affected_rows(), 1);
 //!     assert_eq!(res.last_insert_id(), Some(1));
+//!     Ok(())
 //! }
 //! #
 //! # fn main() {}
@@ -60,8 +62,6 @@ mod tests;
 
 pub use anyhow;
 pub use cloned;
-pub use failure;
-pub use failure_ext;
 pub use futures;
 pub use futures_ext;
 pub use futures_util;
@@ -152,25 +152,25 @@ macro_rules! queries {
             ) -> ($( $rtype ),*) { mysql($mysql_q) sqlite($sqlite_q) });
 
             #[allow(dead_code)]
-            pub(super) fn query(
-                connection: &Connection,
+            pub(super) async fn query(
+                connection: & Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = Vec<($( $rtype, )*)>, Error = Error> {
+            ) -> Result<Vec<($( $rtype, )*)>, Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub(super) fn query_with_transaction(
+            pub(super) async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = (Transaction, Vec<($( $rtype, )*)>), Error = Error> {
+            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query in transaction))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -207,25 +207,25 @@ macro_rules! queries {
             ) -> ($( $rtype ),*) { mysql($mysql_q) sqlite($sqlite_q) });
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query(
+            pub $( ( $( $mods )* ) )? async fn query(
                 connection: &Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = Vec<($( $rtype, )*)>, Error = Error> {
+            ) -> Result<Vec<($( $rtype, )*)>, Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = (Transaction, Vec<($( $rtype, )*)>), Error = Error> {
+            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query in transaction))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -263,25 +263,25 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub(super) fn query(
+            pub(super) async fn query(
                 connection: &Connection,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = WriteResult, Error = Error> {
+            ) -> Result<WriteResult, Error> {
                 query_internal(connection, values $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub(super) fn query_with_transaction(
+            pub(super) async fn query_with_transaction(
                 transaction: Transaction,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
+            ) -> Result<(Transaction, WriteResult), Error> {
                 query_internal_with_transaction(transaction, values $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -319,25 +319,25 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query(
+            pub $( ( $( $mods )* ) )? async fn query(
                 connection: &Connection,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = WriteResult, Error = Error> {
+            ) -> Result<WriteResult, Error> {
                 query_internal(connection, values $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
                 transaction: Transaction,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
+            ) -> Result<(Transaction, WriteResult), Error> {
                 query_internal_with_transaction(transaction, values $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -378,25 +378,25 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub(super) fn query(
+            pub(super) async fn query(
                 connection: &Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = WriteResult, Error = Error> {
+            ) -> Result<WriteResult, Error> {
                 query_internal(connection $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub(super) fn query_with_transaction(
+            pub(super) async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
-            ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
+            ) -> Result<(Transaction, WriteResult), Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -434,23 +434,23 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query(
+            pub $( ( $( $mods )* ) )? async fn query(
                 connection: &Connection,
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = WriteResult, Error = Error> {
+            ) -> Result<WriteResult, Error> {
                 query_internal(connection, $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
 
             #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? fn query_with_transaction(
+            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype ),*
-            ) -> impl Future<Item = (Transaction, WriteResult), Error = Error> {
+            ) -> Result<(Transaction, WriteResult), Error> {
                 query_internal_with_transaction(transaction $( , $pname )*)
+                    .await
                     .context(stringify!(While executing $name query))
-                    .from_err()
             }
         }
         $crate::queries!($( $tt )*);
@@ -462,17 +462,16 @@ macro_rules! queries {
 macro_rules! _query_common {
     () => {
         use std::fmt::Write;
+        // Some users of queries! have redefined Result
+        use std::result::Result;
         use std::sync::Arc;
 
         use $crate::anyhow::{Context, Error};
         use $crate::cloned::cloned;
-        use $crate::failure_ext::FutureFailureErrorExt;
         use $crate::futures::{
-            future::{lazy, IntoFuture},
-            Future,
+            compat::Future01CompatExt,
+            future::{Future, FutureExt, TryFutureExt},
         };
-        use $crate::futures_ext::{BoxFuture, FutureExt};
-        use $crate::futures_util::{FutureExt as NewFutureExt, TryFutureExt};
         use $crate::mysql_async::prelude::*;
         use $crate::rusqlite::{
             types::ToSql as ToSqliteValue, Connection as SqliteConnection, Result as SqliteResult,
@@ -498,36 +497,30 @@ macro_rules! _read_query_impl {
     ) -> ($( $rtype:ty ),*) { mysql($mysql_q:expr) sqlite($sqlite_q:expr) } ) => (
         $crate::_query_common!();
 
-        fn query_internal(
+        async fn query_internal(
             connection: &Connection,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<Vec<($( $rtype, )*)>, Error> {
+        ) -> Result<Vec<($( $rtype, )*)>, Error> {
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_query(multithread_con.clone() $( , $pname )* $( , $lname )*)
+                    sqlite_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
                 }
                 Connection::DeprecatedMysql(con) => {
-                    con.read_query(mysql_query($( $pname, )* $( $lname, )*))
+                    con.read_query(mysql_query($( $pname, )* $( $lname, )*)).compat().await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
-                    cloned!(conn);
-                    async move {
-                        conn.read_query(query).map_err(Error::from).await
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+                    conn.read_query(query).map_err(Error::from).await
                 }
             }
         }
 
-        fn query_internal_with_transaction(
+        async fn query_internal_with_transaction(
             mut transaction: Transaction,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<(Transaction, Vec<($( $rtype, )*)>), Error> {
+        ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
             match transaction {
                 Transaction::Sqlite(ref mut con) => {
                     let con = con
@@ -535,103 +528,51 @@ macro_rules! _read_query_impl {
                         .expect("should be Some before transaction ended");
 
                     sqlite_query_with_transaction(con $( , $pname )* $( , $lname )*)
+                        .await
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                        .boxify()
                 }
                 Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction.take()
                         .expect("should be Some before transaction ended");
                     transaction
                         .read_query(mysql_query($( $pname, )* $( $lname, )*))
+                        .compat()
+                        .await
                         .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
-                        .boxify()
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
-                    async move {
-                        let result = tr.read_query(query).map_err(Error::from).await?;
-                        Ok((Transaction::Mysql(Some(tr)), result))
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+                    let result = tr.read_query(query).map_err(Error::from).await?;
+                    Ok((Transaction::Mysql(Some(tr)), result))
                 }
             }
         }
 
-        fn sqlite_query(
+        async fn sqlite_query(
             multithread_con: Arc<SqliteMultithreaded>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<Vec<($( $rtype, )*)>, Error> {
+        ) -> Result<Vec<($( $rtype, )*)>, Error> {
             $crate::_prepare_sqlite_params!(
                 params,
                 $( $pname ),*
                 $( >list $lname )*
             );
 
-            lazy(move || {
-                let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.get_sqlite_guard();
 
-                let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
-                for idx in 0..params.len() {
-                    ref_params.push((&params[idx].0, &params[idx].1))
-                }
+            let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            for idx in 0..params.len() {
+                ref_params.push((&params[idx].0, &params[idx].1))
+            }
 
-                let res = sqlite_statement(&con  $( , $lname )*)
-                    .and_then(|mut stmt| {
-                        stmt.query_map_named(
-                            &ref_params[..],
-                            |row| {
-                                #[allow(clippy::eval_order_dependence)]
-                                {
-                                    let mut idx = 0;
-                                    let res = (
-                                        $({
-                                            let res: ValueWrapper = row.get(idx)?;
-                                            idx += 1;
-                                            <$rtype as FromValue>::from_value_opt(res.0)
-                                                .unwrap_or_else(|err| {
-                                                    panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
-                                                })
-                                        },)*
-                                    );
-                                    // suppress unused_assignments warning
-                                    let _ = idx;
-                                    Ok(res)
-                                }
-                        })?.collect()
-                    });
-                res
-            })
-                .from_err()
-                .boxify()
-        }
-
-        fn sqlite_query_with_transaction(
-            transaction: SqliteConnectionGuard,
-            $( $pname: & $ptype, )*
-            $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<(SqliteConnectionGuard, Vec<($( $rtype, )*)>), Error> {
-            $crate::_prepare_sqlite_params!(
-                params,
-                $( $pname ),*
-                $( >list $lname )*
-            );
-
-            lazy(move || -> SqliteResult<(SqliteConnectionGuard, Vec<($( $rtype, )*)>)> {
-                let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
-                for idx in 0..params.len() {
-                    ref_params.push((&params[idx].0, &params[idx].1))
-                }
-
-                let res: SqliteResult<Vec<($( $rtype, )*)>> = {
-                    let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
-                    let res = stmt.query_map_named(
+            sqlite_statement(&con  $( , $lname )*)
+                .and_then(|mut stmt| {
+                    stmt.query_map_named(
                         &ref_params[..],
                         |row| {
                             #[allow(clippy::eval_order_dependence)]
@@ -651,14 +592,53 @@ macro_rules! _read_query_impl {
                                 let _ = idx;
                                 Ok(res)
                             }
-                    })?.collect();
-                    res
-                };
+                    })?.collect()
+                }).map_err(Error::from)
+        }
 
-                Ok((transaction, res?))
-            })
-                .from_err()
-                .boxify()
+        async fn sqlite_query_with_transaction(
+            transaction: SqliteConnectionGuard,
+            $( $pname: & $ptype, )*
+            $( $lname: & [ $ltype ], )*
+        ) -> Result<(SqliteConnectionGuard, Vec<($( $rtype, )*)>), Error> {
+            $crate::_prepare_sqlite_params!(
+                params,
+                $( $pname ),*
+                $( >list $lname )*
+            );
+
+            let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            for idx in 0..params.len() {
+                ref_params.push((&params[idx].0, &params[idx].1))
+            }
+
+            let res: SqliteResult<Vec<($( $rtype, )*)>> = {
+                let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
+                let res = stmt.query_map_named(
+                    &ref_params[..],
+                    |row| {
+                        #[allow(clippy::eval_order_dependence)]
+                        {
+                            let mut idx = 0;
+                            let res = (
+                                $({
+                                    let res: ValueWrapper = row.get(idx)?;
+                                    idx += 1;
+                                    <$rtype as FromValue>::from_value_opt(res.0)
+                                        .unwrap_or_else(|err| {
+                                            panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
+                                        })
+                                },)*
+                            );
+                            // suppress unused_assignments warning
+                            let _ = idx;
+                            Ok(res)
+                        }
+                })?.collect();
+                res
+            };
+
+            Ok((transaction, res?))
         }
 
         fn mysql_query($( $pname: & $ptype, )* $( $lname: & [ $ltype ], )*) -> String {
@@ -696,43 +676,37 @@ macro_rules! _write_query_impl {
 
         $crate::_query_common!();
 
-        fn query_internal(
+        async fn query_internal(
             connection: &Connection,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
-        ) -> BoxFuture<WriteResult, Error> {
+        ) -> Result<WriteResult, Error> {
             if values.is_empty() {
-                return Ok(WriteResult::new(None, 0)).into_future().boxify();
+                return Ok(WriteResult::new(None, 0));
             }
 
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_exec_query(multithread_con.clone(), values, $( $pname ),*)
+                    sqlite_exec_query(multithread_con.clone(), values, $( $pname ),*).await
                 }
                 Connection::DeprecatedMysql(con) => {
-                    con.write_query(mysql_query(values, $( $pname ),*))
+                    con.write_query(mysql_query(values, $( $pname ),*)).compat().await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query(values, $( $pname ),*);
-                    cloned!(conn);
-                    async move {
-                        let res = conn.write_query(query).map_err(Error::from).await?;
-                        Ok(res.into())
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+                    let res = conn.write_query(query).map_err(Error::from).await?;
+                    Ok(res.into())
                 }
             }
         }
 
-        fn query_internal_with_transaction(
+        async fn query_internal_with_transaction(
             mut transaction: Transaction,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
-        ) -> BoxFuture<(Transaction, WriteResult), Error> {
+        ) -> Result<(Transaction, WriteResult), Error> {
             if values.is_empty() {
-                return Ok((transaction, WriteResult::new(None, 0))).into_future().boxify();
+                return Ok((transaction, WriteResult::new(None, 0)));
             }
 
             match transaction {
@@ -742,10 +716,10 @@ macro_rules! _write_query_impl {
                         .expect("should be Some before transaction ended");
 
                     sqlite_exec_query_with_transaction(con, values, $( $pname ),*)
+                        .await
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                        .boxify()
                 }
                 Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction
@@ -753,20 +727,17 @@ macro_rules! _write_query_impl {
                         .expect("should be Some before transaction ended");
                     transaction
                         .write_query(mysql_query(values, $( $pname ),*))
+                        .compat()
+                        .await
                         .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
-                        .boxify()
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query(values, $( $pname ),*);
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
-                    async move {
-                        let result = tr.write_query(query).map_err(Error::from).await?;
-                        Ok((Transaction::Mysql(Some(tr)), result.into()))
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+
+                    let result = tr.write_query(query).map_err(Error::from).await?;
+                    Ok((Transaction::Mysql(Some(tr)), result.into()))
                 },
             }
         }
@@ -788,11 +759,11 @@ macro_rules! _write_query_impl {
             $crate::_write_mysql_query!($qtype, $mysql_q, values: val, $( $pname ),*)
         }
 
-        fn sqlite_exec_query(
+        async fn sqlite_exec_query(
             multithread_con: Arc<SqliteMultithreaded>,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
-        ) -> BoxFuture<WriteResult, Error> {
+        ) -> Result<WriteResult, Error> {
             let mut multi_params = Vec::new();
             for value in values {
                 let mut params: Vec<(&str, ValueWrapper)> = Vec::new();
@@ -808,10 +779,48 @@ macro_rules! _write_query_impl {
                 multi_params.push(params);
             }
 
-            lazy(move || -> SqliteResult<WriteResult> {
-                let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.get_sqlite_guard();
 
-                let mut stmt = sqlite_statement(&con)?;
+            let mut stmt = sqlite_statement(&con)?;
+
+            let mut res = Vec::new();
+            for params in multi_params {
+                let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                for param in &params {
+                    param_refs.push((param.0, &param.1));
+                }
+
+                res.push(stmt.execute_named(param_refs.as_ref())?);
+            }
+
+            Ok(WriteResult::new(
+                Some(con.last_insert_rowid() as u64),
+                res.into_iter().sum::<usize>() as u64,
+            ))
+        }
+
+        async fn sqlite_exec_query_with_transaction(
+            transaction: SqliteConnectionGuard,
+            values: &[($( & $vtype, )*)],
+            $( $pname: & $ptype ),*
+        ) -> Result<(SqliteConnectionGuard, WriteResult), Error> {
+            let mut multi_params = Vec::new();
+            for value in values {
+                let mut params: Vec<(&str, ValueWrapper)> = Vec::new();
+
+                $crate::_sqlite_named_params!(params, value $( , $vname )*);
+                $(
+                    params.push((
+                        concat!(":", stringify!($pname)),
+                        ValueWrapper(ToValue::to_value($pname)),
+                    ));
+                )*
+
+                multi_params.push(params);
+            }
+
+            let res = {
+                let mut stmt = sqlite_statement(&transaction)?;
 
                 let mut res = Vec::new();
                 for params in multi_params {
@@ -823,61 +832,15 @@ macro_rules! _write_query_impl {
                     res.push(stmt.execute_named(param_refs.as_ref())?);
                 }
 
-                Ok(WriteResult::new(
-                    Some(con.last_insert_rowid() as u64),
-                    res.into_iter().sum::<usize>() as u64,
-                ))
-            })
-                .from_err()
-                .boxify()
-        }
+                res.into_iter().sum::<usize>()
+            };
 
-        fn sqlite_exec_query_with_transaction(
-            transaction: SqliteConnectionGuard,
-            values: &[($( & $vtype, )*)],
-            $( $pname: & $ptype ),*
-        ) -> BoxFuture<(SqliteConnectionGuard, WriteResult), Error> {
-            let mut multi_params = Vec::new();
-            for value in values {
-                let mut params: Vec<(&str, ValueWrapper)> = Vec::new();
+            let res = WriteResult::new(
+                Some(transaction.last_insert_rowid() as u64),
+                res as u64,
+            );
 
-                $crate::_sqlite_named_params!(params, value $( , $vname )*);
-                $(
-                    params.push((
-                        concat!(":", stringify!($pname)),
-                        ValueWrapper(ToValue::to_value($pname)),
-                    ));
-                )*
-
-                multi_params.push(params);
-            }
-
-            lazy(move || -> SqliteResult<(SqliteConnectionGuard, WriteResult)> {
-                let res = {
-                    let mut stmt = sqlite_statement(&transaction)?;
-
-                    let mut res = Vec::new();
-                    for params in multi_params {
-                        let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
-                        for param in &params {
-                            param_refs.push((param.0, &param.1));
-                        }
-
-                        res.push(stmt.execute_named(param_refs.as_ref())?);
-                    }
-
-                    res.into_iter().sum::<usize>()
-                };
-
-                let res = WriteResult::new(
-                    Some(transaction.last_insert_rowid() as u64),
-                    res as u64,
-                );
-
-                Ok((transaction, res))
-            })
-                .from_err()
-                .boxify()
+            Ok((transaction, res))
         }
 
         fn sqlite_statement<'a>(
@@ -904,37 +867,31 @@ macro_rules! _write_query_impl {
 
         $crate::_query_common!();
 
-        fn query_internal(
+        async fn query_internal(
             connection: &Connection,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<WriteResult, Error> {
+        ) -> Result<WriteResult, Error> {
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_exec_query(multithread_con.clone() $( , $pname )* $( , $lname )*)
+                    sqlite_exec_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
                 }
                 Connection::DeprecatedMysql(con) => {
-                    con.write_query(mysql_query($( $pname, )* $( $lname, )*))
+                    con.write_query(mysql_query($( $pname, )* $( $lname, )*)).compat().await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
-                    cloned!(conn);
-                    async move {
-                        let res = conn.write_query(query).map_err(Error::from).await?;
-                        Ok(res.into())
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+                    let res = conn.write_query(query).map_err(Error::from).await?;
+                    Ok(res.into())
                 }
             }
         }
 
-        fn query_internal_with_transaction(
+        async fn query_internal_with_transaction(
             mut transaction: Transaction,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<(Transaction, WriteResult), Error> {
+        ) -> Result<(Transaction, WriteResult), Error> {
             match transaction {
                 Transaction::Sqlite(ref mut transaction) => {
                     let con = transaction
@@ -942,10 +899,10 @@ macro_rules! _write_query_impl {
                         .expect("should be Some before transaction ended");
 
                     sqlite_exec_query_with_transaction(con $( , $pname )* $( , $lname )*)
+                        .await
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                        .boxify()
                 }
                 Transaction::DeprecatedMysql(ref mut transaction) => {
                     let transaction = transaction
@@ -953,20 +910,16 @@ macro_rules! _write_query_impl {
                         .expect("should be Some before transaction ended");
                     transaction
                         .write_query(mysql_query($( $pname, )* $( $lname, )*))
+                        .compat()
+                        .await
                         .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
-                        .boxify()
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
-                    async move {
-                        let result = tr.write_query(query).map_err(Error::from).await?;
-                        Ok((Transaction::Mysql(Some(tr)), result.into()))
-                    }
-                    .boxed()
-                    .compat()
-                    .boxify()
+                    let result = tr.write_query(query).map_err(Error::from).await?;
+                    Ok((Transaction::Mysql(Some(tr)), result.into()))
                 },
             }
         }
@@ -976,70 +929,62 @@ macro_rules! _write_query_impl {
             $crate::_write_mysql_query!($qtype, $mysql_q, $( $pname ),* $( >list $lname )*)
         }
 
-        fn sqlite_exec_query(
+        async fn sqlite_exec_query(
             multithread_con: Arc<SqliteMultithreaded>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<WriteResult, Error> {
+        ) -> Result<WriteResult, Error> {
             $crate::_prepare_sqlite_params!(
                 params,
                 $( $pname ),*
                 $( >list $lname )*
             );
 
-            lazy(move || -> SqliteResult<WriteResult> {
-                let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.get_sqlite_guard();
 
-                let mut stmt = sqlite_statement(&con  $( , $lname )*)?;
+            let mut stmt = sqlite_statement(&con  $( , $lname )*)?;
+
+            let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            for param in &params {
+                param_refs.push((&param.0, &param.1));
+            }
+
+            let res = stmt.execute_named(param_refs.as_ref())?;
+
+            Ok(WriteResult::new(
+                Some(con.last_insert_rowid() as u64),
+                res as u64,
+            ))
+        }
+
+        async fn sqlite_exec_query_with_transaction(
+            transaction: SqliteConnectionGuard,
+            $( $pname: & $ptype, )*
+            $( $lname: & [ $ltype ], )*
+        ) -> Result<(SqliteConnectionGuard, WriteResult), Error> {
+            $crate::_prepare_sqlite_params!(
+                params,
+                $( $pname ),*
+                $( >list $lname )*
+            );
+
+            let res = {
+                let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
 
                 let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
                 for param in &params {
                     param_refs.push((&param.0, &param.1));
                 }
 
-                let res = stmt.execute_named(param_refs.as_ref())?;
+                stmt.execute_named(param_refs.as_ref())?
+            };
 
-                Ok(WriteResult::new(
-                    Some(con.last_insert_rowid() as u64),
-                    res as u64,
-                ))
-            })
-                .from_err()
-                .boxify()
-        }
-
-        fn sqlite_exec_query_with_transaction(
-            transaction: SqliteConnectionGuard,
-            $( $pname: & $ptype, )*
-            $( $lname: & [ $ltype ], )*
-        ) -> BoxFuture<(SqliteConnectionGuard, WriteResult), Error> {
-            $crate::_prepare_sqlite_params!(
-                params,
-                $( $pname ),*
-                $( >list $lname )*
+            let res = WriteResult::new(
+                Some(transaction.last_insert_rowid() as u64),
+                res as u64,
             );
 
-            lazy(move || -> SqliteResult<(SqliteConnectionGuard, WriteResult)> {
-                let res = {
-                    let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
-
-                    let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
-                    for param in &params {
-                        param_refs.push((&param.0, &param.1));
-                    }
-
-                    stmt.execute_named(param_refs.as_ref())?
-                };
-
-                let res = WriteResult::new(
-                    Some(transaction.last_insert_rowid() as u64),
-                    res as u64,
-                );
-
-                Ok((transaction, res))
-            })
-                .from_err()
-                .boxify()
+            Ok((transaction, res))
         }
 
         fn sqlite_statement<'a>(

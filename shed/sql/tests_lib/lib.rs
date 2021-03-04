@@ -10,7 +10,7 @@
 #![deny(warnings, clippy::all)]
 
 use chrono::{NaiveDate, NaiveDateTime};
-use futures_old::Future;
+use futures::compat::Future01CompatExt;
 use rand::distributions::Alphanumeric;
 use rand::{thread_rng, Rng};
 use sql::anyhow::Error;
@@ -107,41 +107,41 @@ queries! {
     }
 }
 
-pub fn test_basic_query(conn: Connection) -> Result<(), Error> {
+pub async fn test_basic_query(conn: Connection) -> Result<(), Error> {
     let rng = thread_rng();
     let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
 
-    TestQuery11::query(&conn, &1, &test).wait()?;
-    let res = TestQuery11::query(&conn, &3, &test).wait()?;
+    TestQuery11::query(&conn, &1, &test).await?;
+    let res = TestQuery11::query(&conn, &3, &test).await?;
     assert_eq!(res.affected_rows(), 1);
 
-    let res = TestQuery12::query(&conn, &test).wait()?;
+    let res = TestQuery12::query(&conn, &test).await?;
     assert_eq!(res, vec![(1,), (3,)]);
     Ok(())
 }
 
-pub fn test_basic_transaction(conn: Connection) {
+pub async fn test_basic_transaction(conn: Connection) {
     let rng = thread_rng();
     let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
 
-    let transaction = conn.start_transaction().wait().unwrap();
+    let transaction = conn.start_transaction().compat().await.unwrap();
     let (transaction, _res) = TestQuery11::query_with_transaction(transaction, &5, &test)
-        .wait()
+        .await
         .unwrap();
-    transaction.commit().wait().unwrap();
+    transaction.commit().compat().await.unwrap();
 
-    let res = TestQuery12::query(&conn, &test).wait().unwrap();
+    let res = TestQuery12::query(&conn, &test).await.unwrap();
     assert_eq!(res, vec![(5,)]);
 }
 
-pub fn test_read_query(conn: Connection, semantics: TestSemantics) {
+pub async fn test_read_query(conn: Connection, semantics: TestSemantics) {
     assert_eq!(
-        TestQuery::query(&conn, &A, &72).wait().unwrap(),
+        TestQuery::query(&conn, &A, &72).await.unwrap(),
         vec![(44, B, B, 72)]
     );
-    assert_eq!(TestQuery2::query(&conn).wait().unwrap(), vec![(44, B)]);
+    assert_eq!(TestQuery2::query(&conn).await.unwrap(), vec![(44, B)]);
     assert_eq!(
-        TestQuery6::query(&conn).wait().unwrap(),
+        TestQuery6::query(&conn).await.unwrap(),
         vec![(match semantics {
             TestSemantics::Mysql => 6i64,
             TestSemantics::Sqlite => 7i64,
@@ -149,59 +149,59 @@ pub fn test_read_query(conn: Connection, semantics: TestSemantics) {
     );
 }
 
-pub fn test_datetime_query(conn: Connection) {
+pub async fn test_datetime_query(conn: Connection) {
     let date = NaiveDate::from_ymd(2021, 1, 21).and_hms(21, 21, 21);
-    let res = TestQuery13::query(&conn, &3, &date).wait().unwrap();
+    let res = TestQuery13::query(&conn, &3, &date).await.unwrap();
     assert_eq!(res.affected_rows(), 1);
 
-    let res = TestQuery14::query(&conn, &date).wait().unwrap();
+    let res = TestQuery14::query(&conn, &date).await.unwrap();
     assert_eq!(res, vec![("2021-01-21 21:21:21".to_owned(),)]);
 }
 
-pub fn test_write_query(conn: Connection) {
-    let res = TestQuery3::query(&conn, &[(&44,)]).wait().unwrap();
+pub async fn test_write_query(conn: Connection) {
+    let res = TestQuery3::query(&conn, &[(&44,)]).await.unwrap();
     assert_eq!(res.affected_rows(), 1);
     assert_eq!(res.last_insert_id(), Some(1));
 
-    let res = TestQuery3::query(&conn, &[(&72,), (&53,)]).wait().unwrap();
+    let res = TestQuery3::query(&conn, &[(&72,), (&53,)]).await.unwrap();
     assert_eq!(res.affected_rows(), 2);
     assert_eq!(res.last_insert_id(), Some(3));
 
     assert_eq!(
-        TestQuery4::query(&conn, &1, &3).wait().unwrap(),
+        TestQuery4::query(&conn, &1, &3).await.unwrap(),
         vec![(44,), (72,), (53,)]
     );
 
-    let res = TestQuery7::query(&conn, &123).wait().unwrap();
+    let res = TestQuery7::query(&conn, &123).await.unwrap();
     assert_eq!(res.affected_rows(), 1);
     assert_eq!(res.last_insert_id(), Some(1));
 
     assert_eq!(
-        TestQuery5::query(&conn, &[1, 2, 3]).wait().unwrap(),
+        TestQuery5::query(&conn, &[1, 2, 3]).await.unwrap(),
         vec![(123,), (72,), (53,)]
     );
 
-    let res = TestQuery8::query(&conn, &[1, 2]).wait().unwrap();
+    let res = TestQuery8::query(&conn, &[1, 2]).await.unwrap();
     assert_eq!(res.affected_rows(), 2);
 
     assert_eq!(
-        TestQuery5::query(&conn, &[1, 2, 3]).wait().unwrap(),
+        TestQuery5::query(&conn, &[1, 2, 3]).await.unwrap(),
         vec![(456,), (456,), (53,)]
     );
 
-    let res = TestQuery9::query(&conn, &123, &[1, 2]).wait().unwrap();
+    let res = TestQuery9::query(&conn, &123, &[1, 2]).await.unwrap();
     assert_eq!(res.affected_rows(), 2);
 
     assert_eq!(
-        TestQuery5::query(&conn, &[1, 2, 3]).wait().unwrap(),
+        TestQuery5::query(&conn, &[1, 2, 3]).await.unwrap(),
         vec![(123,), (123,), (53,)]
     );
 
-    let res = TestQuery10::query(&conn, &456, &3).wait().unwrap();
+    let res = TestQuery10::query(&conn, &456, &3).await.unwrap();
     assert_eq!(res.affected_rows(), 1);
 
     assert_eq!(
-        TestQuery5::query(&conn, &[1, 2, 3]).wait().unwrap(),
+        TestQuery5::query(&conn, &[1, 2, 3]).await.unwrap(),
         vec![(123,), (123,), (456,)]
     );
 }
@@ -211,15 +211,15 @@ pub enum TestSemantics {
     Mysql,
 }
 
-pub fn in_transaction(transaction: Transaction, semantics: TestSemantics) -> Transaction {
+pub async fn in_transaction(transaction: Transaction, semantics: TestSemantics) -> Transaction {
     let (transaction, res) = TestQuery3::query_with_transaction(transaction, &[(&44,)])
-        .wait()
+        .await
         .unwrap();
     assert_eq!(res.affected_rows(), 1);
     assert_eq!(res.last_insert_id(), Some(1));
 
     let (transaction, res) = TestQuery3::query_with_transaction(transaction, &[(&72,), (&53,)])
-        .wait()
+        .await
         .unwrap();
     assert_eq!(res.affected_rows(), 2);
     match semantics {
@@ -229,12 +229,12 @@ pub fn in_transaction(transaction: Transaction, semantics: TestSemantics) -> Tra
     }
 
     let (transaction, res) = TestQuery4::query_with_transaction(transaction, &1, &3)
-        .wait()
+        .await
         .unwrap();
     assert_eq!(res, vec![(44,), (72,), (53,)]);
 
     let (transaction, res) = TestQuery7::query_with_transaction(transaction, &123)
-        .wait()
+        .await
         .unwrap();
     match semantics {
         // MySQL counts a replace of an existing row as affecting two rows.
@@ -244,36 +244,36 @@ pub fn in_transaction(transaction: Transaction, semantics: TestSemantics) -> Tra
     assert_eq!(res.last_insert_id(), Some(1));
 
     let (transaction, res) = TestQuery5::query_with_transaction(transaction, &[1, 2, 3])
-        .wait()
+        .await
         .unwrap();
     assert_eq!(res, vec![(123,), (72,), (53,)]);
 
     transaction
 }
 
-pub fn test_transaction_rollback(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().wait().unwrap();
-    let transaction = in_transaction(transaction, semantics);
-    transaction.rollback().wait().unwrap();
+pub async fn test_transaction_rollback(conn: Connection, semantics: TestSemantics) {
+    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = in_transaction(transaction, semantics).await;
+    transaction.rollback().compat().await.unwrap();
 
-    assert_eq!(TestQuery4::query(&conn, &1, &3).wait().unwrap(), vec![]);
+    assert_eq!(TestQuery4::query(&conn, &1, &3).await.unwrap(), vec![]);
 }
 
-pub fn test_transaction_rollback_on_drop(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().wait().unwrap();
+pub async fn test_transaction_rollback_on_drop(conn: Connection, semantics: TestSemantics) {
+    let transaction = conn.start_transaction().compat().await.unwrap();
     // dropping transaction here should trigger rollback
     let _ = in_transaction(transaction, semantics);
 
-    assert_eq!(TestQuery4::query(&conn, &1, &3).wait().unwrap(), vec![]);
+    assert_eq!(TestQuery4::query(&conn, &1, &3).await.unwrap(), vec![]);
 }
 
-pub fn test_transaction_commit(conn: Connection, semantics: TestSemantics) {
-    let transaction = conn.start_transaction().wait().unwrap();
-    let transaction = in_transaction(transaction, semantics);
-    transaction.commit().wait().unwrap();
+pub async fn test_transaction_commit(conn: Connection, semantics: TestSemantics) {
+    let transaction = conn.start_transaction().compat().await.unwrap();
+    let transaction = in_transaction(transaction, semantics).await;
+    transaction.commit().compat().await.unwrap();
 
     assert_eq!(
-        TestQuery4::query(&conn, &1, &3).wait().unwrap(),
+        TestQuery4::query(&conn, &1, &3).await.unwrap(),
         vec![(123,), (72,), (53,)]
     );
 }

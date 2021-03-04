@@ -43,6 +43,8 @@ impl crate::Connection {
 /// # Example
 /// ```
 /// use anyhow::Error;
+/// use futures::compat::Future01CompatExt;
+/// use futures::future::{FutureExt, TryFutureExt};
 /// use futures_old::Future;
 ///
 /// use sql::{queries, Connection};
@@ -61,10 +63,10 @@ impl crate::Connection {
 /// fn foo(conn: Connection) -> impl Future<Item=(), Error=Error> {
 ///     conn.start_transaction()
 ///         .and_then(|transaction| {
-///             MySelect::query_with_transaction(transaction, &A, &44)
+///             MySelect::query_with_transaction(transaction, &A, &44).boxed().compat()
 ///         })
 ///         .and_then(|(transation, read_result)| {
-///             MyInsert::query_with_transaction(transation, &[(&2,)])
+///             MyInsert::query_with_transaction(transation, &[(&2,)]).boxed().compat()
 ///         })
 ///         .and_then(|(transaction, write_result)| {
 ///             transaction.commit()
