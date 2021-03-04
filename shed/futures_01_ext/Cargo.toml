@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 bytes-old = { package = "bytes", version = "0.4", features = ["serde"] }
-futures = "0.1.30"
+futures = "0.1.31"
 tokio-io = "0.1"
 
 [dev-dependencies]

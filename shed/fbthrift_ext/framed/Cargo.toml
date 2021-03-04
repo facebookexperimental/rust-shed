@@ -17,5 +17,5 @@ bytes = { version = "0.5", features = ["serde"] }
 tokio-util = { version = "0.3", features = ["codec", "udp"] }
 
 [dev-dependencies]
-futures = { version = "0.3.5", features = ["async-await", "compat"] }
+futures = { version = "0.3.13", features = ["async-await", "compat"] }
 tokio = { version = "0.2.25", features = ["full", "test-util"] }

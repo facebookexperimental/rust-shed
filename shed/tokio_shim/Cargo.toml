@@ -9,7 +9,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0"
-futures = { version = "0.3.5", features = ["async-await", "compat"] }
+futures = { version = "0.3.13", features = ["async-await", "compat"] }
 pin-project = "0.4"
 thiserror = "1.0"
 tokio_02 = { package = "tokio", version = "0.2.25", features = ["full", "test-util"] }

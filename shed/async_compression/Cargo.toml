@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 bytes = { version = "0.4", features = ["serde"] }
 bzip2 = { version = "0.3", features = ["tokio"] }
 flate2 = { version = "1.0", features = ["rust_backend", "tokio"], default-features = false }
-futures = "0.1.30"
+futures = "0.1.31"
 tokio-io = "0.1"
 zstd = "=0.5.3+zstd.1.4.5"
 
