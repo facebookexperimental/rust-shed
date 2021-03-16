@@ -12,6 +12,7 @@
 mod abort_handle_ref;
 mod conservative_receiver;
 mod on_cancel;
+mod on_cancel_with_data;
 mod try_shared;
 
 use anyhow::Error;
@@ -24,6 +25,7 @@ pub use shared_error::anyhow::SharedError;
 pub use self::abort_handle_ref::{spawn_controlled, ControlledHandle};
 pub use self::conservative_receiver::ConservativeReceiver;
 pub use self::on_cancel::OnCancel;
+pub use self::on_cancel_with_data::{CancelData, OnCancelWithData};
 pub use self::try_shared::TryShared;
 
 /// A trait implemented by default for all Futures which extends the standard
@@ -44,6 +46,17 @@ pub trait FbFutureExt: Future {
         Self: Sized,
     {
         OnCancel::new(self, on_cancel)
+    }
+
+    /// Call the `on_cancel` callback if this future is cancelled (dropped
+    /// without completion).  Pass additional data extracted from the
+    /// inner future via the CancelData trait.
+    fn on_cancel_with_data<F>(self, on_cancel: F) -> OnCancelWithData<Self, F>
+    where
+        Self: Sized + CancelData,
+        F: FnOnce(Self::Data),
+    {
+        OnCancelWithData::new(self, on_cancel)
     }
 }
 
