@@ -13,6 +13,7 @@ use futures::future::{Future, TryFuture};
 
 use futures::stream::Stream;
 use futures::task::{Context, Poll};
+use futures_ext::future::CancelData;
 use std::pin::Pin;
 use std::time::{Duration, Instant};
 
@@ -66,6 +67,20 @@ impl<F: Future> Future for TimedFuture<F> {
     }
 }
 
+impl<F> CancelData for TimedFuture<F> {
+    type Data = FutureStats;
+
+    fn cancel_data(&self) -> Self::Data {
+        FutureStats {
+            completion_time: self
+                .start
+                .map_or_else(|| Duration::from_secs(0), |start| start.elapsed()),
+            poll_time: self.poll_time,
+            poll_count: self.poll_count,
+        }
+    }
+}
+
 /// A Future that gathers some basic statistics for inner TryFuture.  This structure's main usage
 /// is by calling [TimedTryFutureExt::try_timed].
 pub struct TimedTryFuture<F> {
@@ -92,6 +107,14 @@ impl<I, E, F: Future<Output = Result<I, E>>> Future for TimedTryFuture<F> {
             Poll::Ready((stats, Ok(v))) => Poll::Ready(Ok((stats, v))),
             Poll::Ready((_, Err(e))) => Poll::Ready(Err(e)),
         }
+    }
+}
+
+impl<F> CancelData for TimedTryFuture<F> {
+    type Data = FutureStats;
+
+    fn cancel_data(&self) -> Self::Data {
+        self.inner.cancel_data()
     }
 }
 
@@ -282,15 +305,27 @@ mod tests {
     use super::*;
 
     use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::Arc;
+    use std::sync::{Arc, Mutex};
 
     use futures::stream::{self, StreamExt};
+    use futures_ext::FbFutureExt;
 
     #[tokio::test]
     async fn test_timed_future() {
         let (stats, result) = async { 123u32 }.timed().await;
         assert_eq!(result, 123u32);
         assert!(stats.poll_count > 0);
+    }
+
+    #[tokio::test]
+    async fn test_cancel_timed_future() {
+        let stats = Mutex::new(None);
+        let fut = async {}
+            .timed()
+            .on_cancel_with_data(|data| *stats.lock().unwrap() = Some(data));
+        drop(fut);
+        let stats = stats.lock().unwrap();
+        assert_eq!(stats.as_ref().unwrap().poll_count, 0)
     }
 
     #[tokio::test]

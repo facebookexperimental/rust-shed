@@ -9,7 +9,7 @@
 
 //! An implementation of `futures_stats` for Futures 0.1.
 
-use futures_ext::{BoxFuture, BoxFutureNonSend, BoxStream, FutureExt, StreamExt};
+use futures_01_ext::{BoxFuture, BoxFutureNonSend, BoxStream, FutureExt, StreamExt};
 use futures_old::{Async, Future, IntoFuture, Poll, Stream};
 use std::time::{Duration, Instant};
 
