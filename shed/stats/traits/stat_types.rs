@@ -22,6 +22,9 @@ pub trait SingletonCounter {
     /// Sets the value of the counter
     fn set_value(&self, fb: FacebookInit, value: i64);
 
+    /// Increment the value of the counter
+    fn increment_value(&self, fb: FacebookInit, value: i64);
+
     /// Gets the current value of the counter
     fn get_value(&self, fb: FacebookInit) -> Option<i64>;
 }

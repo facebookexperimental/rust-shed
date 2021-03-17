@@ -72,6 +72,7 @@ impl Histogram for Noop {
 
 impl SingletonCounter for Noop {
     fn set_value(&self, _fb: FacebookInit, _value: i64) {}
+    fn increment_value(&self, _fb: FacebookInit, _value: i64) {}
     fn get_value(&self, _fb: FacebookInit) -> Option<i64> {
         None
     }
