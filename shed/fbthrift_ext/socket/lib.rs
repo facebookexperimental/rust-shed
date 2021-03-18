@@ -57,6 +57,8 @@ impl Framing for SocketTransport {
 impl Transport for SocketTransport {
     fn call(
         &self,
+        _service_name: &const_cstr::ConstCStr,
+        _fn_name: &const_cstr::ConstCStr,
         req: FramingEncodedFinal<Self>,
     ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
         let svc = self.service.clone();
