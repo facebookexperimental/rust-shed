@@ -11,12 +11,12 @@
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
-use std::collections::Bound::*;
-use std::collections::{BTreeMap, Bound};
+use std::collections::BTreeMap;
 use std::fmt::{self, Debug};
 use std::iter::{FromIterator, Peekable};
 use std::mem;
-use std::ops::{Index, IndexMut, RangeBounds};
+use std::ops::Bound::*;
+use std::ops::{Bound, Index, IndexMut, RangeBounds};
 use std::slice::{Iter as VecIter, IterMut as VecIterMut};
 
 use quickcheck::{Arbitrary, Gen};

@@ -11,12 +11,12 @@
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
-use std::collections::Bound::*;
-use std::collections::{BTreeSet, Bound};
+use std::collections::BTreeSet;
 use std::fmt::{self, Debug};
 use std::iter::{FromIterator, Peekable};
 use std::mem;
-use std::ops::{BitAnd, BitOr, BitXor, RangeBounds, Sub};
+use std::ops::Bound::*;
+use std::ops::{Bound, BitAnd, BitOr, BitXor, RangeBounds, Sub};
 
 use quickcheck::{Arbitrary, Gen};
 
