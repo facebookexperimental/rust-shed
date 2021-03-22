@@ -161,6 +161,7 @@ fn gen_sync_factory_builder(
     }
 
     let builder = quote! {
+        #[doc(hidden)]
         pub struct #builder_facets_ident {
             #(
                 #param_idents: #param_types,
@@ -171,6 +172,7 @@ fn gen_sync_factory_builder(
         }
 
         impl #builder_facets_ident {
+            #[doc(hidden)]
             pub fn new( #( #param_idents: #param_types, )* ) -> Self {
                 Self {
                     #( #param_idents, )*
@@ -185,12 +187,14 @@ fn gen_sync_factory_builder(
             #builder_impls
         )*
 
+        #[doc(hidden)]
         pub struct #builder_ident<'factory> {
             factory: &'factory #factory_ty,
             facets: #builder_facets_ident,
         }
 
         impl #factory_ty {
+            /// Build an instance of a container from this factory.
             pub fn build<'factory, T>(
                 &'factory self,
                 #( #param_idents: #param_types ),*
@@ -358,12 +362,14 @@ fn gen_async_factory_builder(
     }
 
     let builder = quote! {
+        #[doc(hidden)]
         pub struct #builder_params_ident {
             #(
                 #param_idents: #param_types,
             )*
         }
 
+        #[doc(hidden)]
         #[derive(Default)]
         pub struct #builder_facets_ident {
             #(
@@ -371,6 +377,7 @@ fn gen_async_factory_builder(
             )*
         }
 
+        #[doc(hidden)]
         #[derive(Default)]
         pub struct #builder_facets_needed_ident {
             #(
@@ -379,6 +386,7 @@ fn gen_async_factory_builder(
         }
 
         impl #builder_params_ident {
+            #[doc(hidden)]
             pub fn new( #( #param_idents: #param_types, )* ) -> Self {
                 Self {
                     #( #param_idents, )*
@@ -409,6 +417,7 @@ fn gen_async_factory_builder(
             #builder_impls
         )*
 
+        #[doc(hidden)]
         pub struct #builder_ident<'factory> {
             factory: &'factory #factory_ty,
             params: #builder_params_ident,
@@ -417,6 +426,7 @@ fn gen_async_factory_builder(
         }
 
         impl #factory_ty {
+            /// Build an instance of a container from this factory.
             pub async fn build<'factory, 'builder, T>(
                 &'factory self,
                 #( #param_idents: #param_types ),*

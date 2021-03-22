@@ -63,7 +63,9 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
     Ok(quote! {
         #facet
 
+        /// Access #name by reference from a facet container.
         #vis trait #trait_ref_name {
+            /// Access #name by reference from a facet container.
             fn #trait_ref_method(&self) -> &(#facet_ty);
         }
 
@@ -74,7 +76,9 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
             }
         }
 
+        /// Access a cloneable reference to #name from a facet container.
         #vis trait #trait_arc_name: #trait_ref_name {
+            /// Access a cloneable reference to #name from a facet container.
             fn #trait_arc_method(&self) -> ::std::sync::Arc<#facet_ty>;
         }
 
@@ -85,6 +89,7 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
             }
         }
 
+        /// Cloneable container for #name.
         #vis type #arc_trait_name = ::std::sync::Arc<#facet_ty>;
     })
 }
