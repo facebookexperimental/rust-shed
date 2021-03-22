@@ -184,19 +184,32 @@
 //! ## Containers
 //!
 //! A **container** is a struct that contains facets.  Each field of a
-//! container can either be a normal field, for which you must provide an
-//! initializer, or a facet, which must have a the facet as its type
-//! and whose name must match that of the facet.  Dynamic facets must be
-//! marked with the `dyn` keyword.
+//! container can be one of:
+//!
+//! * A **normal field**.  You must provide an initializer with the
+//!   `#[init(value)]` attribute.
+//!
+//! * A **facet**.  The facet must be marked with a `#[facet]` attribute,
+//!   the name must match that of the facet, and its type must be that of the
+//!   facet.  Dynamic facets must be marked with the `dyn` keyword.
+//!
+//! * A **nested container**.  The container can be either stored inline
+//!   or inside an `Arc`.  Facets can be delegated to the inner container
+//!   by listing them in the `#[delegate(Facet, ...)]` attribute.  The
+//!   nested container must be constructible by the same factory, and
+//!   any common facets will be shared.
 //!
 //! Initializers for normal fields may reference any of the facets that
-//! are part of the container.
+//! are part of the container, or any of the nested containers.
 //!
 //! For example:
 //!
 //! ```
+//! # use std::sync::Arc;
 //! # #[facet::facet] trait MyTrait { fn get_name(&self) -> &str; }
 //! # #[facet::facet] struct MyStruct {}
+//! # #[facet::facet] trait OtherTrait {}
+//! # #[facet::container] struct NestedContainer { #[facet] other_trait: dyn OtherTrait }
 //! #[facet::container]
 //! struct MyContainer {
 //!     #[init(my_trait.get_name().to_string())]
@@ -207,6 +220,9 @@
 //!
 //!     #[facet]
 //!     my_struct: MyStruct,
+//!
+//!     #[delegate(dyn OtherTrait)]
+//!     my_nested_container: Arc<NestedContainer>,
 //! }
 //! ```
 //!
@@ -361,7 +377,17 @@ impl AsyncFactoryError {
 // Trait implemented by containers that are buildable by factory builders.
 #[doc(hidden)]
 pub trait Buildable<B>: Sized {
-    fn build(builder: B) -> Result<Self, FactoryError>;
+    fn build(builder: &mut B) -> Result<Self, FactoryError>;
+}
+
+impl<B, T> Buildable<B> for Arc<T>
+where
+    T: Buildable<B>,
+{
+    #[inline]
+    fn build(builder: &mut B) -> Result<Arc<T>, FactoryError> {
+        Ok(Arc::new(T::build(builder)?))
+    }
 }
 
 // Trait implemented by containers that are buildable by async factory builders.
@@ -371,6 +397,31 @@ pub trait AsyncBuildable<'builder, B>: Sized {
     fn build_async(
         builder: B,
     ) -> Pin<Box<dyn Future<Output = Result<Self, FactoryError>> + Send + 'builder>>;
+
+    fn mark_needed(builder: &mut B);
+
+    fn construct(builder: &B) -> Self;
+}
+
+impl<'builder, B, T> AsyncBuildable<'builder, B> for Arc<T>
+where
+    B: Send + 'builder,
+    T: AsyncBuildable<'builder, B>,
+{
+    fn build_async(
+        builder: B,
+    ) -> Pin<Box<dyn Future<Output = Result<Self, FactoryError>> + Send + 'builder>> {
+        let build = async move { Ok(Arc::new(T::build_async(builder).await?)) };
+        Box::pin(build)
+    }
+
+    fn mark_needed(builder: &mut B) {
+        T::mark_needed(builder);
+    }
+
+    fn construct(builder: &B) -> Self {
+        Arc::new(T::construct(builder))
+    }
 }
 
 // Trait implemented by factory builders that can build facets of type T.
@@ -405,9 +456,53 @@ pub trait FacetRef<T: ?Sized + Send + Sync + 'static> {
     fn facet_ref(&self) -> &T;
 }
 
+impl<T, C> FacetRef<T> for Arc<C>
+where
+    T: ?Sized + Send + Sync + 'static,
+    C: FacetRef<T>,
+{
+    #[inline]
+    fn facet_ref(&self) -> &T {
+        <C as FacetRef<T>>::facet_ref(self)
+    }
+}
+
+impl<T, C> FacetRef<T> for &Arc<C>
+where
+    T: ?Sized + Send + Sync + 'static,
+    C: FacetRef<T>,
+{
+    #[inline]
+    fn facet_ref(&self) -> &T {
+        <C as FacetRef<T>>::facet_ref(*self)
+    }
+}
+
 // Trait implemented by containers that can provide an arc to facets of
 // type T.
 #[doc(hidden)]
 pub trait FacetArc<T: ?Sized + Send + Sync + 'static> {
     fn facet_arc(&self) -> Arc<T>;
+}
+
+impl<T, C> FacetArc<T> for Arc<C>
+where
+    T: ?Sized + Send + Sync + 'static,
+    C: FacetArc<T>,
+{
+    #[inline]
+    fn facet_arc(&self) -> Arc<T> {
+        <C as FacetArc<T>>::facet_arc(self)
+    }
+}
+
+impl<T, C> FacetArc<T> for &Arc<C>
+where
+    T: ?Sized + Send + Sync + 'static,
+    C: FacetArc<T>,
+{
+    #[inline]
+    fn facet_arc(&self) -> Arc<T> {
+        <C as FacetArc<T>>::facet_arc(*self)
+    }
 }

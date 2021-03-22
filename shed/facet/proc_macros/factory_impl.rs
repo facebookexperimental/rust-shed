@@ -198,11 +198,11 @@ fn gen_sync_factory_builder(
             where
                 T: ::#facet_crate::Buildable<#builder_ident<'factory>>,
             {
-                let builder = #builder_ident {
+                let mut builder = #builder_ident {
                     factory: &self,
                     facets: #builder_facets_ident::new(#( #param_idents, )*),
                 };
-                T::build(builder)
+                T::build(&mut builder)
             }
         }
     };

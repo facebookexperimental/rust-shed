@@ -9,8 +9,9 @@
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
+use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, Error, Expr, Fields, Ident, ItemStruct, Type};
+use syn::{parse_macro_input, Attribute, Error, Expr, Fields, Ident, ItemStruct, Token, Type};
 
 use crate::facet_crate_name;
 
@@ -20,6 +21,9 @@ struct ContainerMembers {
     field_inits: Vec<Expr>,
     facet_idents: Vec<Ident>,
     facet_types: Vec<Type>,
+    delegate_idents: Vec<Ident>,
+    delegate_types: Vec<Type>,
+    delegate_facets: Vec<Vec<Type>>,
 }
 
 impl ContainerMembers {
@@ -28,6 +32,9 @@ impl ContainerMembers {
         let mut field_inits = Vec::new();
         let mut facet_idents = Vec::new();
         let mut facet_types = Vec::new();
+        let mut delegate_idents = Vec::new();
+        let mut delegate_types = Vec::new();
+        let mut delegate_facets = Vec::new();
         match &mut container.fields {
             Fields::Named(named_fields) => {
                 for field in named_fields.named.iter_mut() {
@@ -40,7 +47,7 @@ impl ContainerMembers {
                                     attr.span(),
                                     concat!(
                                         "facet::container field must have exactly one ",
-                                        "of 'init' or 'facet', found multiple"
+                                        "of 'init', 'facet' or 'delegate', found multiple"
                                     ),
                                 ));
                             }
@@ -55,7 +62,7 @@ impl ContainerMembers {
                                     attr.span(),
                                     concat!(
                                         "facet::container field must have exactly one ",
-                                        "of 'init' or 'facet', found multiple"
+                                        "of 'init', 'facet' or 'delegate', found multiple"
                                     ),
                                 ));
                             }
@@ -70,6 +77,23 @@ impl ContainerMembers {
                             facet_idents
                                 .push(field.ident.clone().expect("named field must have a name"));
                             facet_types.push(facet_type);
+                        } else if attr.path.is_ident("delegate") {
+                            if attr_found {
+                                return Err(Error::new(
+                                    attr.span(),
+                                    concat!(
+                                        "facet::container field must have exactly one ",
+                                        "of 'init', 'facet' or 'delegate', found multiple"
+                                    ),
+                                ));
+                            }
+                            attr_found = true;
+                            let delegate_type = field.ty.clone();
+                            let facets = extract_delegate_facets(&attr)?;
+                            delegate_idents
+                                .push(field.ident.clone().expect("named field must have a name"));
+                            delegate_types.push(delegate_type);
+                            delegate_facets.push(facets);
                         } else {
                             new_attrs.push(attr);
                         }
@@ -79,7 +103,7 @@ impl ContainerMembers {
                             field.span(),
                             concat!(
                                 "facet::container field must have exactly one ",
-                                "of 'init' or 'attr', found neither"
+                                "of 'init', 'facet' or 'delegate', found none"
                             ),
                         ));
                     }
@@ -99,6 +123,9 @@ impl ContainerMembers {
             field_inits,
             facet_idents,
             facet_types,
+            delegate_idents,
+            delegate_types,
+            delegate_facets,
         })
     }
 }
@@ -121,10 +148,8 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
     let facet_crate = format_ident!("{}", facet_crate_name());
     let members = ContainerMembers::extract(&mut container)?;
     let container_name = &container.ident;
-    let facet_idents = &members.facet_idents;
-    let facet_types = &members.facet_types;
 
-    let attr_impls = gen_attr_impls(&facet_crate, container_name, facet_idents, facet_types);
+    let attr_impls = gen_attr_impls(&facet_crate, container_name, &members);
     let buildable_impl = gen_buildable_impl(&facet_crate, &container_name, &members);
     let async_buildable_impl = gen_async_buildable_impl(&facet_crate, &container_name, &members);
 
@@ -148,20 +173,29 @@ fn gen_buildable_impl(
     let facet_types = &members.facet_types;
     let field_idents = &members.field_idents;
     let field_inits = &members.field_inits;
+    let delegate_idents = &members.delegate_idents;
+    let delegate_types = &members.delegate_types;
 
     quote! {
         impl<B> ::#facet_crate::Buildable<B> for #container_name
         where B: ::std::marker::Send + ::std::marker::Sync
-            #( + ::#facet_crate::Builder<::std::sync::Arc<#facet_types>> )*
+            #( + ::#facet_crate::Builder<::std::sync::Arc<#facet_types>> )*,
+            #( #delegate_types: ::#facet_crate::Buildable<B>, )*
         {
-           fn build(mut builder: B) -> ::std::result::Result<Self, ::#facet_crate::FactoryError> {
+           fn build(builder: &mut B) -> ::std::result::Result<Self, ::#facet_crate::FactoryError> {
+
+                // Build each delegate.
+                #(
+                    let #delegate_idents =
+                        <#delegate_types as ::#facet_crate::Buildable<B>>::build(builder)?;
+                )*
 
                 // Build each facet.
                 #(
                     let #facet_idents =
                         <B as ::#facet_crate::Builder<
                             ::std::sync::Arc<#facet_types>
-                        >>::build(&mut builder)?;
+                        >>::build(builder)?;
                 )*
 
                 // Initialize the other fields.
@@ -170,6 +204,7 @@ fn gen_buildable_impl(
                 )*
 
                 Ok(Self {
+                    #( #delegate_idents, )*
                     #( #field_idents, )*
                     #( #facet_idents, )*
                 })
@@ -187,13 +222,16 @@ fn gen_async_buildable_impl(
     let facet_types = &members.facet_types;
     let field_idents = &members.field_idents;
     let field_inits = &members.field_inits;
+    let delegate_idents = &members.delegate_idents;
+    let delegate_types = &members.delegate_types;
 
     // Desugared async-trait so that the builder lifetime can be specified.
     quote! {
         impl<'builder, B> ::#facet_crate::AsyncBuildable<'builder, B> for #container_name
         where B: ::std::marker::Send + ::std::marker::Sync + ::#facet_crate::AsyncBuilder
             #( + ::#facet_crate::AsyncBuilderFor<::std::sync::Arc<#facet_types>> )*
-            + 'builder
+            + 'builder,
+            #( #delegate_types: ::#facet_crate::AsyncBuildable<'builder, B>, )*
         {
             fn build_async(mut builder: B) -> ::std::pin::Pin<::std::boxed::Box<
                 dyn std::future::Future<
@@ -202,47 +240,76 @@ fn gen_async_buildable_impl(
             >>
             {
                 let build = async move {
-                    // Mark facets we need as as needed.
-                    #(
-                        <B as ::#facet_crate::AsyncBuilderFor<
-                            ::std::sync::Arc<#facet_types>
-                        >>::need(&mut builder);
-                    )*
+                    // Mark needed facets as needed.
+                    Self::mark_needed(&mut builder);
 
                     // Build the needed facets.
                     <B as ::#facet_crate::AsyncBuilder>::build_needed(&mut builder).await?;
 
-                    // Get the facets out of the builder.
-                    #(
-                        let #facet_idents =
-                            <B as ::#facet_crate::AsyncBuilderFor<
-                                ::std::sync::Arc<#facet_types>
-                            >>::get(&builder);
-                    )*
+                    // Build ourself.
+                    Ok(Self::construct(&builder))
 
-                    // Initialize other fields.
-                    #(
-                        let #field_idents = #field_inits;
-                    )*
-
-                    Ok(Self {
-                        #( #field_idents, )*
-                        #( #facet_idents, )*
-                    })
                 };
                 ::std::boxed::Box::pin(build)
            }
+
+           fn mark_needed(builder: &mut B) {
+                // Mark facets we need as as needed.
+                #(
+                    <B as ::#facet_crate::AsyncBuilderFor<
+                        ::std::sync::Arc<#facet_types>
+                    >>::need(builder);
+                )*
+
+                // Mark facets our delegates need as needed.
+                #(
+                    <#delegate_types as ::#facet_crate::AsyncBuildable<'builder, B>>
+                        ::mark_needed(builder);
+                )*
+           }
+
+            fn construct(builder: &B) -> Self {
+                // Build delegates.
+                #(
+                    let #delegate_idents =
+                        <#delegate_types as ::#facet_crate::AsyncBuildable<'builder, B>>
+                            ::construct(builder);
+                )*
+
+                // Get the facets out of the builder.
+                #(
+                    let #facet_idents =
+                        <B as ::#facet_crate::AsyncBuilderFor<
+                            ::std::sync::Arc<#facet_types>
+                        >>::get(builder);
+                )*
+
+                // Initialize other fields.
+                #(
+                    let #field_idents = #field_inits;
+                )*
+
+                Self {
+                    #( #delegate_idents, )*
+                    #( #field_idents, )*
+                    #( #facet_idents, )*
+                }
+            }
         }
+
     }
 }
 
 fn gen_attr_impls(
     facet_crate: &Ident,
     container_name: &Ident,
-    facet_idents: &[Ident],
-    facet_types: &[Type],
+    members: &ContainerMembers,
 ) -> Vec<TokenStream> {
     let mut output = Vec::new();
+    let facet_idents = &members.facet_idents;
+    let facet_types = &members.facet_types;
+    let delegate_idents = &members.delegate_idents;
+    let delegate_facets = &members.delegate_facets;
 
     for (facet_ident, facet_type) in facet_idents.iter().zip(facet_types) {
         output.push(quote! {
@@ -277,8 +344,43 @@ fn gen_attr_impls(
                     (*self).#facet_ident.clone()
                 }
             }
+
+        });
+    }
+
+    for (delegate_ident, delegate_facet) in delegate_idents.iter().zip(delegate_facets) {
+        output.push(quote! {
+            #(
+                impl ::#facet_crate::FacetRef<#delegate_facet> for #container_name {
+                    #[inline]
+                    fn facet_ref(&self) -> &(#delegate_facet) {
+                        self.#delegate_ident.facet_ref()
+                    }
+                }
+
+                impl ::#facet_crate::FacetArc<#delegate_facet> for #container_name {
+                    #[inline]
+                    fn facet_arc(&self) -> ::std::sync::Arc<#delegate_facet> {
+                        self.#delegate_ident.facet_arc()
+                    }
+                }
+            )*
         });
     }
 
     output
+}
+
+fn extract_delegate_facets(attr: &Attribute) -> Result<Vec<Type>, Error> {
+    let mut facets = Vec::new();
+    let args: Punctuated<Type, Token![,]> = attr.parse_args_with(Punctuated::parse_terminated)?;
+    for mut arg in args {
+        if let Type::TraitObject(obj) = &mut arg {
+            obj.bounds.push(syn::parse2(quote!(::std::marker::Send))?);
+            obj.bounds.push(syn::parse2(quote!(::std::marker::Sync))?);
+            obj.bounds.push(syn::parse2(quote!('static))?);
+        }
+        facets.push(arg);
+    }
+    Ok(facets)
 }

@@ -109,6 +109,8 @@ pub mod factories {
 pub mod containers {
     use crate::facets::one::One;
     use crate::facets::two::Two;
+    use crate::facets::zero::Zero;
+    use std::sync::Arc;
 
     #[facet::container]
     pub struct Basic {
@@ -117,6 +119,30 @@ pub mod containers {
 
         #[facet]
         two: dyn Two,
+    }
+
+    #[facet::container]
+    pub struct InnerOne {
+        #[facet]
+        one: dyn One,
+    }
+
+    #[facet::container]
+    pub struct InnerTwo {
+        #[facet]
+        two: dyn Two,
+
+        #[facet]
+        zero: dyn Zero,
+    }
+
+    #[facet::container]
+    pub struct Outer {
+        #[delegate(dyn One)]
+        inner1: InnerOne,
+
+        #[delegate(dyn Zero, dyn Two)]
+        inner2: Arc<InnerTwo>,
     }
 }
 
@@ -128,6 +154,12 @@ async fn main() {
 
     use crate::facets::one::OneRef;
     use crate::facets::two::TwoRef;
+    use crate::facets::zero::ZeroRef;
     assert_eq!(basic.one().get().await, 1);
     assert_eq!(basic.two().get().await, 2);
+
+    let outer = factory.build::<containers::Outer>().await.unwrap();
+    assert_eq!(outer.zero().get(), 0);
+    assert_eq!(outer.one().get().await, 1);
+    assert_eq!(outer.two().get().await, 2);
 }
