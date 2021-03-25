@@ -29,6 +29,7 @@ toml = { git = "https://github.com/jsgf/toml-rs", branch = "dotted-table-0.5.7" 
 members = [
   "shed/ascii_ext",
   "shed/async_compression",
+  "shed/async_once_cell",
   "shed/async_unit",
   "shed/borrowed",
   "shed/bytes_ext",
