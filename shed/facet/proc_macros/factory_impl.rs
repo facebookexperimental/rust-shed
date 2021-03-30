@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
@@ -66,7 +66,7 @@ fn gen_factory_builder(
     let facet_params_map = facet_idents
         .iter()
         .zip(facet_params)
-        .collect::<HashMap<_, _>>();
+        .collect::<BTreeMap<_, _>>();
 
     for facet_ident in facet_idents {
         check_no_cycles(facet_ident, &facet_params_map)?;
@@ -100,7 +100,7 @@ fn gen_sync_factory_builder(
     let facet_types_map = facet_idents
         .iter()
         .zip(facet_types)
-        .collect::<HashMap<_, _>>();
+        .collect::<BTreeMap<_, _>>();
 
     let mut builder_impls = Vec::new();
 
@@ -232,11 +232,11 @@ fn gen_async_factory_builder(
     let facet_types_map = facet_idents
         .iter()
         .zip(facet_types)
-        .collect::<HashMap<_, _>>();
+        .collect::<BTreeMap<_, _>>();
 
-    let mut heads: HashSet<_> = facet_idents.iter().collect();
-    let mut facet_build_futs = HashMap::new();
-    let mut facet_build_graph = HashMap::new();
+    let mut heads: BTreeSet<_> = facet_idents.iter().collect();
+    let mut facet_build_futs = BTreeMap::new();
+    let mut facet_build_graph = BTreeMap::new();
     let mut builder_impls = Vec::new();
     let mut build_facets = Vec::new();
     let mut store_facets = Vec::new();
@@ -340,7 +340,7 @@ fn gen_async_factory_builder(
     // Group facets into based on their depth from the heads of the dependency
     // graph.  This will be used to order construction of the facets in
     // topological order.
-    let mut ident_depths = HashMap::new();
+    let mut ident_depths = BTreeMap::new();
     let mut queue: VecDeque<_> = heads.into_iter().map(|head| (head, 0)).collect();
     let mut max_depth = 0;
     while let Some((ident, depth)) = queue.pop_front() {
@@ -630,10 +630,10 @@ fn strip_leading_underscore(ident: &Ident) -> Ident {
 
 fn check_no_cycles(
     top_ident: &Ident,
-    ident_map: &HashMap<&Ident, &Vec<FactoryParam>>,
+    ident_map: &BTreeMap<&Ident, &Vec<FactoryParam>>,
 ) -> Result<(), Error> {
     // A map from seen idents to a vector of the route to them from top_ident.
-    let mut seen = HashMap::new();
+    let mut seen = BTreeMap::new();
     // A queue of idents to expand and the routes to them so far.
     let mut queue = VecDeque::new();
     queue.push_back((top_ident, vec![]));
