@@ -62,7 +62,7 @@ impl<R: BufRead> RawDecoder<R> for GzDecoder<R> {
     }
 }
 
-impl<R: BufRead> RawDecoder<R> for ZstdDecoder<R> {
+impl<R: BufRead> RawDecoder<R> for ZstdDecoder<'_, R> {
     #[inline]
     fn get_ref(&self) -> &R {
         ZstdDecoder::get_ref(self)
@@ -122,9 +122,9 @@ where
 /// The sole purpose of this struct is to work around the orphan rule: you
 /// cannot implement a trait in a different crate for a type in a different
 /// crate.
-pub struct AsyncZstdEncoder<W: AsyncWrite>(ZstdEncoder<W>);
+pub struct AsyncZstdEncoder<'a, W: AsyncWrite>(ZstdEncoder<'a, W>);
 
-impl<W: AsyncWrite> AsyncZstdEncoder<W> {
+impl<'a, W: AsyncWrite> AsyncZstdEncoder<'a, W> {
     pub fn new(obj: W, level: i32) -> Self {
         // ZstdEncoder::new() should only fail on OOM, so just call unwrap
         // here. The other compression engines effectively do the same thing.
@@ -133,7 +133,7 @@ impl<W: AsyncWrite> AsyncZstdEncoder<W> {
     }
 }
 
-impl<W> RawEncoder<W> for AsyncZstdEncoder<W>
+impl<W> RawEncoder<W> for AsyncZstdEncoder<'static, W>
 where
     W: AsyncWrite + Send + 'static,
 {
@@ -147,7 +147,7 @@ where
     }
 }
 
-impl<W: AsyncWrite> Write for AsyncZstdEncoder<W> {
+impl<'a, W: AsyncWrite> Write for AsyncZstdEncoder<'a, W> {
     #[inline]
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         self.0.write(buf)
@@ -159,7 +159,7 @@ impl<W: AsyncWrite> Write for AsyncZstdEncoder<W> {
     }
 }
 
-impl<W: AsyncWrite> AsyncWrite for AsyncZstdEncoder<W> {
+impl<'a, W: AsyncWrite> AsyncWrite for AsyncZstdEncoder<'a, W> {
     #[inline]
     fn shutdown(&mut self) -> Poll<(), io::Error> {
         self.0.get_mut().shutdown()
