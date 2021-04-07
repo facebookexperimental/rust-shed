@@ -36,6 +36,9 @@ impl WriteResult {
     }
 }
 
+/// ODS counters
+pub struct ConnectionStats;
+
 /// Connection object.
 #[derive(Clone)]
 pub struct Connection;

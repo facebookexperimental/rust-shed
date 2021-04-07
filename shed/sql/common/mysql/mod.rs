@@ -16,14 +16,14 @@ mod mysql_stub;
 
 #[cfg(fbcode_build)]
 pub use facebook::{
-    opt_try_from_rowfield, Connection, MysqlError, OptionalTryFromRowField, RowField, Transaction,
-    WriteResult,
+    opt_try_from_rowfield, Connection, ConnectionStats, MysqlError, OptionalTryFromRowField,
+    RowField, Transaction, WriteResult,
 };
 pub use mysql_derive::OptTryFromRowField;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::{
-    opt_try_from_rowfield, Connection, MysqlError, OptionalTryFromRowField, RowField, Transaction,
-    WriteResult,
+    opt_try_from_rowfield, Connection, ConnectionStats, MysqlError, OptionalTryFromRowField,
+    RowField, Transaction, WriteResult,
 };
 
 use super::WriteResult as SqlWriteResult;
