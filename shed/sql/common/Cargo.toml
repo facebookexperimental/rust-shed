@@ -14,6 +14,7 @@ path = "lib.rs"
 [dependencies]
 anyhow = "1.0"
 auto_impl = "0.4"
+cloned = { version = "0.1.0", path = "../../cloned" }
 failure_ext = { version = "0.1.0", path = "../../failure_ext" }
 futures = { version = "0.3.13", features = ["async-await", "compat"] }
 futures-old = { package = "futures", version = "0.1.31" }
@@ -26,6 +27,7 @@ rusqlite = { version = "0.23", features = ["blob"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "1.0"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
+tokio_shim = { version = "0.1.0", path = "../../tokio_shim" }
 
 [dev-dependencies]
 sql = { version = "0.1.0", path = ".." }
