@@ -55,8 +55,8 @@ impl Framing for TcpTransport {
 impl Transport for TcpTransport {
     fn call(
         &self,
-        _service_name: &const_cstr::ConstCStr,
-        _fn_name: &const_cstr::ConstCStr,
+        _service_name: const_cstr::ConstCStr,
+        _fn_name: const_cstr::ConstCStr,
         req: FramingEncodedFinal<Self>,
     ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
         let svc = self.service.clone();
