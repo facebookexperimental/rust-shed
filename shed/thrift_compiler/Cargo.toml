@@ -12,15 +12,6 @@ license = "MIT OR Apache-2.0"
 name = "compiler"
 path = "src/main.rs"
 
-[[test]]
-name = "tests"
-path = "tests/main.rs"
-
 [dependencies]
 anyhow = "1.0"
 clap = "2.33"
-
-[dev-dependencies]
-lazy_static = "1.0"
-regex = "1.4.2"
-tempdir = "0.3"
