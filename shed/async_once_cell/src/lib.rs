@@ -221,9 +221,9 @@ mod test {
         let count = AtomicUsize::new(0);
         let f = futures::future::join(
             async {
-                tokio::time::delay_for(delay1).await;
+                tokio::time::sleep(delay1).await;
                 aoc.get_or_init(|| async {
-                    tokio::time::delay_for(delay1 + delay2).await;
+                    tokio::time::sleep(delay1 + delay2).await;
                     count.fetch_add(1, Ordering::Relaxed);
                     123
                 })
@@ -231,9 +231,9 @@ mod test {
                 .clone()
             },
             async {
-                tokio::time::delay_for(delay2).await;
+                tokio::time::sleep(delay2).await;
                 aoc.get_or_init(|| async {
-                    tokio::time::delay_for(delay1 + delay2).await;
+                    tokio::time::sleep(delay1 + delay2).await;
                     count.fetch_add(1, Ordering::Relaxed);
                     456
                 })
