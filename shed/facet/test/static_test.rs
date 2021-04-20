@@ -7,8 +7,6 @@
  * of this source tree.
  */
 
-#![feature(associated_type_defaults)]
-
 pub mod facets {
     pub mod one {
         #[facet::facet]
