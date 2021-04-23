@@ -49,4 +49,6 @@ mod glog_format;
 pub mod kv_categorizer;
 pub mod kv_defaults;
 
-pub use crate::glog_format::{default_drain, facebook_logger, GlogFormat};
+pub use crate::glog_format::{
+    default_drain, facebook_logger, logger_that_can_work_in_tests, GlogFormat,
+};

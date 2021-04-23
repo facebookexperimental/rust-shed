@@ -45,6 +45,17 @@ pub fn facebook_logger() -> Result<Logger> {
     Ok(Logger::root(drain, o!(FacebookKV::new()?)))
 }
 
+/// If you set this as the root logger at the start of your tests
+/// you will actually see log lines for failed tests. It looks the same
+/// as `facebook_logger`.
+/// Note: this may not show logs from threads not under the test runner
+/// <https://docs.rs/slog-term/2.8.0/slog_term/struct.TestStdoutWriter.html#note>
+pub fn logger_that_can_work_in_tests() -> Result<Logger> {
+    let decorator = PlainSyncDecorator::new(slog_term::TestStdoutWriter);
+    let drain = GlogFormat::new(decorator, FacebookCategorizer).fuse();
+    Ok(Logger::root(drain, o!(FacebookKV::new()?)))
+}
+
 /// A slog `Drain` for glog-formatted logs.
 pub struct GlogFormat<D: Decorator, C: KVCategorizer> {
     decorator: D,
