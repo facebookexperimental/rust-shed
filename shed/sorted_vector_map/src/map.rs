@@ -19,6 +19,7 @@ use std::mem;
 use std::ops::{Index, IndexMut, RangeBounds};
 use std::slice::{Iter as VecIter, IterMut as VecIterMut};
 
+use itertools::Itertools;
 use quickcheck::{Arbitrary, Gen};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
@@ -308,6 +309,29 @@ where
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    /// Extend from a vector of key-value pairs.  This can be more efficient
+    /// than extending from an arbitrary iterator.
+    pub fn extend_with_vec(&mut self, mut new: Vec<(K, V)>) {
+        if new.is_empty() {
+            return;
+        }
+        // Sort stably so that later duplicates overwrite earlier ones.
+        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
+        if self.0.is_empty() && new.iter().tuple_windows().all(|((a, _), (b, _))| a != b) {
+            // This map is empty, and there are no duplicates in the input, so
+            // we can just take the new vector.
+            self.0 = new;
+            return;
+        }
+        let self_iter = mem::take(self).into_iter();
+        let new_iter = new.into_iter();
+        let iter = MergeIter {
+            left: self_iter.peekable(),
+            right: new_iter.peekable(),
+        };
+        self.0 = iter.collect();
+    }
 }
 
 impl<K, V> Default for SortedVectorMap<K, V>
@@ -493,18 +517,8 @@ where
 {
     #[inline]
     fn extend<I: IntoIterator<Item = (K, V)>>(&mut self, iter: I) {
-        let mut new: Vec<_> = iter.into_iter().collect();
-        if new.is_empty() {
-            return;
-        }
-        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
-        let self_iter = mem::take(self).into_iter();
-        let new_iter = new.into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: new_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        let new: Vec<_> = iter.into_iter().collect();
+        self.extend_with_vec(new);
     }
 }
 
@@ -515,18 +529,8 @@ where
 {
     #[inline]
     fn extend<I: IntoIterator<Item = (&'a K, &'a V)>>(&mut self, iter: I) {
-        let mut new: Vec<_> = iter.into_iter().map(|(&k, &v)| (k, v)).collect();
-        if new.is_empty() {
-            return;
-        }
-        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
-        let self_iter = mem::take(self).into_iter();
-        let new_iter = new.into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: new_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        let new: Vec<_> = iter.into_iter().map(|(&k, &v)| (k, v)).collect();
+        self.extend_with_vec(new);
     }
 }
 
@@ -536,7 +540,7 @@ where
 {
     fn from_iter<I: IntoIterator<Item = (K, V)>>(iter: I) -> SortedVectorMap<K, V> {
         let iter = iter.into_iter();
-        let mut map = SortedVectorMap::with_capacity(iter.size_hint().0);
+        let mut map = SortedVectorMap::new();
         map.extend(iter);
         map
     }
@@ -1042,12 +1046,18 @@ mod tests {
             itertools::equal(svm.iter(), b.iter())
         }
 
-        fn like_btreemap_range (b: BTreeMap<u32, u32>, key1: u32, key2: u32) -> bool {
+        fn like_btreemap_range(b: BTreeMap<u32, u32>, key1: u32, key2: u32) -> bool {
             // range requires start key is not after end key.
             let (start, end) = (std::cmp::min(key1, key2), std::cmp::max(key1, key2));
             let svm = svmap_from_btreemap(&b);
             let range = (Included(&start), Excluded(&end));
             itertools::equal(svm.range(range), b.range(range))
+        }
+
+        fn roundtrip_via_btreemap(svm1: SortedVectorMap<u32, u32>) -> bool {
+            let b: BTreeMap<u32, u32> = svm1.clone().into_iter().collect();
+            let svm2: SortedVectorMap<u32, u32> = b.into();
+            itertools::equal(svm1, svm2)
         }
     }
 }

@@ -18,6 +18,7 @@ use std::iter::{FromIterator, Peekable};
 use std::mem;
 use std::ops::{BitAnd, BitOr, BitXor, RangeBounds, Sub};
 
+use itertools::Itertools;
 use quickcheck::{Arbitrary, Gen};
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
@@ -284,6 +285,29 @@ where
     pub fn len(&self) -> usize {
         self.0.len()
     }
+
+    /// Extend from a vector of values.  This can be more efficient than
+    /// extending from an arbitrary iterator.
+    pub fn extend_with_vec(&mut self, mut new: Vec<T>) {
+        if new.is_empty() {
+            return;
+        }
+        // Sort stably so that later duplicates overwrite earlier ones.
+        new.sort();
+        if self.0.is_empty() && new.iter().tuple_windows().all(|(a, b)| a != b) {
+            // This set is empty, and there are no duplicates in the input, so
+            // we can just take the new vector.
+            self.0 = new;
+            return;
+        }
+        let self_iter = mem::take(self).into_iter();
+        let new_iter = new.into_iter();
+        let iter = MergeIter {
+            left: self_iter.peekable(),
+            right: new_iter.peekable(),
+        };
+        self.0 = iter.collect();
+    }
 }
 
 impl<T> Default for SortedVectorSet<T>
@@ -335,29 +359,18 @@ where
     T: Ord,
 {
     fn extend<I: IntoIterator<Item = T>>(&mut self, iter: I) {
-        let mut new: Vec<_> = iter.into_iter().collect();
-        if new.is_empty() {
-            return;
-        }
-        new.sort();
-        let self_iter = mem::take(self).into_iter();
-        let new_iter = new.into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: new_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        let new: Vec<_> = iter.into_iter().collect();
+        self.extend_with_vec(new);
     }
 }
 
 impl<'a, T> Extend<&'a T> for SortedVectorSet<T>
 where
-    T: Ord + Copy,
+    T: Ord + Copy + 'a,
 {
     fn extend<I: IntoIterator<Item = &'a T>>(&mut self, iter: I) {
-        iter.into_iter().for_each(move |&value| {
-            self.insert(value);
-        });
+        let new: Vec<_> = iter.into_iter().copied().collect();
+        self.extend_with_vec(new);
     }
 }
 
@@ -367,7 +380,7 @@ where
 {
     fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> SortedVectorSet<T> {
         let iter = iter.into_iter();
-        let mut set = SortedVectorSet::with_capacity(iter.size_hint().0);
+        let mut set = SortedVectorSet::new();
         set.extend(iter);
         set
     }
@@ -804,6 +817,12 @@ mod tests {
         fn like_btreeset_iter(b: BTreeSet<u32>) -> bool {
             let svs = svset_from_btreeset(&b);
             itertools::equal(svs.iter(), b.iter())
+        }
+
+        fn roundtrip_via_btreeset(svs1: SortedVectorSet<u32>) -> bool {
+            let b: BTreeSet<u32> = svs1.clone().into_iter().collect();
+            let svs2: SortedVectorSet<u32> = b.into();
+            itertools::equal(svs1, svs2)
         }
     }
 }
