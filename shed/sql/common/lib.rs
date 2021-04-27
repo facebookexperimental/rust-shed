@@ -29,6 +29,65 @@ mod _unused {
     use sql_tests_lib as _;
 }
 
+/// Struct to store a set of write, read and read-only connections for a shard.
+#[derive(Clone)]
+pub struct SqlConnections {
+    /// Write connection to the master
+    pub write_connection: Connection,
+    /// Read connection
+    pub read_connection: Connection,
+    /// Read master connection
+    pub read_master_connection: Connection,
+}
+
+impl SqlConnections {
+    /// Create SqlConnections from a single connection.
+    pub fn new_single(connection: Connection) -> Self {
+        Self {
+            write_connection: connection.clone(),
+            read_connection: connection.clone(),
+            read_master_connection: connection,
+        }
+    }
+}
+
+/// Struct to store a set of write, read and read-only connections for multiple shards.
+#[derive(Clone)]
+pub struct SqlShardedConnections {
+    /// Write connections to the master for each shard
+    pub write_connections: Vec<Connection>,
+    /// Read connections for each shard
+    pub read_connections: Vec<Connection>,
+    /// Read master connections for each shard
+    pub read_master_connections: Vec<Connection>,
+}
+
+impl SqlShardedConnections {
+    /// Check if the struct is empty.
+    pub fn is_empty(&self) -> bool {
+        self.write_connections.is_empty()
+    }
+}
+
+impl From<Vec<SqlConnections>> for SqlShardedConnections {
+    fn from(shard_connections: Vec<SqlConnections>) -> Self {
+        let mut write_connections = Vec::with_capacity(shard_connections.len());
+        let mut read_connections = Vec::with_capacity(shard_connections.len());
+        let mut read_master_connections = Vec::with_capacity(shard_connections.len());
+        for connections in shard_connections.into_iter() {
+            write_connections.push(connections.write_connection);
+            read_connections.push(connections.read_connection);
+            read_master_connections.push(connections.read_master_connection);
+        }
+
+        Self {
+            read_connections,
+            read_master_connections,
+            write_connections,
+        }
+    }
+}
+
 /// Enum that generalizes over connections to Sqlite and MyRouter.
 #[derive(Clone)]
 pub enum Connection {
