@@ -10,9 +10,9 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0"
-bytes = { version = "0.5", features = ["serde"] }
+bytes = { version = "1.0", features = ["serde"] }
 thiserror = "1.0"
-tokio-util = { version = "0.3", features = ["codec", "udp"] }
+tokio-util = { version = "0.6", features = ["full"] }
 
 [dev-dependencies]
 quickcheck = "0.9"
