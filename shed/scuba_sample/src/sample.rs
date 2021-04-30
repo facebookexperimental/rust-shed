@@ -47,7 +47,9 @@ impl ScubaSample {
         }
     }
 
-    /// Joins the values from another scuba sample to the current one
+    /// Joins the values from another scuba sample to the current one.
+    /// If a key from the passed in sample is already present in self, the old
+    /// value will be overridden
     pub fn join_values(&mut self, sample: &ScubaSample) {
         for (k, v) in sample.values.iter() {
             self.values.insert(k.to_owned(), v.clone());
@@ -348,6 +350,33 @@ mod tests {
             },
             NORMAL_KEY: {
                 "duplicate": "test",
+            },
+        });
+
+        assert_eq!(json, expected);
+    }
+
+    /// Unit test for join_values
+    #[test]
+    fn join_values() {
+        let mut sample = ScubaSample::with_timestamp(0);
+        let mut sample_to_add = ScubaSample::with_timestamp(1);
+        sample.add("you", "won't show up due to how we handle collisions");
+        sample.add("can", "put");
+        sample_to_add.add("anything", "here");
+        sample_to_add.add("you", "really");
+
+        sample.join_values(&sample_to_add);
+        let json = sample.to_json().unwrap();
+
+        let expected = json!({
+            INT_KEY: {
+                "time": 0,
+            },
+            NORMAL_KEY: {
+                "you": "really",
+                "can": "put",
+                "anything" : "here",
             },
         });
 

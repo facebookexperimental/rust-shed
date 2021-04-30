@@ -239,6 +239,11 @@ impl ScubaSampleBuilder {
     pub fn add_common_server_data(&mut self) -> &mut Self {
         self.add_mapped_common_server_data(|data| data.default_key())
     }
+
+    /// Call the internal sample's [super::sample::ScubaSample::join_values] method
+    pub fn join_values(&mut self, sample: &ScubaSample) {
+        self.sample.join_values(sample)
+    }
 }
 
 impl fmt::Debug for ScubaSampleBuilder {
