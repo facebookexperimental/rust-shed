@@ -208,6 +208,15 @@ impl From<HashSet<String>> for ScubaValue {
     }
 }
 
+impl From<Option<String>> for ScubaValue {
+    fn from(value: Option<String>) -> Self {
+        match value {
+            None => ScubaValue::Null(NullScubaValue::Normal),
+            Some(s) => ScubaValue::Normal(s),
+        }
+    }
+}
+
 impl<'a> From<HashSet<&'a str>> for ScubaValue {
     fn from(value: HashSet<&'a str>) -> Self {
         let set = value.into_iter().map(|s| s.to_string()).collect();
