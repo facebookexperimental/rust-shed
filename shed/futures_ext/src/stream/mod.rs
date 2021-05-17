@@ -12,6 +12,7 @@
 mod return_remainder;
 mod stream_with_timeout;
 mod weight_limited_buffered_stream;
+mod yield_periodically;
 
 use futures::{Future, Stream, StreamExt, TryFuture, TryStream};
 use std::time::Duration;
@@ -23,6 +24,7 @@ pub use self::stream_with_timeout::{StreamTimeoutError, StreamWithTimeout};
 pub use self::weight_limited_buffered_stream::{
     BufferedParams, WeightLimitedBufferedStream, WeightLimitedBufferedTryStream,
 };
+pub use self::yield_periodically::YieldPeriodically;
 
 /// A trait implemented by default for all Streams which extends the standard
 /// functionality.
@@ -57,6 +59,14 @@ pub trait FbStreamExt: Stream {
         Self: Sized,
     {
         StreamWithTimeout::new(self, timeout)
+    }
+
+    /// Construct a new [self::yield_periodically::YieldPeriodically], with a sensible default.
+    fn yield_periodically(self) -> YieldPeriodically<Self>
+    where
+        Self: Sized,
+    {
+        YieldPeriodically::new(self, Duration::from_millis(10))
     }
 }
 
