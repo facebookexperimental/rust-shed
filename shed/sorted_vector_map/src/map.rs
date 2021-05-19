@@ -310,6 +310,24 @@ where
         self.0.is_empty()
     }
 
+    /// Returns the first key-value pair in the map.
+    pub fn first_key_value(&self) -> Option<(&K, &V)> {
+        self.0.first().map(|&(ref k, ref v)| (k, v))
+    }
+
+    /// Returns the last key-value pair in the map.
+    pub fn last_key_value(&self) -> Option<(&K, &V)> {
+        self.0.last().map(|&(ref k, ref v)| (k, v))
+    }
+
+    /// Removes and returns the last key-value pair in the map.
+    ///
+    /// There is no `pop_first` equivalent as removing the first item from a
+    /// vector is not efficient.
+    pub fn pop_last(&mut self) -> Option<(K, V)> {
+        self.0.pop()
+    }
+
     /// Extend from a vector of key-value pairs.  This can be more efficient
     /// than extending from an arbitrary iterator.
     pub fn extend_with_vec(&mut self, mut new: Vec<(K, V)>) {
@@ -962,6 +980,27 @@ mod tests {
             assert_eq!(im.next(), None);
         }
         assert_eq!(svm.get(&16), Some(&64));
+    }
+
+    #[test]
+    fn first_last() {
+        let mut svm: SortedVectorMap<u32, u64> = SortedVectorMap::new();
+        svm.insert(5, 100);
+        svm.insert(10, 200);
+        svm.insert(15, 300);
+        svm.insert(20, 400);
+        assert_eq!(svm.first_key_value(), Some((&5, &100)));
+        assert_eq!(svm.last_key_value(), Some((&20, &400)));
+        assert_eq!(svm.pop_last(), Some((20, 400)));
+        assert_eq!(svm.last_key_value(), Some((&15, &300)));
+        assert_eq!(svm.pop_last(), Some((15, 300)));
+        assert_eq!(svm.pop_last(), Some((10, 200)));
+        assert_eq!(svm.first_key_value(), Some((&5, &100)));
+        assert_eq!(svm.last_key_value(), Some((&5, &100)));
+        assert_eq!(svm.pop_last(), Some((5, 100)));
+        assert_eq!(svm.pop_last(), None);
+        assert_eq!(svm.first_key_value(), None);
+        assert_eq!(svm.last_key_value(), None);
     }
 
     #[test]

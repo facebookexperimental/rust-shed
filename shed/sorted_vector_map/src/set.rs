@@ -286,6 +286,24 @@ where
         self.0.len()
     }
 
+    /// Returns a reference to the first value in the set, if any.
+    pub fn first(&self) -> Option<&T> {
+        self.0.first()
+    }
+
+    /// Returns a reference to the last value in the set, if any.
+    pub fn last(&self) -> Option<&T> {
+        self.0.last()
+    }
+
+    /// Removes and returns the last value in the set, if any.
+    ///
+    /// There is no `pop_first` equivalent as removing the first item from a
+    /// vector is not efficient.
+    pub fn pop_last(&mut self) -> Option<T> {
+        self.0.pop()
+    }
+
     /// Extend from a vector of values.  This can be more efficient than
     /// extending from an arbitrary iterator.
     pub fn extend_with_vec(&mut self, mut new: Vec<T>) {
@@ -733,6 +751,23 @@ mod tests {
         assert_eq!(svs.range(3..=7).cloned().collect::<Vec<_>>(), vec![3, 5, 7]);
         assert_eq!(svs.range(..2).cloned().collect::<Vec<_>>(), vec![1]);
         assert_eq!(svs.range(6..).cloned().collect::<Vec<_>>(), vec![7, 9, 11]);
+    }
+
+    #[test]
+    fn first_last() {
+        let mut svs = sorted_vector_set! { 5, 10, 15, 20 };
+        assert_eq!(svs.first(), Some(&5));
+        assert_eq!(svs.last(), Some(&20));
+        assert_eq!(svs.pop_last(), Some(20));
+        assert_eq!(svs.last(), Some(&15));
+        assert_eq!(svs.pop_last(), Some(15));
+        assert_eq!(svs.pop_last(), Some(10));
+        assert_eq!(svs.first(), Some(&5));
+        assert_eq!(svs.last(), Some(&5));
+        assert_eq!(svs.pop_last(), Some(5));
+        assert_eq!(svs.pop_last(), None);
+        assert_eq!(svs.first(), None);
+        assert_eq!(svs.last(), None);
     }
 
     #[test]
