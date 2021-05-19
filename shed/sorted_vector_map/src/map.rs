@@ -334,6 +334,14 @@ where
         if new.is_empty() {
             return;
         }
+        // Special case for extending with a single item.  This is used by
+        // stream-based versions of extend, and it is more efficient to
+        // convert back to insert.
+        if new.len() == 1 {
+            let (k, v) = new.into_iter().next().expect("iterator must have one item");
+            self.insert(k, v);
+            return;
+        }
         // Sort stably so that later duplicates overwrite earlier ones.
         new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
         if self.0.is_empty() && new.iter().tuple_windows().all(|((a, _), (b, _))| a != b) {
