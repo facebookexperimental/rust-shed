@@ -54,10 +54,12 @@ macro_rules! make_set_bench {
         });
 
         data.sort();
+        // Ordered build of the whole set in a single call to extend.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered full"), || {
             elapsed(|| { consume(data.iter().cloned().collect::<$set<_>>()); })
         });
 
+        // Ordered build of the set in 100 chunks.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered chunks"), || {
             elapsed(|| {
                 let mut set = $set::new();
@@ -68,6 +70,21 @@ macro_rules! make_set_bench {
             })
         });
 
+        // Ordered build of the set in 100 chunks, where each chunk contains a
+        // duplicate at the midpoint.
+        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered chunks dup"), || {
+            elapsed(|| {
+                let mut set = $set::new();
+                for chunk in data.chunks(($count / 100).max(10)) {
+                    let mid = $count / 200;
+                    set.extend(chunk.iter().take(mid).chain(chunk.iter().skip(mid - 1)).cloned());
+                }
+                consume(set);
+            })
+        });
+
+        // Ordered build of the set by extending a single element at a time.
+        // This simulates stream collection.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered single"), || {
             elapsed(|| {
                 let mut set = $set::new();

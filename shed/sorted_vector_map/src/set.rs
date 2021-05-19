@@ -255,10 +255,7 @@ where
 
         let self_iter = mem::take(self).into_iter();
         let other_iter = mem::take(other).into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: other_iter.peekable(),
-        };
+        let iter = MergeIter::new(self_iter, other_iter);
         self.0 = iter.collect();
     }
 
@@ -320,19 +317,47 @@ where
         }
         // Sort stably so that later duplicates overwrite earlier ones.
         new.sort();
-        if self.0.is_empty() && new.iter().tuple_windows().all(|(a, b)| a != b) {
-            // This set is empty, and there are no duplicates in the input, so
-            // we can just take the new vector.
-            self.0 = new;
+        if self.0.is_empty() {
+            // This set is empty, so we can take the new values as-is,
+            // removing duplicates if necessary.  In the common case
+            // there will be no duplicates, so it's quicker to scan for
+            // them first.
+            match new.iter().tuple_windows().position(|(a, b)| a == b) {
+                Some(first_dup_index) => {
+                    // Duplicates start at this index, so deduplicate from
+                    // here.
+                    let dups = new.split_off(first_dup_index);
+                    self.0 = new;
+                    self.0.extend(DedupIter::new(dups.into_iter()));
+                }
+                None => self.0 = new,
+            }
             return;
         }
-        let self_iter = mem::take(self).into_iter();
-        let new_iter = new.into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: new_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        match (self.0.last(), new.first()) {
+            (Some(self_last), Some(new_first)) if self_last < new_first => {
+                // All new items are after the end, so we can append them to
+                // the vector, after deduplication if necessary.  In the
+                // common case there will be no duplicates, so it's quicker to
+                // scan for them first.
+                match new.iter().tuple_windows().position(|(a, b)| a == b) {
+                    Some(first_dup_index) => {
+                        // Duplicates start at this index, so deduplicate from
+                        // here.
+                        let dups = new.split_off(first_dup_index);
+                        self.0.extend(new);
+                        self.0.extend(DedupIter::new(dups.into_iter()));
+                    }
+                    None => self.0.extend(new),
+                }
+            }
+            _ => {
+                // The vectors must be merged.
+                let self_iter = mem::take(self).into_iter();
+                let new_iter = new.into_iter();
+                self.0 = MergeIter::new(self_iter, new_iter).collect();
+            }
+        }
     }
 }
 
@@ -412,9 +437,53 @@ where
     }
 }
 
+struct DedupIter<T, I: Iterator<Item = T>> {
+    iter: Peekable<I>,
+}
+
+impl<T, I> DedupIter<T, I>
+where
+    T: Ord,
+    I: Iterator<Item = T>,
+{
+    fn new(iter: I) -> Self {
+        DedupIter {
+            iter: iter.peekable(),
+        }
+    }
+
+    fn peek(&mut self) -> Option<&T> {
+        self.iter.peek()
+    }
+}
+
+impl<T, I> Iterator for DedupIter<T, I>
+where
+    T: Ord,
+    I: Iterator<Item = T>,
+{
+    type Item = T;
+
+    fn next(&mut self) -> Option<T> {
+        let mut next = self.iter.next();
+        while let (Some(next_ref), Some(after)) = (next.as_ref(), self.iter.peek()) {
+            if after > next_ref {
+                break;
+            }
+            next = self.iter.next();
+        }
+        next
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (low, high) = self.iter.size_hint();
+        (low.min(1), high)
+    }
+}
+
 struct MergeIter<T, I: Iterator<Item = T>> {
     left: Peekable<I>,
-    right: Peekable<I>,
+    right: DedupIter<T, I>,
 }
 
 impl<T, I> MergeIter<T, I>
@@ -422,16 +491,11 @@ where
     T: Ord,
     I: Iterator<Item = T>,
 {
-    /// Returns the next right value, skipping over equal values.
-    fn next_right(&mut self) -> Option<T> {
-        let mut next = self.right.next();
-        while let (Some(next_ref), Some(after)) = (next.as_ref(), self.right.peek()) {
-            if after > next_ref {
-                break;
-            }
-            next = self.right.next();
+    fn new(left: I, right: I) -> Self {
+        MergeIter {
+            left: left.peekable(),
+            right: DedupIter::new(right),
         }
-        next
     }
 }
 
@@ -455,10 +519,10 @@ where
         // If `right` has multiple equal keys, take the last one.
         match res {
             Ordering::Less => self.left.next(),
-            Ordering::Greater => self.next_right(),
+            Ordering::Greater => self.right.next(),
             Ordering::Equal => {
                 self.left.next();
-                self.next_right()
+                self.right.next()
             }
         }
     }
@@ -794,6 +858,45 @@ mod tests {
         assert_eq!(
             svs2.iter().cloned().collect::<Vec<_>>(),
             vec![1, 3, 4, 5, 6, 7, 8, 9, 11]
+        );
+    }
+
+    #[test]
+    fn extend_optimizations() {
+        // Initializing via extend will sort and take the values.
+        let mut svs = SortedVectorSet::new();
+        svs.extend(vec![3, 2, 1]);
+
+        assert_eq!(svs.iter().cloned().collect::<Vec<_>>(), vec![1, 2, 3]);
+        assert_eq!(svs.first(), Some(&1));
+
+        // This also works if there are duplicates: the last value will be
+        // taken.
+        let mut svs = SortedVectorSet::new();
+        svs.extend(vec![3, 2, 1, 6, 4, 5, 1, 6]);
+        assert_eq!(
+            svs.iter().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6],
+        );
+        assert_eq!(svs.first(), Some(&1));
+        assert_eq!(svs.pop_last(), Some(6));
+
+        // Extending with values that are all after the highest value will
+        // efficiently append to the vector.
+        svs.extend(vec![9, 7, 8, 6]);
+
+        assert_eq!(
+            svs.iter().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 9]
+        );
+        assert_eq!(svs.last(), Some(&9));
+
+        // If there are duplicate values, then the last value will be taken.
+        svs.extend(vec![11, 12, 10, 12]);
+
+        assert_eq!(
+            svs.iter().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
         );
     }
 

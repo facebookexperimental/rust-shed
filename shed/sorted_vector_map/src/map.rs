@@ -158,11 +158,7 @@ where
 
         let self_iter = mem::take(self).into_iter();
         let other_iter = mem::take(other).into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: other_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        self.0 = MergeIter::new(self_iter, other_iter).collect();
     }
 
     /// Utility function for implementing `range` and `range_mut`.
@@ -344,19 +340,55 @@ where
         }
         // Sort stably so that later duplicates overwrite earlier ones.
         new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
-        if self.0.is_empty() && new.iter().tuple_windows().all(|((a, _), (b, _))| a != b) {
-            // This map is empty, and there are no duplicates in the input, so
-            // we can just take the new vector.
-            self.0 = new;
+        if self.0.is_empty() {
+            // This map is empty, so we can take the new values as-is,
+            // removing duplicates if necessary.  In the common case
+            // there will be no duplicates, so it's quicker to scan for
+            // them first.
+            match new
+                .iter()
+                .tuple_windows()
+                .position(|((a, _), (b, _))| a == b)
+            {
+                Some(first_dup_index) => {
+                    // Duplicates start at this index, so deduplicate from
+                    // here.
+                    let dups = new.split_off(first_dup_index);
+                    self.0 = new;
+                    self.0.extend(DedupIter::new(dups.into_iter()));
+                }
+                None => self.0 = new,
+            }
             return;
         }
-        let self_iter = mem::take(self).into_iter();
-        let new_iter = new.into_iter();
-        let iter = MergeIter {
-            left: self_iter.peekable(),
-            right: new_iter.peekable(),
-        };
-        self.0 = iter.collect();
+        match (self.0.last(), new.first()) {
+            (Some((self_last, _)), Some((new_first, _))) if self_last < new_first => {
+                // All new items are after the end, so we can append them to
+                // the vector, after deduplication if necessary.  In the
+                // common case there will be no duplicates, so it's quicker to
+                // scan for them first.
+                match new
+                    .iter()
+                    .tuple_windows()
+                    .position(|((a, _), (b, _))| a == b)
+                {
+                    Some(first_dup_index) => {
+                        // Duplicates start at this index, so deduplicate from
+                        // here.
+                        let dups = new.split_off(first_dup_index);
+                        self.0.extend(new);
+                        self.0.extend(DedupIter::new(dups.into_iter()));
+                    }
+                    None => self.0.extend(new),
+                }
+            }
+            _ => {
+                // The vectors must be merged.
+                let self_iter = mem::take(self).into_iter();
+                let new_iter = new.into_iter();
+                self.0 = MergeIter::new(self_iter, new_iter).collect();
+            }
+        }
     }
 }
 
@@ -777,9 +809,55 @@ where
     }
 }
 
+struct DedupIter<K, V, I: Iterator<Item = (K, V)>> {
+    iter: Peekable<I>,
+}
+
+impl<K, V, I> DedupIter<K, V, I>
+where
+    K: Ord,
+    I: Iterator<Item = (K, V)>,
+{
+    fn new(iter: I) -> Self {
+        DedupIter {
+            iter: iter.peekable(),
+        }
+    }
+
+    fn peek(&mut self) -> Option<&(K, V)> {
+        self.iter.peek()
+    }
+}
+
+impl<K, V, I> Iterator for DedupIter<K, V, I>
+where
+    K: Ord,
+    I: Iterator<Item = (K, V)>,
+{
+    type Item = (K, V);
+
+    fn next(&mut self) -> Option<(K, V)> {
+        let mut next = self.iter.next();
+        while let (Some(&(ref next_key, _)), Some(&(ref after_key, _))) =
+            (next.as_ref(), self.iter.peek())
+        {
+            if after_key > next_key {
+                break;
+            }
+            next = self.iter.next();
+        }
+        next
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let (low, high) = self.iter.size_hint();
+        (low.min(1), high)
+    }
+}
+
 struct MergeIter<K, V, I: Iterator<Item = (K, V)>> {
     left: Peekable<I>,
-    right: Peekable<I>,
+    right: DedupIter<K, V, I>,
 }
 
 impl<K, V, I> MergeIter<K, V, I>
@@ -787,18 +865,11 @@ where
     K: Ord,
     I: Iterator<Item = (K, V)>,
 {
-    /// Returns the next right value, skipping over equal values.
-    fn next_right(&mut self) -> Option<(K, V)> {
-        let mut next = self.right.next();
-        while let (Some(&(ref next_key, _)), Some(&(ref after_key, _))) =
-            (next.as_ref(), self.right.peek())
-        {
-            if after_key > next_key {
-                break;
-            }
-            next = self.right.next();
+    fn new(left: I, right: I) -> Self {
+        MergeIter {
+            left: left.peekable(),
+            right: DedupIter::new(right),
         }
-        next
     }
 }
 
@@ -822,10 +893,10 @@ where
         // If `right` has multiple equal keys, take the last one.
         match res {
             Ordering::Less => self.left.next(),
-            Ordering::Greater => self.next_right(),
+            Ordering::Greater => self.right.next(),
             Ordering::Equal => {
                 self.left.next();
-                self.next_right()
+                self.right.next()
             }
         }
     }
@@ -1055,6 +1126,60 @@ mod tests {
             svm2.keys().cloned().collect::<Vec<_>>(),
             vec![1, 2, 3, 4, 5, 6, 7]
         );
+    }
+
+    #[test]
+    fn extend_optimizations() {
+        // Initializing via extend will sort and take the values.
+        let mut svm = SortedVectorMap::new();
+        svm.extend(vec![(3, "three"), (2, "two"), (1, "one")]);
+
+        assert_eq!(svm.keys().cloned().collect::<Vec<_>>(), vec![1, 2, 3]);
+        assert_eq!(svm.first_key_value(), Some((&1, &"one")));
+
+        // This also works if there are duplicates: the last value will be
+        // taken.
+        let mut svm = SortedVectorMap::new();
+        svm.extend(vec![
+            (3, "three"),
+            (2, "two"),
+            (1, "one"),
+            (6, "six"),
+            (4, "four"),
+            (5, "five"),
+            (1, "one again"),
+            (6, "six again"),
+        ]);
+        assert_eq!(
+            svm.keys().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6],
+        );
+        assert_eq!(svm.first_key_value(), Some((&1, &"one again")));
+        assert_eq!(svm.pop_last(), Some((6, "six again")));
+
+        // Extending with values that are all after the highest key will
+        // efficiently append to the vector.
+        svm.extend(vec![(9, "nine"), (7, "seven"), (8, "eight"), (6, "six")]);
+
+        assert_eq!(
+            svm.keys().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 9]
+        );
+        assert_eq!(svm.last_key_value(), Some((&9, &"nine")));
+
+        // If there are duplicate values, then the last value will be taken.
+        svm.extend(vec![
+            (11, "eleven"),
+            (12, "twelve"),
+            (10, "ten"),
+            (12, "twelve again"),
+        ]);
+
+        assert_eq!(
+            svm.keys().cloned().collect::<Vec<_>>(),
+            vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+        );
+        assert_eq!(svm.last_key_value(), Some((&12, &"twelve again")));
     }
 
     #[test]

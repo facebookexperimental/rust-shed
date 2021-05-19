@@ -54,10 +54,12 @@ macro_rules! make_map_bench {
         });
 
         data.sort();
+        // Ordered build of the whole map in a single call to extend.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered full"), || {
             elapsed(|| { consume(data.iter().cloned().collect::<$map<_, _>>()); })
         });
 
+        // Ordered build of the map in 100 chunks.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered chunks"), || {
             elapsed(|| {
                 let mut map = $map::new();
@@ -68,6 +70,21 @@ macro_rules! make_map_bench {
             })
         });
 
+        // Ordered build of the map in 100 chunks, where each chunk contains a
+        // duplicate at the midpoint.
+        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered chunks dup"), || {
+            elapsed(|| {
+                let mut map = $map::new();
+                for chunk in data.chunks(($count / 100).max(10)) {
+                    let mid = $count / 200;
+                    map.extend(chunk.iter().take(mid).chain(chunk.iter().skip(mid - 1)).cloned());
+                }
+                consume(map);
+            })
+        });
+
+        // Ordered build of the map by extending a single element at a time.
+        // This simulates stream collection.
         bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered single"), || {
             elapsed(|| {
                 let mut map = $map::new();
