@@ -54,8 +54,28 @@ macro_rules! make_set_bench {
         });
 
         data.sort();
-        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered"), || {
+        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered full"), || {
             elapsed(|| { consume(data.iter().cloned().collect::<$set<_>>()); })
+        });
+
+        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered chunks"), || {
+            elapsed(|| {
+                let mut set = $set::new();
+                for chunk in data.chunks(($count / 100).max(10)) {
+                    set.extend(chunk.iter().cloned());
+                }
+                consume(set);
+            })
+        });
+
+        bench(concat!(stringify!($name), " (", stringify!($count), ") build ordered single"), || {
+            elapsed(|| {
+                let mut set = $set::new();
+                for item in data.iter().cloned() {
+                    set.extend(Some(item));
+                }
+                consume(set);
+            })
         });
 
         let set = data.iter().cloned().collect::<$set<_>>();
