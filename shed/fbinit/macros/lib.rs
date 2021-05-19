@@ -37,10 +37,16 @@ use syn::punctuated::Punctuated;
 //
 // Accepts optional attribute argument disable_fatal_signals to disable adding
 // handler to fatal signals in perform_init().
-// Argument must be an int literal that represents the signal bit mask. For
-// example, the following disables SIGTERM:
+// Argument must be one of `default`, `none`, `all`, `sigterm_only`
+// that represents the signal bit mask. For  example, the following disables SIGTERM:
 //
-//      #[fbinit::main(disable_fatal_signals = 0x8000)
+//      #[fbinit::main(disable_fatal_signals = sigterm_only)
+//
+// - `default`: disables SIGTERM and SIGINT, and is also the default if `disable_fatal_signals`
+//  is not specified
+// - `none`: disabled no signals, overrides the default
+// - `all`: disables ALL signals
+// - `sigterm_only`: disabled SIGTERM
 #[proc_macro_attribute]
 pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
     expand(

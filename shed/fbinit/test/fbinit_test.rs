@@ -26,7 +26,7 @@ fn test_expect_init() {
 
 /// Also works with disable_fatal_signals set
 #[cfg(fbcode_build)]
-#[fbinit::test(disable_fatal_signals = 0x8000)]
+#[fbinit::test(disable_fatal_signals = sigterm_only)]
 fn test_expect_init_with_disable_signals() {
     fbinit::expect_init();
 }
@@ -102,9 +102,32 @@ mod submodule {
 }
 
 #[test]
-fn test_main_with_disable_signals() {
-    // Disable SIGTERM handler (1 << 15)
-    #[fbinit::main(disable_fatal_signals = 0x8000)]
+fn test_main_with_disable_signals_sigterm_only() {
+    #[fbinit::main(disable_fatal_signals = sigterm_only)]
+    fn main() {}
+
+    main();
+}
+
+#[test]
+fn test_main_with_disable_signals_none() {
+    #[fbinit::main(disable_fatal_signals = none)]
+    fn main() {}
+
+    main();
+}
+
+#[test]
+fn test_main_with_disable_signals_all() {
+    #[fbinit::main(disable_fatal_signals = all)]
+    fn main() {}
+
+    main();
+}
+
+#[test]
+fn test_main_with_disable_signals_default() {
+    #[fbinit::main(disable_fatal_signals = default)]
     fn main() {}
 
     main();

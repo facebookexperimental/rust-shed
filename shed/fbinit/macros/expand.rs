@@ -11,7 +11,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::punctuated::Punctuated;
-use syn::{parse_quote, Error, ItemFn, LitInt, Result, Token};
+use syn::{parse_quote, Error, ItemFn, Result, Token};
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Mode {
@@ -21,13 +21,23 @@ pub enum Mode {
 
 mod kw {
     syn::custom_keyword!(disable_fatal_signals);
+    syn::custom_keyword!(none);
+    syn::custom_keyword!(sigterm_only);
+    syn::custom_keyword!(all);
+}
+
+pub enum DisableFatalSignals {
+    Default(Token![default]),
+    None(kw::none),
+    SigtermOnly(kw::sigterm_only),
+    All(kw::all),
 }
 
 pub enum Arg {
     DisableFatalSignals {
         kw_token: kw::disable_fatal_signals,
         eq_token: Token![=],
-        value: LitInt,
+        value: DisableFatalSignals,
     },
 }
 
@@ -35,10 +45,26 @@ impl Parse for Arg {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let lookahead = input.lookahead1();
         if lookahead.peek(kw::disable_fatal_signals) {
+            let kw_token = input.parse()?;
+            let eq_token = input.parse()?;
+
+            let lookahead = input.lookahead1();
+            let value = if lookahead.peek(kw::none) {
+                DisableFatalSignals::None(input.parse()?)
+            } else if lookahead.peek(Token![default]) {
+                DisableFatalSignals::Default(input.parse()?)
+            } else if lookahead.peek(kw::all) {
+                DisableFatalSignals::All(input.parse()?)
+            } else if lookahead.peek(kw::sigterm_only) {
+                DisableFatalSignals::SigtermOnly(input.parse()?)
+            } else {
+                return Err(lookahead.error());
+            };
+
             Ok(Self::DisableFatalSignals {
-                kw_token: input.parse()?,
-                eq_token: input.parse()?,
-                value: input.parse()?,
+                kw_token,
+                eq_token,
+                value,
             })
         } else {
             Err(lookahead.error())
@@ -51,11 +77,12 @@ pub fn expand(
     args: Punctuated<Arg, Token![,]>,
     mut function: ItemFn,
 ) -> Result<TokenStream> {
-    let mut disable_fatal_signals = None;
+    let mut disable_fatal_signals =
+        DisableFatalSignals::Default(syn::parse2(quote! { default }).expect("This always parses"));
 
     for arg in args {
         match arg {
-            Arg::DisableFatalSignals { value, .. } => disable_fatal_signals = Some(value),
+            Arg::DisableFatalSignals { value, .. } => disable_fatal_signals = value,
         }
     }
 
@@ -101,12 +128,25 @@ pub fn expand(
     };
 
     let perform_init = match disable_fatal_signals {
-        Some(disable_fatal_signals) => {
+        DisableFatalSignals::Default(_) => {
+            // 8002 is 1 << 15 (SIGTERM) | 1 << 2 (SIGINT)
             quote! {
-                fbinit::r#impl::perform_init_with_disable_signals(#disable_fatal_signals)
+                fbinit::r#impl::perform_init_with_disable_signals(0x8002)
             }
         }
-        None => {
+        DisableFatalSignals::All(_) => {
+            // ffff is a mask of all 1's
+            quote! {
+                fbinit::r#impl::perform_init_with_disable_signals(0xffff)
+            }
+        }
+        DisableFatalSignals::SigtermOnly(_) => {
+            // 8000 is 1 << 15 (SIGTERM)
+            quote! {
+                fbinit::r#impl::perform_init_with_disable_signals(0x8000)
+            }
+        }
+        DisableFatalSignals::None(_) => {
             quote! {
                 fbinit::r#impl::perform_init()
             }
