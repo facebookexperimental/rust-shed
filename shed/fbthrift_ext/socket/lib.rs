@@ -26,7 +26,7 @@ use tower_service::Service;
 /// ```ignore
 /// let stream = tokio::net::UnixStream::connect(path)?;
 /// let transport = SocketTransport::new(stream);
-/// let client = fb303::client::FacebookService::new(CompactProtocol, transport);
+/// let client = <dyn fb303::client::FacebookService>::new(CompactProtocol, transport);
 /// ```
 pub struct SocketTransport {
     service: Arc<Mutex<Client<Framed<UnixStream, FramedTransport>, Error, Bytes>>>,
