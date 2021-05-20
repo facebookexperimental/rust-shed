@@ -10,12 +10,10 @@
 use std::{
     io::{self, Cursor, Read, Write},
     marker::PhantomData,
-    mem::MaybeUninit,
-    slice,
 };
 
 use anyhow::Result;
-use bytes::{Buf, BufMut, Bytes};
+use bytes::{buf::UninitSlice, Buf, BufMut, Bytes};
 
 pub fn init_cacheadmin() -> Result<()> {
     Ok(())
@@ -114,8 +112,8 @@ impl<'a> Buf for LruCacheHandleReader<'a> {
         self.buffer.remaining()
     }
 
-    fn bytes(&self) -> &[u8] {
-        (&self.buffer as &dyn Buf).bytes()
+    fn chunk(&self) -> &[u8] {
+        Buf::chunk(&self.buffer)
     }
 
     fn advance(&mut self, cnt: usize) {
@@ -140,7 +138,8 @@ pub struct LruCacheHandleWriter<'a> {
     _phantom: PhantomData<&'a ()>,
 }
 
-impl<'a> BufMut for LruCacheHandleWriter<'a> {
+/// SAFETY: Only calls to advance_mut modify the current position.
+unsafe impl<'a> BufMut for LruCacheHandleWriter<'a> {
     #[inline]
     fn remaining_mut(&self) -> usize {
         let pos = self.buffer.position();
@@ -155,18 +154,15 @@ impl<'a> BufMut for LruCacheHandleWriter<'a> {
     }
 
     #[inline]
-    fn bytes_mut(&mut self) -> &mut [MaybeUninit<u8>] {
+    fn chunk_mut(&mut self) -> &mut UninitSlice {
         let pos = self.buffer.position();
-        self.buffer
+        let remaining = self
+            .buffer
             .get_mut()
             .get_mut(pos as usize..)
-            .map(|remaining: &mut [u8]| unsafe {
-                slice::from_raw_parts_mut(
-                    remaining.as_mut_ptr().cast::<MaybeUninit<u8>>(),
-                    remaining.len(),
-                )
-            })
-            .unwrap_or(&mut [])
+            .unwrap_or(&mut []);
+
+        unsafe { UninitSlice::from_raw_parts_mut(remaining.as_mut_ptr(), remaining.len()) }
     }
 }
 
