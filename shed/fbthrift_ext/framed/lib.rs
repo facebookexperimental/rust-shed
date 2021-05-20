@@ -11,7 +11,8 @@
 mod tests;
 
 use byteorder::{BigEndian, ByteOrder};
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::Bytes;
+use bytes_05::BufMut as _;
 use std::io::{self, Cursor};
 use tokio_util::codec::{Decoder, Encoder};
 
@@ -20,10 +21,10 @@ pub struct FramedTransport;
 impl Encoder<Bytes> for FramedTransport {
     type Error = io::Error;
 
-    fn encode(&mut self, item: Bytes, dst: &mut BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, item: Bytes, dst: &mut bytes_05::BytesMut) -> Result<(), Self::Error> {
         dst.reserve(4 + item.len());
         dst.put_u32(item.len() as u32);
-        dst.put(item);
+        dst.put(item.as_ref());
         Ok(())
     }
 }
@@ -32,7 +33,7 @@ impl Decoder for FramedTransport {
     type Item = Cursor<Bytes>;
     type Error = io::Error;
 
-    fn decode(&mut self, src: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
+    fn decode(&mut self, src: &mut bytes_05::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         // Wait for at least a frame header
         if src.len() < 4 {
             return Ok(None);
@@ -52,6 +53,9 @@ impl Decoder for FramedTransport {
         // Take len bytes, advancing src
         let res = src.split_to(len);
 
-        Ok(Some(Cursor::new(res.freeze())))
+        // Convert this to the Bytes 1.x implementation we are using.
+        let res = Bytes::copy_from_slice(res.as_ref());
+
+        Ok(Some(Cursor::new(res)))
     }
 }

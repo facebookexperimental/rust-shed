@@ -33,7 +33,7 @@ impl BufOld for BytesCompat<BytesNew> {
     }
 
     fn bytes(&self) -> &[u8] {
-        self.inner.bytes()
+        self.inner.chunk()
     }
 
     fn advance(&mut self, cnt: usize) {
@@ -46,7 +46,7 @@ impl BufNew for BytesCompat<BytesOld> {
         self.inner.len()
     }
 
-    fn bytes(&self) -> &[u8] {
+    fn chunk(&self) -> &[u8] {
         self.inner.as_ref()
     }
 
