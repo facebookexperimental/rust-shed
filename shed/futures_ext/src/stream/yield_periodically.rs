@@ -89,7 +89,7 @@ mod test {
             std::thread::sleep(Duration::from_millis(1));
         });
 
-        let stream = YieldPeriodically::new(stream, Duration::from_millis(10));
+        let stream = YieldPeriodically::new(stream, Duration::from_millis(100));
 
         futures::pin_mut!(stream);
 
@@ -100,7 +100,7 @@ mod test {
 
         while stream.as_mut().poll_next(&mut cx).is_ready() {
             assert!(
-                now.elapsed() < Duration::from_millis(20),
+                now.elapsed() < Duration::from_millis(200),
                 "Stream did not yield in time"
             );
         }
@@ -112,7 +112,7 @@ mod test {
             did_unpause = true;
 
             assert!(
-                now.elapsed() < Duration::from_millis(20),
+                now.elapsed() < Duration::from_millis(200),
                 "Stream did not yield in time"
             );
         }
