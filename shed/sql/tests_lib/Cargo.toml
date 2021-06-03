@@ -12,6 +12,6 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4", features = ["clock", "serde", "std"], default-features = false }
 rand = { version = "0.7", features = ["small_rng"] }
 sql = { version = "0.1.0", path = ".." }
