@@ -15,7 +15,7 @@ flate2 = { version = "1.0", features = ["rust_backend", "tokio"], default-featur
 libc = "0.2.86"
 serde = { version = "=1.0.118", features = ["derive", "rc"] }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
-zstd = "=0.7.0+zstd.1.4.9"
+zstd = "=0.8.3+zstd.1.5.0"
 
 [dev-dependencies]
 maplit = "1.0"
