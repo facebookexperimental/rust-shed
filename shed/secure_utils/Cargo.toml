@@ -15,6 +15,6 @@ lazy_static = "1.0"
 libc = "0.2.86"
 openssl = "0.10"
 openssl-sys = "0.9"
-serde = { version = "=1.0.118", features = ["derive", "rc"] }
+serde = { version = "1.0.126", features = ["derive", "rc"] }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
 slog = { version = "2.5", features = ["max_level_trace"] }
