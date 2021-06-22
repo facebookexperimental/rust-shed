@@ -17,7 +17,7 @@ anyhow = "1.0"
 chrono = { version = "0.4", features = ["clock", "serde", "std"], default-features = false }
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
 hostname = "0.3"
-itertools = "0.8"
+itertools = "0.10.1"
 nix = "0.20"
 slog = { version = "2.5", features = ["max_level_trace"] }
 slog-term = "2.4.2"

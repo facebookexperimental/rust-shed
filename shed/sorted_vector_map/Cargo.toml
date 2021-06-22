@@ -19,7 +19,7 @@ name = "set"
 harness = false
 
 [dependencies]
-itertools = "0.8"
+itertools = "0.10.1"
 quickcheck = "0.9"
 
 [dev-dependencies]
