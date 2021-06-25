@@ -7,15 +7,37 @@
  * of this source tree.
  */
 
-use anyhow::Error;
 use futures::{future::Future, ready, stream::Stream};
 use pin_project::pin_project;
+use std::any::Any;
 use std::pin::Pin;
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
+use thiserror::Error;
 
 pub mod task {
     use super::*;
+
+    #[derive(Debug, Error)]
+    pub enum JoinHandleError {
+        #[error("Tokio 0.2 JoinError")]
+        Tokio02(#[from] tokio_02::task::JoinError),
+        #[error("Tokio 1.0 JoinError")]
+        Tokio10(#[from] tokio_10::task::JoinError),
+    }
+
+    impl JoinHandleError {
+        // For now just implement the required apis
+
+
+        // See https://docs.rs/tokio/1/tokio/task/struct.JoinError.html#method.into_panic
+        pub fn into_panic(self) -> Box<dyn Any + Send + 'static> {
+            match self {
+                JoinHandleError::Tokio02(inner) => inner.into_panic(),
+                JoinHandleError::Tokio10(inner) => inner.into_panic(),
+            }
+        }
+    }
 
     #[pin_project(project = JoinHandleProj)]
     pub enum JoinHandle<T> {
@@ -27,12 +49,12 @@ pub mod task {
     where
         T: Send + 'static,
     {
-        type Output = Result<T, Error>;
+        type Output = Result<T, JoinHandleError>;
 
         fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             let ret = match self.project() {
-                JoinHandleProj::Tokio02(f) => ready!(f.poll(cx)).map_err(Error::from),
-                JoinHandleProj::Tokio10(f) => ready!(f.poll(cx)).map_err(Error::from),
+                JoinHandleProj::Tokio02(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
+                JoinHandleProj::Tokio10(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
             };
 
             Poll::Ready(ret)
@@ -124,7 +146,7 @@ pub mod time {
         panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
     }
 
-    #[derive(Debug, thiserror::Error)]
+    #[derive(Debug, Error)]
     #[error("deadline has elapsed")]
     pub struct Elapsed;
 
@@ -225,7 +247,7 @@ mod test {
     }
 
     #[test]
-    fn test_02() -> Result<(), Error> {
+    fn test_02() -> Result<(), anyhow::Error> {
         let mut rt = tokio_02::runtime::Builder::new()
             .enable_all()
             .basic_scheduler()
@@ -237,7 +259,7 @@ mod test {
     }
 
     #[test]
-    fn test_10() -> Result<(), Error> {
+    fn test_10() -> Result<(), anyhow::Error> {
         let rt = tokio_10::runtime::Builder::new_current_thread()
             .enable_all()
             .build()?;
@@ -245,5 +267,41 @@ mod test {
         rt.block_on(test());
 
         Ok(())
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_panic_forwarding_02() {
+        let mut rt = tokio_02::runtime::Builder::new()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async {
+            let je = task::spawn(async {
+                panic!("gus");
+            })
+            .await
+            .unwrap_err();
+            std::panic::resume_unwind(je.into_panic())
+        });
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_panic_forwarding_10() {
+        let rt = tokio_10::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .unwrap();
+
+        rt.block_on(async {
+            let je = task::spawn(async {
+                panic!("gus");
+            })
+            .await
+            .unwrap_err();
+            std::panic::resume_unwind(je.into_panic())
+        });
     }
 }
