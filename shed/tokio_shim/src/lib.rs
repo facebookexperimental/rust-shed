@@ -22,8 +22,8 @@ pub mod task {
     pub enum JoinHandleError {
         #[error("Tokio 0.2 JoinError")]
         Tokio02(#[from] tokio_02::task::JoinError),
-        #[error("Tokio 1.0 JoinError")]
-        Tokio10(#[from] tokio_10::task::JoinError),
+        #[error("Tokio 1.x JoinError")]
+        Tokio1x(#[from] tokio_1x::task::JoinError),
     }
 
     impl JoinHandleError {
@@ -34,7 +34,7 @@ pub mod task {
         pub fn into_panic(self) -> Box<dyn Any + Send + 'static> {
             match self {
                 JoinHandleError::Tokio02(inner) => inner.into_panic(),
-                JoinHandleError::Tokio10(inner) => inner.into_panic(),
+                JoinHandleError::Tokio1x(inner) => inner.into_panic(),
             }
         }
     }
@@ -42,7 +42,7 @@ pub mod task {
     #[pin_project(project = JoinHandleProj)]
     pub enum JoinHandle<T> {
         Tokio02(#[pin] tokio_02::task::JoinHandle<T>),
-        Tokio10(#[pin] tokio_10::task::JoinHandle<T>),
+        Tokio1x(#[pin] tokio_1x::task::JoinHandle<T>),
     }
 
     impl<T> Future for JoinHandle<T>
@@ -54,7 +54,7 @@ pub mod task {
         fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             let ret = match self.project() {
                 JoinHandleProj::Tokio02(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
-                JoinHandleProj::Tokio10(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
+                JoinHandleProj::Tokio1x(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
             };
 
             Poll::Ready(ret)
@@ -70,12 +70,12 @@ pub mod task {
             return JoinHandle::Tokio02(handle.spawn(fut));
         }
 
-        if let Ok(handle) = tokio_10::runtime::Handle::try_current() {
-            return JoinHandle::Tokio10(handle.spawn(fut));
+        if let Ok(handle) = tokio_1x::runtime::Handle::try_current() {
+            return JoinHandle::Tokio1x(handle.spawn(fut));
         }
 
         // This is what tokio::spawn would give you, so we don't try to do better here.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 
     pub fn spawn_blocking<F, R>(f: F) -> JoinHandle<R>
@@ -87,12 +87,12 @@ pub mod task {
             return JoinHandle::Tokio02(handle.spawn_blocking(f));
         }
 
-        if let Ok(handle) = tokio_10::runtime::Handle::try_current() {
-            return JoinHandle::Tokio10(handle.spawn_blocking(f));
+        if let Ok(handle) = tokio_1x::runtime::Handle::try_current() {
+            return JoinHandle::Tokio1x(handle.spawn_blocking(f));
         }
 
         // This is what tokio::spawn_blocking would give you, so we don't try to do better here.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 }
 
@@ -102,7 +102,7 @@ pub mod time {
     #[pin_project(project = SleepProj)]
     pub enum Sleep {
         Tokio02(#[pin] tokio_02::time::Delay),
-        Tokio10(#[pin] tokio_10::time::Sleep),
+        Tokio1x(#[pin] tokio_1x::time::Sleep),
     }
 
     impl Future for Sleep {
@@ -111,7 +111,7 @@ pub mod time {
         fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
             match self.project() {
                 SleepProj::Tokio02(f) => f.poll(cx),
-                SleepProj::Tokio10(f) => f.poll(cx),
+                SleepProj::Tokio1x(f) => f.poll(cx),
             }
         }
     }
@@ -121,12 +121,12 @@ pub mod time {
             return Sleep::Tokio02(tokio_02::time::delay_for(duration));
         }
 
-        if tokio_10::runtime::Handle::try_current().is_ok() {
-            return Sleep::Tokio10(tokio_10::time::sleep(duration));
+        if tokio_1x::runtime::Handle::try_current().is_ok() {
+            return Sleep::Tokio1x(tokio_1x::time::sleep(duration));
         }
 
         // This is what tokio::time::sleep would do.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 
     pub fn sleep_until(instant: Instant) -> Sleep {
@@ -136,14 +136,14 @@ pub mod time {
             ));
         }
 
-        if tokio_10::runtime::Handle::try_current().is_ok() {
-            return Sleep::Tokio10(tokio_10::time::sleep_until(
-                tokio_10::time::Instant::from_std(instant),
+        if tokio_1x::runtime::Handle::try_current().is_ok() {
+            return Sleep::Tokio1x(tokio_1x::time::sleep_until(
+                tokio_1x::time::Instant::from_std(instant),
             ));
         }
 
         // This is what tokio::time::sleep would do.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 
     #[derive(Debug, Error)]
@@ -153,7 +153,7 @@ pub mod time {
     #[pin_project(project = TimeoutProj)]
     pub enum Timeout<F> {
         Tokio02(#[pin] tokio_02::time::Timeout<F>),
-        Tokio10(#[pin] tokio_10::time::Timeout<F>),
+        Tokio1x(#[pin] tokio_1x::time::Timeout<F>),
     }
 
     impl<F> Future for Timeout<F>
@@ -167,8 +167,8 @@ pub mod time {
                 TimeoutProj::Tokio02(f) => {
                     ready!(f.poll(cx)).map_err(|_: tokio_02::time::Elapsed| Elapsed)
                 }
-                TimeoutProj::Tokio10(f) => {
-                    ready!(f.poll(cx)).map_err(|_: tokio_10::time::error::Elapsed| Elapsed)
+                TimeoutProj::Tokio1x(f) => {
+                    ready!(f.poll(cx)).map_err(|_: tokio_1x::time::error::Elapsed| Elapsed)
                 }
             };
 
@@ -181,18 +181,18 @@ pub mod time {
             return Timeout::Tokio02(tokio_02::time::timeout(duration, fut));
         }
 
-        if tokio_10::runtime::Handle::try_current().is_ok() {
-            return Timeout::Tokio10(tokio_10::time::timeout(duration, fut));
+        if tokio_1x::runtime::Handle::try_current().is_ok() {
+            return Timeout::Tokio1x(tokio_1x::time::timeout(duration, fut));
         }
 
         // This is what tokio::time::timeout would do.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 
     #[pin_project(project = IntervalStreamProj)]
     pub enum IntervalStream {
         Tokio02(#[pin] tokio_02::time::Interval),
-        Tokio10(#[pin] tokio_10_stream::wrappers::IntervalStream),
+        Tokio1x(#[pin] tokio_1x_stream::wrappers::IntervalStream),
     }
 
     impl Stream for IntervalStream {
@@ -201,7 +201,7 @@ pub mod time {
         fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
             let ret = match self.project() {
                 IntervalStreamProj::Tokio02(f) => ready!(f.poll_next(cx)).map(|i| i.into_std()),
-                IntervalStreamProj::Tokio10(f) => ready!(f.poll_next(cx)).map(|i| i.into_std()),
+                IntervalStreamProj::Tokio1x(f) => ready!(f.poll_next(cx)).map(|i| i.into_std()),
             };
 
             Poll::Ready(ret)
@@ -213,14 +213,14 @@ pub mod time {
             return IntervalStream::Tokio02(tokio_02::time::interval(period));
         }
 
-        if tokio_10::runtime::Handle::try_current().is_ok() {
-            let interval = tokio_10::time::interval(period);
-            let stream = tokio_10_stream::wrappers::IntervalStream::new(interval);
-            return IntervalStream::Tokio10(stream);
+        if tokio_1x::runtime::Handle::try_current().is_ok() {
+            let interval = tokio_1x::time::interval(period);
+            let stream = tokio_1x_stream::wrappers::IntervalStream::new(interval);
+            return IntervalStream::Tokio1x(stream);
         }
 
         // This is what tokio::time::interval_at would do.
-        panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
     }
 }
 
@@ -232,7 +232,7 @@ pub mod runtime {
     #[derive(Debug, Clone)]
     pub enum Handle {
         Tokio02(tokio_02::runtime::Handle),
-        Tokio10(tokio_10::runtime::Handle),
+        Tokio1x(tokio_1x::runtime::Handle),
     }
 
     impl Handle {
@@ -241,11 +241,11 @@ pub mod runtime {
                 return Self::Tokio02(hdl);
             }
 
-            if let Ok(hdl) = tokio_10::runtime::Handle::try_current() {
-                return Self::Tokio10(hdl);
+            if let Ok(hdl) = tokio_1x::runtime::Handle::try_current() {
+                return Self::Tokio1x(hdl);
             }
 
-            panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+            panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
         }
 
         pub fn spawn<F>(&self, fut: F) -> JoinHandle<<F as Future>::Output>
@@ -255,7 +255,7 @@ pub mod runtime {
         {
             match self {
                 Self::Tokio02(hdl) => JoinHandle::Tokio02(hdl.spawn(fut)),
-                Self::Tokio10(hdl) => JoinHandle::Tokio10(hdl.spawn(fut)),
+                Self::Tokio1x(hdl) => JoinHandle::Tokio1x(hdl.spawn(fut)),
             }
         }
     }
@@ -301,8 +301,8 @@ mod test {
     }
 
     #[test]
-    fn test_10() -> Result<(), anyhow::Error> {
-        let rt = tokio_10::runtime::Builder::new_current_thread()
+    fn test_1x() -> Result<(), anyhow::Error> {
+        let rt = tokio_1x::runtime::Builder::new_current_thread()
             .enable_all()
             .build()?;
 
@@ -331,8 +331,8 @@ mod test {
 
     #[test]
     #[should_panic]
-    fn test_panic_forwarding_10() {
-        let rt = tokio_10::runtime::Builder::new_current_thread()
+    fn test_panic_forwarding_1x() {
+        let rt = tokio_1x::runtime::Builder::new_current_thread()
             .enable_all()
             .build()
             .unwrap();
