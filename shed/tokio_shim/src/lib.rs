@@ -224,6 +224,43 @@ pub mod time {
     }
 }
 
+pub mod runtime {
+    use super::*;
+
+    use task::JoinHandle;
+
+    #[derive(Debug, Clone)]
+    pub enum Handle {
+        Tokio02(tokio_02::runtime::Handle),
+        Tokio10(tokio_10::runtime::Handle),
+    }
+
+    impl Handle {
+        pub fn current() -> Self {
+            if let Ok(hdl) = tokio_02::runtime::Handle::try_current() {
+                return Self::Tokio02(hdl);
+            }
+
+            if let Ok(hdl) = tokio_10::runtime::Handle::try_current() {
+                return Self::Tokio10(hdl);
+            }
+
+            panic!("A Tokio 0.2 or 1.0 runtime is required, but neither was running");
+        }
+
+        pub fn spawn<F>(&self, fut: F) -> JoinHandle<<F as Future>::Output>
+        where
+            F: Future + Send + 'static,
+            F::Output: Send + 'static,
+        {
+            match self {
+                Self::Tokio02(hdl) => JoinHandle::Tokio02(hdl.spawn(fut)),
+                Self::Tokio10(hdl) => JoinHandle::Tokio10(hdl.spawn(fut)),
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -244,6 +281,11 @@ mod test {
                 .await
                 .is_err()
         );
+
+        runtime::Handle::current()
+            .spawn(future::ready(()))
+            .await
+            .unwrap();
     }
 
     #[test]
