@@ -8,11 +8,14 @@
  */
 
 use anyhow::Result;
+use fbthrift::deserialize::Deserialize;
+use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
 use serde::de::DeserializeOwned;
 use slog::{info, warn, Logger};
 use std::{
     collections::HashMap,
     fmt,
+    io::Cursor,
     path::PathBuf,
     sync::{Arc, Condvar, Mutex, Weak},
     thread,
@@ -88,9 +91,13 @@ impl ConfigStore {
         )
     }
 
+    /// NOTE - this method uses json deserialization, but this is incorrect for configerator
+    /// configs. For configerator configs thrift simple_json serialization should be used
+    /// consider using `get_config_handle()` method below.
     /// Fetch a self-updating config handle for the config at `path`.
     /// See `ConfigHandle` for uses of this handle.
-    pub fn get_config_handle<T>(&self, path: String) -> Result<ConfigHandle<T>>
+    #[allow(non_snake_case)]
+    pub fn get_config_handle_DEPRECATED<T>(&self, path: String) -> Result<ConfigHandle<T>>
     where
         T: Send + Sync + DeserializeOwned + 'static,
     {
@@ -99,6 +106,23 @@ impl ConfigStore {
             Ok(v)
         }
         self.get_config_handle_with_deserializer(path, deserialize_json)
+    }
+
+    /// Fetch a self-updating config handle for the config at `path`.
+    /// See `ConfigHandle` for uses of this handle.
+    pub fn get_config_handle<T>(&self, path: String) -> Result<ConfigHandle<T>>
+    where
+        for<'a> T:
+            Send + Sync + Deserialize<SimpleJsonProtocolDeserializer<Cursor<&'a [u8]>>> + 'static,
+    {
+        fn deserialize_thrift_simple_json<T>(s: String) -> Result<T>
+        where
+            for<'a> T: Deserialize<SimpleJsonProtocolDeserializer<Cursor<&'a [u8]>>>,
+        {
+            let v = fbthrift::simplejson_protocol::deserialize(s.as_bytes())?;
+            Ok(v)
+        }
+        self.get_config_handle_with_deserializer(path, deserialize_thrift_simple_json)
     }
 
     /// Fetch a self-updating config handle for the config at `path`, as a raw, non-deserialized

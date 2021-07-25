@@ -19,7 +19,7 @@ struct TestConfig {
 }
 
 fn get_test_handle(store: &ConfigStore, path: &str) -> Result<ConfigHandle<TestConfig>> {
-    store.get_config_handle(path.to_owned())
+    store.get_config_handle_DEPRECATED(path.to_owned())
 }
 
 #[test]
