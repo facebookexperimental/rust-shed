@@ -43,6 +43,7 @@ pub mod task {
     pub enum JoinHandle<T> {
         Tokio02(#[pin] tokio_02::task::JoinHandle<T>),
         Tokio1x(#[pin] tokio_1x::task::JoinHandle<T>),
+        Fallback(Option<T>),
     }
 
     impl<T> Future for JoinHandle<T>
@@ -55,6 +56,7 @@ pub mod task {
             let ret = match self.project() {
                 JoinHandleProj::Tokio02(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
                 JoinHandleProj::Tokio1x(f) => ready!(f.poll(cx)).map_err(JoinHandleError::from),
+                JoinHandleProj::Fallback(value) => return Poll::Ready(Ok(value.take().unwrap())),
             };
 
             Poll::Ready(ret)
@@ -93,6 +95,29 @@ pub mod task {
 
         // This is what tokio::spawn_blocking would give you, so we don't try to do better here.
         panic!("A Tokio 0.2 or 1.x runtime is required, but neither was running");
+    }
+
+    /// Like `spawn_blocking`, but if there is no tokio runtime, just runs the code inline.
+    /// This prints a warning, as this is NOT desireable and can cause performance problems
+    pub fn spawn_blocking_fallback_inline<F, R>(f: F) -> JoinHandle<R>
+    where
+        F: FnOnce() -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        if let Ok(handle) = tokio_02::runtime::Handle::try_current() {
+            return JoinHandle::Tokio02(handle.spawn_blocking(f));
+        }
+
+        if let Ok(handle) = tokio_1x::runtime::Handle::try_current() {
+            return JoinHandle::Tokio1x(handle.spawn_blocking(f));
+        }
+
+        use std::io::Write;
+        let _ = writeln!(
+            std::io::stderr(),
+            "Falling back to running blocking code inline. Please use a tokio runtime instead!!"
+        );
+        JoinHandle::Fallback(Some(f()))
     }
 }
 
@@ -345,5 +370,13 @@ mod test {
             .unwrap_err();
             std::panic::resume_unwind(je.into_panic())
         });
+    }
+
+    #[test]
+    fn test_fallback() {
+        // No tokio running
+        assert!(
+            futures::executor::block_on(task::spawn_blocking_fallback_inline(|| true)).unwrap()
+        );
     }
 }
