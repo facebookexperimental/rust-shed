@@ -11,6 +11,7 @@ use futures::{future::Future, ready, stream::Stream};
 use pin_project::pin_project;
 use std::any::Any;
 use std::pin::Pin;
+use std::sync::Once;
 use std::task::{Context, Poll};
 use std::time::{Duration, Instant};
 use thiserror::Error;
@@ -112,11 +113,15 @@ pub mod task {
             return JoinHandle::Tokio1x(handle.spawn_blocking(f));
         }
 
-        use std::io::Write;
-        let _ = writeln!(
-            std::io::stderr(),
-            "Falling back to running blocking code inline. Please use a tokio runtime instead!!"
-        );
+        static WARN: Once = Once::new();
+        WARN.call_once(|| {
+            use std::io::Write;
+            let _ = writeln!(
+                std::io::stderr(),
+                "Falling back to running blocking code inline. Please use a tokio runtime instead!!"
+            );
+        });
+
         JoinHandle::Fallback(Some(f()))
     }
 }
@@ -375,6 +380,10 @@ mod test {
     #[test]
     fn test_fallback() {
         // No tokio running
+        assert!(
+            futures::executor::block_on(task::spawn_blocking_fallback_inline(|| true)).unwrap()
+        );
+        // Second time still works, even though it doesn't write to stderr.
         assert!(
             futures::executor::block_on(task::spawn_blocking_fallback_inline(|| true)).unwrap()
         );
