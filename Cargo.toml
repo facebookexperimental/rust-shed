@@ -36,6 +36,7 @@ members = [
   "shed/futures_ext",
   "shed/futures_stats",
   "shed/hash_memo",
+  "shed/hostcaps",
   "shed/hostname",
   "shed/limited_async_read",
   "shed/lock_ext",
