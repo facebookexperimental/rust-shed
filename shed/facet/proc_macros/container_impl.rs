@@ -358,7 +358,21 @@ fn gen_attr_impls(
                     }
                 }
 
+                impl ::#facet_crate::FacetRef<#delegate_facet> for &#container_name {
+                    #[inline]
+                    fn facet_ref(&self) -> &(#delegate_facet) {
+                        self.#delegate_ident.facet_ref()
+                    }
+                }
+
                 impl ::#facet_crate::FacetArc<#delegate_facet> for #container_name {
+                    #[inline]
+                    fn facet_arc(&self) -> ::std::sync::Arc<#delegate_facet> {
+                        self.#delegate_ident.facet_arc()
+                    }
+                }
+
+                impl ::#facet_crate::FacetArc<#delegate_facet> for &#container_name {
                     #[inline]
                     fn facet_arc(&self) -> ::std::sync::Arc<#delegate_facet> {
                         self.#delegate_ident.facet_arc()
