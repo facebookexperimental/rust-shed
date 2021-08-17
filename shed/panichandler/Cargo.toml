@@ -38,7 +38,7 @@ path = "test/testrunner.rs"
 
 [dependencies]
 backtrace = "0.3"
-libc = "0.2.86"
+libc = "0.2.98"
 
 [dev-dependencies]
 anyhow = "1.0"
