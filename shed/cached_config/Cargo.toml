@@ -16,7 +16,7 @@ fbinit = { version = "0.1.0", path = "../fbinit" }
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "master" }
 serde = { version = "1.0.126", features = ["derive", "rc"] }
 serde_json = { version = "1.0", features = ["float_roundtrip"] }
-slog = { version = "2.5", features = ["max_level_trace"] }
+slog = { version = "2.5", features = ["max_level_trace", "nested-values"] }
 
 [dev-dependencies]
 serde_derive = "1.0"
