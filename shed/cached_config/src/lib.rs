@@ -30,6 +30,8 @@ pub use store::ConfigStore;
 pub use test_source::TestSource;
 
 use anyhow::Result;
+use bytes::Bytes;
+use chrono::NaiveDateTime;
 use std::fmt::Debug;
 
 /// Trait to be implemented by sources of configuration that the `ConfigStore`
@@ -46,10 +48,21 @@ pub trait Source: Debug {
 #[derive(Clone, Debug)]
 pub struct Entity {
     /// Content of the config
-    pub contents: String,
+    pub contents: Option<Bytes>,
     /// Modification time of the config, e.g. file modification time
-    pub mod_time: u64,
+    pub mod_time: ModificationTime,
     /// Optional version of the config, together with mod_time it is used to
     /// decide if the config has changed or not
-    pub version: Option<String>,
+    pub version: String,
+}
+
+/// Represents the last modification time of the given config.
+#[derive(Clone, PartialEq, Debug)]
+pub enum ModificationTime {
+    /// In some cases, the last modification time is not possible to determine.
+    Unset,
+    /// Number of non-leap seconds since January 1, 1970 0:00:00 UTC.
+    UnixTimestamp(u64),
+    /// ISO 8601 time without timezone.
+    DateTime(NaiveDateTime),
 }

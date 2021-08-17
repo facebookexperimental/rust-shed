@@ -11,7 +11,7 @@ use anyhow::Result;
 use serde_derive::Deserialize;
 use std::{sync::Arc, thread, time::Duration};
 
-use crate::{ConfigHandle, ConfigStore, TestSource};
+use crate::{ConfigHandle, ConfigStore, ModificationTime, TestSource};
 
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 struct TestConfig {
@@ -26,8 +26,16 @@ fn get_test_handle(store: &ConfigStore, path: &str) -> Result<ConfigHandle<TestC
 fn test_config_store() {
     let test_source = {
         let test_source = TestSource::new();
-        test_source.insert_config("some1", r#"{ "value": 1 }"#, 1);
-        test_source.insert_config("some2", r#"{ "value": 2 }"#, 1);
+        test_source.insert_config(
+            "some1",
+            r#"{ "value": 1 }"#,
+            ModificationTime::UnixTimestamp(1),
+        );
+        test_source.insert_config(
+            "some2",
+            r#"{ "value": 2 }"#,
+            ModificationTime::UnixTimestamp(1),
+        );
         Arc::new(test_source)
     };
 
@@ -43,9 +51,21 @@ fn test_config_store() {
         "some4 should have not exist"
     );
 
-    test_source.insert_config("some1", r#"{ "value": 11 }"#, 1);
-    test_source.insert_config("some2", r#"{ "value": 22 }"#, 2);
-    test_source.insert_config("some4", r#"{ "value": 4 }"#, 1);
+    test_source.insert_config(
+        "some1",
+        r#"{ "value": 11 }"#,
+        ModificationTime::UnixTimestamp(1),
+    );
+    test_source.insert_config(
+        "some2",
+        r#"{ "value": 22 }"#,
+        ModificationTime::UnixTimestamp(2),
+    );
+    test_source.insert_config(
+        "some4",
+        r#"{ "value": 4 }"#,
+        ModificationTime::UnixTimestamp(1),
+    );
 
     let handle1_v2 = get_test_handle(&store, "some1").expect("Failed to get handle1_v2");
     let handle2_v2 = get_test_handle(&store, "some2").expect("Failed to get handle2_v2");

@@ -8,9 +8,10 @@
  */
 
 use anyhow::Result;
+use bytes::Bytes;
 use std::{fs, path::PathBuf, time::SystemTime};
 
-use crate::{Entity, Source};
+use crate::{Entity, ModificationTime, Source};
 
 #[derive(Debug)]
 pub(crate) struct FileSource {
@@ -38,7 +39,7 @@ impl Source for FileSource {
         };
 
         let contents = fs::read_to_string(&path)?;
-        let version = Some(contents.clone());
+        let version = contents.clone();
 
         let mod_time = fs::metadata(path)?
             .modified()?
@@ -46,8 +47,8 @@ impl Source for FileSource {
             .as_secs();
 
         Ok(Entity {
-            contents,
-            mod_time,
+            contents: Some(Bytes::from(contents)),
+            mod_time: ModificationTime::UnixTimestamp(mod_time),
             version,
         })
     }

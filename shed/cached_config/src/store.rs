@@ -8,6 +8,7 @@
  */
 
 use anyhow::Result;
+use bytes::Bytes;
 use fbthrift::deserialize::Deserialize;
 use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
 use serde::de::DeserializeOwned;
@@ -17,6 +18,7 @@ use std::{
     fmt,
     io::Cursor,
     path::PathBuf,
+    str,
     sync::{Arc, Condvar, Mutex, Weak},
     thread,
     time::Duration,
@@ -101,8 +103,8 @@ impl ConfigStore {
     where
         T: Send + Sync + DeserializeOwned + 'static,
     {
-        fn deserialize_json<T: DeserializeOwned>(s: String) -> Result<T> {
-            let v = serde_json::from_str(&s)?;
+        fn deserialize_json<T: DeserializeOwned>(s: Bytes) -> Result<T> {
+            let v = serde_json::from_slice(&s)?;
             Ok(v)
         }
         self.get_config_handle_with_deserializer(path, deserialize_json)
@@ -115,11 +117,11 @@ impl ConfigStore {
         for<'a> T:
             Send + Sync + Deserialize<SimpleJsonProtocolDeserializer<Cursor<&'a [u8]>>> + 'static,
     {
-        fn deserialize_thrift_simple_json<T>(s: String) -> Result<T>
+        fn deserialize_thrift_simple_json<T>(s: Bytes) -> Result<T>
         where
             for<'a> T: Deserialize<SimpleJsonProtocolDeserializer<Cursor<&'a [u8]>>>,
         {
-            let v = fbthrift::simplejson_protocol::deserialize(s.as_bytes())?;
+            let v = fbthrift::simplejson_protocol::deserialize(s.as_ref())?;
             Ok(v)
         }
         self.get_config_handle_with_deserializer(path, deserialize_thrift_simple_json)
@@ -131,8 +133,9 @@ impl ConfigStore {
     /// said, if you need to pass the config through to something else, this is the method you
     /// want.
     pub fn get_raw_config_handle(&self, path: String) -> Result<ConfigHandle<String>> {
-        fn deserialize_raw(s: String) -> Result<String> {
-            Ok(s)
+        fn deserialize_raw(s: Bytes) -> Result<String> {
+            let s = str::from_utf8(&s)?;
+            Ok(s.to_owned())
         }
         self.get_config_handle_with_deserializer(path, deserialize_raw)
     }
@@ -146,7 +149,7 @@ impl ConfigStore {
     fn get_config_handle_with_deserializer<T>(
         &self,
         path: String,
-        deserializer: fn(String) -> Result<T>,
+        deserializer: fn(Bytes) -> Result<T>,
     ) -> Result<ConfigHandle<T>>
     where
         T: Send + Sync + 'static,
@@ -241,14 +244,14 @@ impl fmt::Debug for ConfigStore {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::TestSource;
+    use crate::{ModificationTime, TestSource};
     use anyhow::Error;
     use std::time::Instant;
 
     #[test]
     fn test_contention() -> Result<(), Error> {
         let source = TestSource::new();
-        source.insert_config("foo", "bar", 0);
+        source.insert_config("foo", "bar", ModificationTime::UnixTimestamp(0));
 
         let store = ConfigStore::new(Arc::new(source), Some(Duration::from_millis(100)), None);
 

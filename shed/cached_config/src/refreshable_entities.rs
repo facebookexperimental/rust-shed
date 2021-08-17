@@ -8,9 +8,10 @@
  */
 
 use anyhow::Result;
+use bytes::Bytes;
 use std::sync::{Arc, RwLock};
 
-use crate::Entity;
+use crate::{Entity, ModificationTime};
 
 // Type-erasure trick. I don't actually care about T for RegisteredConfigEntity,
 /// so hide it via a trait object
@@ -23,12 +24,12 @@ pub(crate) trait Refreshable {
 pub(crate) struct RegisteredConfigEntity<T> {
     contents: RwLock<CachedConfigEntity<T>>,
     path: String,
-    deserializer: fn(String) -> Result<T>,
+    deserializer: fn(Bytes) -> Result<T>,
 }
 
 struct CachedConfigEntity<T> {
-    mod_time: u64,
-    version: Option<String>,
+    mod_time: ModificationTime,
+    version: String,
     contents: Arc<T>,
 }
 
@@ -39,7 +40,7 @@ where
     pub(crate) fn new(
         path: String,
         entity: Entity,
-        deserializer: fn(String) -> Result<T>,
+        deserializer: fn(Bytes) -> Result<T>,
     ) -> Result<Self> {
         let Entity {
             mod_time,
@@ -51,7 +52,7 @@ where
             contents: RwLock::new(CachedConfigEntity {
                 mod_time,
                 version,
-                contents: Arc::new(deserializer(contents)?),
+                contents: Arc::new(deserializer(contents.unwrap_or_else(Bytes::new))?),
             }),
             path,
             deserializer,
@@ -82,7 +83,9 @@ where
         };
 
         if has_changed {
-            let contents = Arc::new((self.deserializer)(entity.contents)?);
+            let contents = Arc::new((self.deserializer)(
+                entity.contents.unwrap_or_else(Bytes::new),
+            )?);
             {
                 let mut locked = self.contents.write().expect("lock poisoned");
                 *locked = CachedConfigEntity {

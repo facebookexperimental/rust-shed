@@ -8,12 +8,13 @@
  */
 
 use anyhow::{anyhow, Result};
+use bytes::Bytes;
 use std::{
     collections::{HashMap, HashSet},
     sync::{Arc, Mutex},
 };
 
-use crate::{Entity, Source};
+use crate::{Entity, ModificationTime, Source};
 
 /// In-memory version of config source. Useful for testing
 #[derive(Debug)]
@@ -48,14 +49,14 @@ impl TestSource {
     }
 
     /// Insert config value into the `TestSource`, overwriting existing one
-    pub fn insert_config(&self, key: &str, contents: &str, mod_time: u64) {
+    pub fn insert_config(&self, key: &str, contents: &str, mod_time: ModificationTime) {
         let mut map = self.path_to_config.lock().expect("poisoned lock");
         map.insert(
             key.to_owned(),
             Entity {
-                contents: contents.to_owned(),
+                contents: Some(Bytes::copy_from_slice(contents.as_bytes())),
                 mod_time,
-                version: None,
+                version: String::new(),
             },
         );
     }
