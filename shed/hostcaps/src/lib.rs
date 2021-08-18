@@ -7,10 +7,15 @@
  * of this source tree.
  */
 
+use lazy_static::lazy_static;
 #[cfg(any(fbcode_build, feature = "fb"))]
 mod facebook;
 #[cfg(any(fbcode_build, feature = "fb"))]
 pub use facebook::is_prod;
+
+lazy_static! {
+    pub static ref IN_PROD: bool = is_prod();
+}
 
 #[cfg(not(any(fbcode_build, feature = "fb")))]
 pub fn is_prod() -> bool {
