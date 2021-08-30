@@ -12,4 +12,4 @@ path = "lib.rs"
 
 [dependencies]
 futures = { version = "0.3.13", features = ["async-await", "compat"] }
-tokio = { version = "1.7.1", features = ["full", "test-util"] }
+tokio = { version = "1.10", features = ["full", "test-util"] }
