@@ -1,14 +1,15 @@
 [package]
-name = "fbthrift_tcp"
+name = "fbthrift_socket-02"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2018"
-description = "fbthrift extensions for tcp transport"
-readme = "../../../README.md"
+description = "fbthrift extensions for socket transport"
+readme = "../../../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [lib]
+name = "fbthrift_socket"
 path = "lib.rs"
 
 [dependencies]
@@ -16,10 +17,11 @@ anyhow = "1.0"
 bytes = { version = "1.0", features = ["serde"] }
 const-cstr = "0.3.0"
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "master" }
-fbthrift_framed = { version = "0.1.0", path = "../framed" }
-fbthrift_util = { version = "0.1.0", path = "../util" }
+fbthrift_framed-02 = { version = "0.1.0", path = "../framed" }
+fbthrift_util-02 = { version = "0.1.0", path = "../util" }
 futures = { version = "0.3.13", features = ["async-await", "compat"] }
 tokio = { version = "0.2.25", features = ["full", "test-util"] }
 tokio-tower = "0.4"
+tokio-uds-compat = { version = "0.1.0", path = "../../../tokio-uds-compat" }
 tokio-util = { version = "0.3", features = ["codec", "udp"] }
 tower-service = "0.3"
