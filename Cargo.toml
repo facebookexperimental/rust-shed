@@ -66,6 +66,6 @@ members = [
   "shed/stats/traits",
   "shed/thrift_compiler",
   "shed/time_ext",
-  "shed/tokio-uds-compat",
+  "shed/tokio-uds-compat/tokio-uds-compat-02",
   "shed/tokio_shim",
 ]
