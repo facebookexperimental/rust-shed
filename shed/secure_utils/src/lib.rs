@@ -12,7 +12,7 @@
 #![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 #[cfg(fbcode_build)]
-mod facebook;
+pub mod facebook;
 #[cfg(not(fbcode_build))]
 mod oss;
 
