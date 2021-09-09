@@ -27,7 +27,7 @@ mysql_async = "0.23"
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.23", features = ["blob"] }
 stats = { version = "0.1.0", path = "../../stats" }
-thiserror = "1.0"
+thiserror = "1.0.29"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
 tokio_shim = { version = "0.1.0", path = "../../tokio_shim" }
 
