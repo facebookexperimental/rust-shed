@@ -40,14 +40,17 @@ mod windows {
             cx: &mut std::task::Context<'_>,
             buf: &mut ReadBuf<'_>,
         ) -> std::task::Poll<Result<(), io::Error>> {
-            let b = unsafe {
-                &mut *(buf.unfilled_mut() as *mut [std::mem::MaybeUninit<u8>] as *mut [u8])
-            };
-            let res = futures::AsyncRead::poll_read(self.inner_mut(), cx, b);
-            match res {
-                std::task::Poll::Pending => std::task::Poll::Pending,
-                std::task::Poll::Ready(Ok(_)) => std::task::Poll::Ready(Ok(())),
+            let result =
+                futures::AsyncRead::poll_read(self.inner_mut(), cx, buf.initialize_unfilled());
+
+            match result {
+                std::task::Poll::Ready(Ok(written)) => {
+                    tracing::trace!(?written, "UnixStream::poll_read");
+                    buf.set_filled(written);
+                    std::task::Poll::Ready(Ok(()))
+                }
                 std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(e)),
+                std::task::Poll::Pending => std::task::Poll::Pending,
             }
         }
     }
