@@ -16,7 +16,7 @@
 
 use std::env;
 use std::ffi::{OsStr, OsString};
-use std::fs::{create_dir_all, read_to_string, write};
+use std::fs::{copy, create_dir_all, read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -29,6 +29,7 @@ pub struct Config {
     base_path: Option<PathBuf>,
     crate_map: Option<PathBuf>,
     options: Option<String>,
+    include_srcs: Vec<String>,
 }
 
 impl Config {
@@ -40,6 +41,7 @@ impl Config {
             base_path: None,
             crate_map: None,
             options: None,
+            include_srcs: vec![],
         }
     }
 
@@ -89,11 +91,24 @@ impl Config {
         self
     }
 
+    /// Set extra srcs to be available in the generated crate.
+    pub fn include_srcs(&mut self, value: Vec<String>) -> &mut Self {
+        self.include_srcs = value;
+        self
+    }
+
     /// Run the compiler on the input files. As a result a `lib.rs` file will
     /// be generated inside the output dir.
     pub fn run(&self, input_files: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<()> {
         let input = name_and_path_from_input(input_files)?;
         create_dir_all(&self.out_dir)?;
+
+        for include_src in &self.include_srcs {
+            let from = PathBuf::from(include_src);
+            let mut to = self.out_dir.clone();
+            to.push(&from);
+            copy(&from, &to)?;
+        }
 
         if input.len() == 1 {
             self.run_compiler(&self.out_dir, input.into_iter().next().unwrap().1)?;
@@ -137,6 +152,9 @@ impl Config {
             }
             if let Some(options) = &self.options {
                 args.push(options.to_owned());
+            }
+            if !self.include_srcs.is_empty() {
+                args.push(format!("include_srcs={}", self.include_srcs.join(":")));
             }
             if args.is_empty() {
                 "".to_owned()
