@@ -25,7 +25,7 @@ futures_stats = { version = "0.1.0", path = "../../futures_stats" }
 lazy_static = "1.0"
 mysql_async = "0.23"
 mysql_derive = { version = "0.1.0", path = "../derive" }
-rusqlite = { version = "0.23", features = ["blob"] }
+rusqlite = { version = "0.23", features = ["backup", "blob"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "1.0.29"
 time_ext = { version = "0.1.0", path = "../../time_ext" }

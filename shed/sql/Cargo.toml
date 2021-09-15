@@ -17,7 +17,7 @@ futures = { version = "0.3.13", features = ["async-await", "compat"] }
 futures-util = "0.3.7"
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
 mysql_async = "0.23"
-rusqlite = { version = "0.23", features = ["blob"] }
+rusqlite = { version = "0.23", features = ["backup", "blob"] }
 sql_common = { version = "0.1.0", path = "common" }
 
 [dev-dependencies]
