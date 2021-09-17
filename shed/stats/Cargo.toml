@@ -19,4 +19,4 @@ stats_traits = { version = "0.1.0", path = "traits" }
 tokio_shim = { version = "0.1.0", path = "../tokio_shim" }
 
 [dev-dependencies]
-tokio = { version = "1.10", features = ["full", "test-util"] }
+tokio = { version = "1.10", features = ["full", "test-util", "tracing"] }

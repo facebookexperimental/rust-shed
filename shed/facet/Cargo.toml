@@ -45,4 +45,4 @@ futures = { version = "0.3.13", features = ["async-await", "compat"] }
 thiserror = "1.0.29"
 
 [dev-dependencies]
-tokio = { version = "1.10", features = ["full", "test-util"] }
+tokio = { version = "1.10", features = ["full", "test-util", "tracing"] }
