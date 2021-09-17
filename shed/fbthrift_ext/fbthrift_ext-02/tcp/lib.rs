@@ -43,13 +43,10 @@ impl TcpTransport {
 impl Framing for TcpTransport {
     type EncBuf = BytesMut;
     type DecBuf = Cursor<Bytes>;
-    type Meta = ();
 
     fn enc_with_capacity(cap: usize) -> Self::EncBuf {
         BytesMut::with_capacity(cap)
     }
-
-    fn get_meta(&self) {}
 }
 
 impl Transport for TcpTransport {
