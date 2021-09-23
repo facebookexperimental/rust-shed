@@ -25,4 +25,4 @@ itertools = "0.10.1"
 quickcheck = "0.9"
 
 [dev-dependencies]
-minibench = { version = "0.1.0", git = "https://github.com/facebookexperimental/eden.git", branch = "master" }
+minibench = { version = "0.1.0", git = "https://github.com/facebookexperimental/eden.git", branch = "main" }
