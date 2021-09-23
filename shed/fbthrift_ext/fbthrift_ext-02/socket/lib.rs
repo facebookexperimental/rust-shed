@@ -13,6 +13,7 @@ use fbthrift::{Framing, FramingDecoded, FramingEncodedFinal, Transport};
 use fbthrift_framed::FramedTransport;
 use fbthrift_util::poll_with_lock;
 use futures::future::FutureExt;
+use std::ffi::CStr;
 use std::future::Future;
 use std::io::Cursor;
 use std::pin::Pin;
@@ -52,8 +53,8 @@ impl Framing for SocketTransport {
 impl Transport for SocketTransport {
     fn call(
         &self,
-        _service_name: const_cstr::ConstCStr,
-        _fn_name: const_cstr::ConstCStr,
+        _service_name: &'static CStr,
+        _fn_name: &'static CStr,
         req: FramingEncodedFinal<Self>,
     ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
         let svc = self.service.clone();
