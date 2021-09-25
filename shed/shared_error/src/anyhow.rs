@@ -8,6 +8,8 @@
  */
 
 use anyhow::Error;
+use std::error::Error as StdError;
+use std::ops::Deref;
 use std::sync::Arc;
 use thiserror::Error;
 
@@ -66,6 +68,11 @@ impl SharedError {
     pub fn inner(&self) -> &Error {
         &self.error
     }
+
+    /// Creates a new arced error
+    pub fn new_arcederror(error: Arc<anyhow::Error>) -> Self {
+        Self { error }
+    }
 }
 
 /// Trait to convert std and anyhow Errors into SharedError.
@@ -88,11 +95,25 @@ impl<T, E: Into<Error>> IntoSharedError<Result<T, SharedError>> for Result<T, E>
     }
 }
 
+impl slog::KV for SharedError {
+    fn serialize(
+        &self,
+        _record: &slog::Record<'_>,
+        serializer: &mut dyn slog::Serializer,
+    ) -> slog::Result {
+        serializer.emit_str("error", &format!("{}", self))?;
+        serializer.emit_str("error_debug", &format!("{:#?}", self))?;
+
+        let err = self.deref() as &dyn StdError;
+        serializer.emit_str("root_cause", &format!("{}", err))?;
+
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    use std::error::Error as _;
 
     #[derive(Debug, Error)]
     enum TestError {

@@ -8,7 +8,6 @@
  */
 
 //! Provided SharedError wrapper for cloneable Error.
-
 #![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
 
 /// Module containing SharedError that works well with anyhow::Error.
