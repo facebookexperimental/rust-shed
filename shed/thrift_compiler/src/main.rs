@@ -8,7 +8,6 @@
  */
 
 use std::env;
-use std::ffi::OsStr;
 use std::path::PathBuf;
 
 use anyhow::Result;
@@ -25,10 +24,6 @@ fn main() -> Result<()> {
         (@arg input: +required +takes_value ... "Paths to .thrift files")
     ).get_matches();
 
-    let thrift = matches
-        .value_of_os("thrift")
-        .unwrap_or_else(|| OsStr::new("thrift1"))
-        .to_owned();
     let out = matches
         .value_of_os("out")
         .map(PathBuf::from)
@@ -38,7 +33,7 @@ fn main() -> Result<()> {
     let compiler = if matches.is_present("use_env") {
         Config::from_env()?
     } else {
-        Config::new(thrift, out)
+        Config::new(None, out)
     };
     compiler.run(input)
 }

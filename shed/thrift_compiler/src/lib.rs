@@ -14,8 +14,9 @@
 //! [Cargo's build script](https://doc.rust-lang.org/cargo/reference/build-scripts.html)
 //! where it might be invoked to generate rust code from thrift files.
 
+use std::borrow::Cow;
 use std::env;
-use std::ffi::{OsStr, OsString};
+use std::ffi::OsString;
 use std::fs::{copy, create_dir_all, read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -24,7 +25,7 @@ use anyhow::{anyhow, ensure, Context, Result};
 
 /// Builder for thrift compilare wrapper
 pub struct Config {
-    thrift_bin: OsString,
+    thrift_bin: Option<OsString>,
     out_dir: PathBuf,
     base_path: Option<PathBuf>,
     crate_map: Option<PathBuf>,
@@ -34,7 +35,7 @@ pub struct Config {
 
 impl Config {
     /// Return a new configuration with the required parameters set
-    pub fn new(thrift_bin: OsString, out_dir: PathBuf) -> Self {
+    pub fn new(thrift_bin: Option<OsString>, out_dir: PathBuf) -> Self {
         Self {
             thrift_bin,
             out_dir,
@@ -45,13 +46,11 @@ impl Config {
         }
     }
 
-    /// Return a new configuration with parameters computed based on environment
-    /// variables set by Cargo's build scrip (OUT_DIR mostly). It requires that
-    /// either "thrift1" is an executable callable by Command (e.g. on unix it
-    /// means that it is in the PATH) or that the THRIFT environment variable
-    /// points to a thrift executable
+    /// Return a new configuration with parameters computed based on environment variables set by
+    /// Cargo's build scrip (OUT_DIR mostly). If THRIFT is in the environment, that will be used as
+    /// the Thrift binary. Otherwise, it will be detected in run_compiler.
     pub fn from_env() -> Result<Self> {
-        let thrift_bin = env::var_os("THRIFT").unwrap_or_else(|| OsStr::new("thrift1").to_owned());
+        let thrift_bin = env::var_os("THRIFT");
         let out_dir = PathBuf::from(
             env::var("OUT_DIR")
                 .with_context(|| anyhow!("The OUT_DIR environment variable must be set"))?,
@@ -67,8 +66,8 @@ impl Config {
         Ok(conf)
     }
 
-    /// Set the base path which is used by the compiler to find thrift files
-    /// included by input thrift files
+    /// Set the base path which is used by the compiler to find thrift files included by input
+    /// thrift files. This is also used to find the compiler.
     pub fn base_path(&mut self, value: impl Into<PathBuf>) -> &mut Self {
         self.base_path = Some(value.into());
         self
@@ -137,8 +136,25 @@ impl Config {
         Ok(())
     }
 
+    fn infer_thrift_binary(&self) -> OsString {
+        if let Some(base) = self.base_path.as_ref() {
+            let candidate = base.join("thrift/facebook/rpm/thrift1");
+            if Path::new(&candidate).exists() {
+                return candidate.into_os_string();
+            }
+        }
+
+        "thrift1".into()
+    }
+
     fn run_compiler(&self, out: impl AsRef<Path>, input: impl AsRef<Path>) -> Result<String> {
-        let mut cmd = Command::new(&self.thrift_bin);
+        let thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
+            Cow::Borrowed(bin)
+        } else {
+            Cow::Owned(self.infer_thrift_binary())
+        };
+
+        let mut cmd = Command::new(thrift_bin.as_ref());
 
         let args = {
             let mut args = Vec::new();
@@ -172,7 +188,7 @@ impl Config {
         let output = cmd.output().with_context(|| {
             format!(
                 "Failed to run thrift compiler. Is '{}' executable?",
-                self.thrift_bin.to_string_lossy()
+                thrift_bin.to_string_lossy()
             )
         })?;
         ensure!(
