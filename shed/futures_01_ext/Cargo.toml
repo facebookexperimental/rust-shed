@@ -22,5 +22,5 @@ cloned = { version = "0.1.0", path = "../cloned" }
 lock_ext = { version = "0.1.0", path = "../lock_ext" }
 maplit = "1.0"
 pretty_assertions = "0.6"
-quickcheck = "0.9"
+quickcheck = "1.0"
 tokio = "0.1"

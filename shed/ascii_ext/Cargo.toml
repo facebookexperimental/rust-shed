@@ -12,5 +12,5 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 ascii = "1.0"
-quickcheck = "0.9"
-rand = { version = "0.7", features = ["small_rng"] }
+quickcheck = "1.0"
+rand = { version = "0.8", features = ["small_rng"] }

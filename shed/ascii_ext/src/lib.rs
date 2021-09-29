@@ -9,10 +9,9 @@
 
 //! Wrapper around ascii::AsciiChar and AsciiString to implement quickcheck::Arbitrary.
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 use quickcheck::{Arbitrary, Gen};
-use rand::{seq::SliceRandom, Rng};
 use std::{
     iter::{self, FromIterator},
     ops::Deref,
@@ -51,11 +50,8 @@ impl FromIterator<AsciiChar> for AsciiString {
 }
 
 impl Arbitrary for AsciiString {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let size = {
-            let s = g.size();
-            g.gen_range(0, s)
-        };
+    fn arbitrary(g: &mut Gen) -> Self {
+        let size = g.size();
         iter::repeat(())
             .map(|()| AsciiChar::arbitrary(g))
             .take(size)
@@ -91,18 +87,26 @@ impl From<ascii::AsciiChar> for AsciiChar {
     }
 }
 
+fn gen_ascii_in_range(g: &mut Gen, left: u8, right: u8) -> u8 {
+    assert!(left < right);
+
+    // Use u32 to ensure there's enough uniformity
+    let dice = u32::arbitrary(g) % ((right - left) as u32);
+    left + dice as u8
+}
+
 impl Arbitrary for AsciiChar {
-    fn arbitrary<G: Gen>(g: &mut G) -> Self {
-        let mode = g.gen_range(0, 100);
+    fn arbitrary(g: &mut Gen) -> Self {
+        let mode = u32::arbitrary(g) % 100;
         let ret = match mode {
             0..=14 => {
                 // Control characters
-                unsafe { ascii::AsciiChar::from_ascii_unchecked(g.gen_range(0u8, 0x1F)) }
+                unsafe { ascii::AsciiChar::from_ascii_unchecked(gen_ascii_in_range(g, 0u8, 0x1F)) }
             }
             15..=39 => {
                 // Characters often used in programming languages
                 use ascii::AsciiChar;
-                *[
+                *g.choose(&[
                     AsciiChar::Space,
                     AsciiChar::Tab,
                     AsciiChar::LineFeed,
@@ -148,13 +152,12 @@ impl Arbitrary for AsciiChar {
                     AsciiChar::_7,
                     AsciiChar::_8,
                     AsciiChar::_9,
-                ]
-                .choose(g)
+                ])
                 .unwrap()
             }
             40..=99 => {
                 // Completely arbitrary characters
-                unsafe { ascii::AsciiChar::from_ascii_unchecked(g.gen_range(0u8, 0x80)) }
+                unsafe { ascii::AsciiChar::from_ascii_unchecked(gen_ascii_in_range(g, 0u8, 0x80)) }
             }
             _ => unreachable!(),
         };

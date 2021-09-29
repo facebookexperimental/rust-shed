@@ -17,4 +17,4 @@ thiserror = "1.0.29"
 tokio-util = { version = "0.6", features = ["full"] }
 
 [dev-dependencies]
-quickcheck = "0.9"
+quickcheck = "1.0"

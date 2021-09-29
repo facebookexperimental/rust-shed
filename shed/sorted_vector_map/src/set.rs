@@ -746,7 +746,7 @@ impl<T> Arbitrary for SortedVectorSet<T>
 where
     T: Arbitrary + Ord,
 {
-    fn arbitrary<G: Gen>(g: &mut G) -> SortedVectorSet<T> {
+    fn arbitrary(g: &mut Gen) -> SortedVectorSet<T> {
         let vec: Vec<T> = Arbitrary::arbitrary(g);
         vec.into_iter().collect()
     }

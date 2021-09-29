@@ -20,7 +20,7 @@ path = "test/fbinit_test.rs"
 
 [dependencies]
 macros = { version = "0.1.0", path = "macros" }
-quickcheck = "0.9"
+quickcheck = "1.0"
 
 [dev-dependencies]
 fbinit-tokio-02 = { version = "0.1.0", path = "fbinit-tokio-02" }

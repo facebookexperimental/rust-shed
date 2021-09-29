@@ -926,7 +926,7 @@ where
     K: Arbitrary + Ord,
     V: Arbitrary,
 {
-    fn arbitrary<G: Gen>(g: &mut G) -> SortedVectorMap<K, V> {
+    fn arbitrary(g: &mut Gen) -> SortedVectorMap<K, V> {
         let vec: Vec<(K, V)> = Arbitrary::arbitrary(g);
         vec.into_iter().collect()
     }

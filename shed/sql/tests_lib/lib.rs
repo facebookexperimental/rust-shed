@@ -108,7 +108,11 @@ queries! {
 
 pub async fn test_basic_query(conn: Connection) -> Result<(), Error> {
     let rng = thread_rng();
-    let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
+    let test: String = rng
+        .sample_iter(Alphanumeric)
+        .take(64)
+        .map(char::from)
+        .collect();
 
     TestQuery11::query(&conn, &1, &test).await?;
     let res = TestQuery11::query(&conn, &3, &test).await?;
@@ -121,7 +125,11 @@ pub async fn test_basic_query(conn: Connection) -> Result<(), Error> {
 
 pub async fn test_basic_transaction(conn: Connection) {
     let rng = thread_rng();
-    let test: String = rng.sample_iter(Alphanumeric).take(64).collect();
+    let test: String = rng
+        .sample_iter(Alphanumeric)
+        .take(64)
+        .map(char::from)
+        .collect();
 
     let transaction = conn.start_transaction().await.unwrap();
     let (transaction, _res) = TestQuery11::query_with_transaction(transaction, &5, &test)

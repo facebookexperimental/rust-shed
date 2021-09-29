@@ -92,7 +92,7 @@ impl Debug for FacebookInit {
 }
 
 impl Arbitrary for FacebookInit {
-    fn arbitrary<G: Gen>(_: &mut G) -> Self {
+    fn arbitrary(_: &mut Gen) -> Self {
         unsafe { r#impl::perform_init() }
     }
 }

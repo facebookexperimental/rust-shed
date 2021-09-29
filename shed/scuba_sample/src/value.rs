@@ -245,7 +245,7 @@ mod tests {
             #[allow(clippy::float_cmp)]
             {
                 match ScubaValue::from($x) {
-                    ScubaValue::Double(v) => v == ($x as f64),
+                    ScubaValue::Double(v) => v == ($x as f64) || (v.is_nan() && $x.is_nan()),
                     _ => false,
                 }
             }

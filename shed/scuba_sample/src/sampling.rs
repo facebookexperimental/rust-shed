@@ -29,7 +29,7 @@ impl Sampling {
     /// Apply a sampling decision to this Sampling instance, using the provided sample_rate. One in
     /// sample_rate samples will be sampled in.
     pub fn sample<R: Rng>(&self, rng: &mut R, sample_rate: NonZeroU64) -> Self {
-        let val = rng.gen_range(0, sample_rate.get());
+        let val = rng.gen_range(0..sample_rate.get());
 
         if val == 0 {
             // Sample it in!
