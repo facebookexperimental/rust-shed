@@ -50,6 +50,8 @@ impl Config {
     /// Cargo's build scrip (OUT_DIR mostly). If THRIFT is in the environment, that will be used as
     /// the Thrift binary. Otherwise, it will be detected in run_compiler.
     pub fn from_env() -> Result<Self> {
+        println!("cargo:rerun-if-env-changed=THRIFT");
+
         let thrift_bin = env::var_os("THRIFT");
         let out_dir = PathBuf::from(
             env::var("OUT_DIR")
@@ -155,6 +157,8 @@ impl Config {
         };
 
         let mut cmd = Command::new(thrift_bin.as_ref());
+
+        println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
 
         let args = {
             let mut args = Vec::new();
