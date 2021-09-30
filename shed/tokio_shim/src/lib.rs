@@ -38,6 +38,13 @@ pub mod task {
                 JoinHandleError::Tokio1x(inner) => inner.into_panic(),
             }
         }
+
+        pub fn is_panic(&self) -> bool {
+            match self {
+                JoinHandleError::Tokio02(inner) => inner.is_panic(),
+                JoinHandleError::Tokio1x(inner) => inner.is_panic(),
+            }
+        }
     }
 
     #[pin_project(project = JoinHandleProj)]
