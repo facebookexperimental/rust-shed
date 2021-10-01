@@ -73,6 +73,19 @@ impl ScubaSample {
         self
     }
 
+    /// Add the provided value to the sample under the provided key if value is Some
+    /// Overrides the previous value under that key if present.
+    pub fn add_opt<K: Into<String>, V: Into<ScubaValue>>(
+        &mut self,
+        key: K,
+        value: Option<V>,
+    ) -> &mut Self {
+        if let Some(v) = value {
+            self.add(key, v);
+        }
+        self
+    }
+
     /// Return an `Entry` from the internal `HashMap` of sample data under the
     /// provided key.
     pub fn entry<K: Into<String>>(&mut self, key: K) -> Entry<String, ScubaValue> {

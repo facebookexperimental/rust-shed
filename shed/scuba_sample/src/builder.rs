@@ -93,9 +93,7 @@ impl ScubaSampleBuilder {
         key: K,
         value: Option<V>,
     ) -> &mut Self {
-        if let Some(value) = value {
-            self.sample.add(key, value);
-        }
+        self.sample.add_opt(key, value);
         self
     }
 
