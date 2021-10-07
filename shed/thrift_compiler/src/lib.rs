@@ -16,7 +16,7 @@
 
 use std::borrow::Cow;
 use std::env;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::fs::{copy, create_dir_all, read_to_string, write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -101,10 +101,26 @@ impl Config {
     /// Run the compiler on the input files. As a result a `lib.rs` file will
     /// be generated inside the output dir.
     pub fn run(&self, input_files: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<()> {
+        let thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
+            Cow::Borrowed(bin)
+        } else {
+            Cow::Owned(self.infer_thrift_binary())
+        };
+
+        println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
+
         let input = name_and_path_from_input(input_files)?;
         create_dir_all(&self.out_dir)?;
 
+        for input in &input {
+            println!(
+                "cargo:rerun-if-changed={}",
+                input.1.as_ref().to_string_lossy()
+            );
+        }
+
         for include_src in &self.include_srcs {
+            println!("cargo:rerun-if-changed={}", include_src);
             let from = PathBuf::from(include_src);
             let mut to = self.out_dir.clone();
             to.push(&from);
@@ -112,7 +128,11 @@ impl Config {
         }
 
         if input.len() == 1 {
-            self.run_compiler(&self.out_dir, input.into_iter().next().unwrap().1)?;
+            self.run_compiler(
+                thrift_bin.as_os_str(),
+                &self.out_dir,
+                input.into_iter().next().unwrap().1,
+            )?;
         } else {
             let partial_dir = self.out_dir.join("partial");
             create_dir_all(&partial_dir)?;
@@ -127,7 +147,7 @@ impl Config {
                         Ok(format!(
                             "pub mod {} {{\n{}\n}}\n",
                             name.to_string_lossy(),
-                            self.run_compiler(out, file)?,
+                            self.run_compiler(thrift_bin.as_os_str(), out, file)?,
                         ))
                     })
                     .collect::<Result<Vec<_>>>()?
@@ -149,16 +169,13 @@ impl Config {
         "thrift1".into()
     }
 
-    fn run_compiler(&self, out: impl AsRef<Path>, input: impl AsRef<Path>) -> Result<String> {
-        let thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
-            Cow::Borrowed(bin)
-        } else {
-            Cow::Owned(self.infer_thrift_binary())
-        };
-
-        let mut cmd = Command::new(thrift_bin.as_ref());
-
-        println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
+    fn run_compiler(
+        &self,
+        thrift_bin: &OsStr,
+        out: impl AsRef<Path>,
+        input: impl AsRef<Path>,
+    ) -> Result<String> {
+        let mut cmd = Command::new(thrift_bin);
 
         let args = {
             let mut args = Vec::new();
