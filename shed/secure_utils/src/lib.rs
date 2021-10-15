@@ -57,7 +57,7 @@ impl SslConfig {
 
     /// Creates a acceptor builder with Ssl security configs pre set.
     fn inner_tls_acceptor_builder(self) -> Result<SslAcceptorBuilder> {
-        let mut acceptor = SslAcceptor::mozilla_intermediate(SslMethod::tls())?;
+        let mut acceptor = SslAcceptor::mozilla_intermediate_v5(SslMethod::tls())?;
 
         let pkcs12 =
             build_identity(self.cert, self.private_key).context("failed to build pkcs12")?;
