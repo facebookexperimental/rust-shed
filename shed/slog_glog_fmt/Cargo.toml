@@ -20,12 +20,12 @@ chrono = { version = "0.4", features = ["clock", "serde", "std"], default-featur
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
 hostname = "0.3"
 itertools = "0.10.1"
-nix = "0.20"
-slog = { version = "2.5", features = ["max_level_trace", "nested-values"] }
-slog-term = "2.4.2"
+nix = "0.22"
+slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
+slog-term = "2.8"
 
 [dev-dependencies]
 lazy_static = "1.0"
 rand = { version = "0.8", features = ["small_rng"] }
-regex = "1.4.2"
+regex = "1.5.4"
 thiserror = "1.0.29"

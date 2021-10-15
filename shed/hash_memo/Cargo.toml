@@ -13,7 +13,7 @@ keywords = ["cache", "hash", "map", "memo", "memoize", "set"]
 categories = ["data-structures"]
 
 [dependencies]
-once_cell = "1.4"
+once_cell = "1.8"
 
 [dev-dependencies]
 ahash = "0.7.4"
