@@ -52,3 +52,15 @@ pub fn function_call<T: Serialize>(name: &str, args: &T) -> Result<String, ser::
 
     Ok(ser.output())
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn test_int_conversions() {
+        crate::to_string(&(123_i64)).unwrap();
+        crate::to_string(&(123_u64)).unwrap();
+
+        assert!(crate::to_string(&(i32::MAX as i64 + 10)).is_err());
+        assert!(crate::to_string(&(u32::MAX as u64 + 10)).is_err());
+    }
+}

@@ -12,6 +12,7 @@ use serde::{
     Serialize,
 };
 use std::{
+    convert::TryInto,
     fmt::{self, Display},
     io,
     iter::{once, repeat},
@@ -21,6 +22,7 @@ use std::{
 pub enum Error {
     Uncallable,
     NonStringKey,
+    InvalidIntLiteral(String),
     Message(String),
 }
 
@@ -29,6 +31,12 @@ impl Display for Error {
         match self {
             Error::Uncallable => write!(fmt, "uncallable"),
             Error::NonStringKey => write!(fmt, "key/parameter must be a string"),
+            Error::InvalidIntLiteral(lit) => write!(
+                fmt,
+                "Starlark doesn't support 64 bit ints and provided literal {} doesn't \
+                fit in a 32 bit int",
+                lit
+            ),
             Error::Message(msg) => write!(fmt, "Error: {}", msg),
         }
     }
@@ -148,7 +156,13 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_i64(self, v: i64) -> Result<()> {
-        self.output += &format!("{}L", v);
+        let v: i32 = match v.try_into() {
+            Ok(v) => v,
+            Err(_) => {
+                return Err(Error::InvalidIntLiteral(v.to_string()));
+            }
+        };
+        self.output += &format!("{}", v);
         Ok(())
     }
 
@@ -166,7 +180,13 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_u64(self, v: u64) -> Result<()> {
-        self.output += &format!("{}L", v);
+        let v: i32 = match v.try_into() {
+            Ok(v) => v,
+            Err(_) => {
+                return Err(Error::InvalidIntLiteral(v.to_string()));
+            }
+        };
+        self.output += &format!("{}", v);
         Ok(())
     }
 
