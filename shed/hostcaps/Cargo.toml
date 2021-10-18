@@ -14,7 +14,6 @@ name = "test_hostcaps"
 path = "src/bin/test.rs"
 
 [dependencies]
-anyhow = "1.0"
 lazy_static = "1.0"
 serde = { version = "1.0.126", features = ["derive", "rc"] }
 serde_derive = "1.0"
