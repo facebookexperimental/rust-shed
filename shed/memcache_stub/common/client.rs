@@ -10,7 +10,6 @@
 use anyhow::Result;
 use bytes::Bytes;
 use fbinit::FacebookInit;
-use futures::{future::ok, Future};
 use std::time::Duration;
 
 /// Type of value returned from memcache
@@ -29,69 +28,56 @@ impl MemcacheClient {
     }
 
     /// Gets the Memcache value under `key`
-    pub fn get<K>(
-        &self,
-        _key: K,
-    ) -> impl Future<Item = Option<MemcacheGetType>, Error = ()> + 'static
+    pub async fn get<K>(&self, _key: K) -> Result<Option<MemcacheGetType>>
     where
         K: AsRef<str>,
     {
-        ok(None)
+        Ok(None)
     }
 
     /// Sets the Memcache value under `key` to `val`
-    pub fn set<K, V>(&self, _key: K, _val: V) -> impl Future<Item = (), Error = ()> + 'static
+    pub async fn set<K, V>(&self, _key: K, _val: V) -> Result<()>
     where
         K: AsRef<str>,
         MemcacheSetType: From<V>,
     {
-        ok(())
+        Ok(())
     }
 
     /// Sets the Memcache value under `key` to `val` with the given expiration
-    pub fn set_with_ttl<K, V>(
-        &self,
-        _key: K,
-        _val: V,
-        _exp: Duration,
-    ) -> impl Future<Item = (), Error = ()> + 'static
+    pub async fn set_with_ttl<K, V>(&self, _key: K, _val: V, _exp: Duration) -> Result<()>
     where
         K: AsRef<str>,
         MemcacheSetType: From<V>,
     {
-        ok(())
+        Ok(())
     }
 
     /// Similar to `set`, but if the value is already present in Memcache it won't overwrite it.
     /// A boolean value is returned to say if the write was successful (true) or if a value was
     /// already present (false)
-    pub fn add<K, V>(&self, _key: K, _val: V) -> impl Future<Item = bool, Error = ()> + 'static
+    pub async fn add<K, V>(&self, _key: K, _val: V) -> Result<bool>
     where
         K: AsRef<str>,
         MemcacheSetType: From<V>,
     {
-        ok(true)
+        Ok(true)
     }
 
     /// `add` equivalent of the `set_with_ttl` method
-    pub fn add_with_ttl<K, V>(
-        &self,
-        _key: K,
-        _val: V,
-        _exp: Duration,
-    ) -> impl Future<Item = bool, Error = ()> + 'static
+    pub async fn add_with_ttl<K, V>(&self, _key: K, _val: V, _exp: Duration) -> Result<bool>
     where
         K: AsRef<str>,
         MemcacheSetType: From<V>,
     {
-        ok(true)
+        Ok(true)
     }
 
     /// Removes the value under `key`.
-    pub fn del<K>(&self, _key: K) -> impl Future<Item = (), Error = ()> + 'static
+    pub async fn del<K>(&self, _key: K) -> Result<()>
     where
         K: AsRef<str>,
     {
-        ok(())
+        Ok(())
     }
 }
