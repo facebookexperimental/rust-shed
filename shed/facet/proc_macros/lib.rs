@@ -15,7 +15,7 @@
 
 extern crate proc_macro;
 
-use proc_macro_crate::crate_name;
+use proc_macro_crate::{crate_name, FoundCrate};
 
 mod container_impl;
 mod facet_impl;
@@ -23,7 +23,10 @@ mod factory_impl;
 mod util;
 
 fn facet_crate_name() -> String {
-    crate_name("facet").unwrap_or_else(|_| String::from("facet"))
+    match crate_name("facet") {
+        Ok(FoundCrate::Name(n)) => n,
+        _ => "facet".to_string(),
+    }
 }
 
 /// Mark a `struct` as a facet container.  See the crate-level documentation
