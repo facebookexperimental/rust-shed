@@ -70,7 +70,7 @@ pub use rusqlite;
 pub use sql_common::mysql;
 pub use sql_common::{
     self, error, sqlite, transaction::Transaction, Connection, SqlConnections,
-    SqlShardedConnections, WriteResult,
+    SqlConnectionsWithSchema, SqlShardedConnections, WriteResult,
 };
 
 use mysql_async::Value;
