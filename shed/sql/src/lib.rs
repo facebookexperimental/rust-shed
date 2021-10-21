@@ -568,7 +568,7 @@ macro_rules! _read_query_impl {
 
             let con = multithread_con.get_sqlite_guard();
 
-            let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            let mut ref_params: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
             for idx in 0..params.len() {
                 ref_params.push((&params[idx].0, &params[idx].1))
             }
@@ -610,7 +610,7 @@ macro_rules! _read_query_impl {
                 $( >list $lname )*
             );
 
-            let mut ref_params: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            let mut ref_params: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
             for idx in 0..params.len() {
                 ref_params.push((&params[idx].0, &params[idx].1))
             }
@@ -788,7 +788,7 @@ macro_rules! _write_query_impl {
 
             let mut res = Vec::new();
             for params in multi_params {
-                let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for param in &params {
                     param_refs.push((param.0, &param.1));
                 }
@@ -827,7 +827,7 @@ macro_rules! _write_query_impl {
 
                 let mut res = Vec::new();
                 for params in multi_params {
-                    let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                    let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                     for param in &params {
                         param_refs.push((param.0, &param.1));
                     }
@@ -947,7 +947,7 @@ macro_rules! _write_query_impl {
 
             let mut stmt = sqlite_statement(&con  $( , $lname )*)?;
 
-            let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+            let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
             for param in &params {
                 param_refs.push((&param.0, &param.1));
             }
@@ -974,7 +974,7 @@ macro_rules! _write_query_impl {
             let res = {
                 let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
 
-                let mut param_refs: Vec<(&str, &ToSqliteValue)> = Vec::new();
+                let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for param in &params {
                     param_refs.push((&param.0, &param.1));
                 }
