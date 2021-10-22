@@ -14,7 +14,7 @@ use std::cmp::Ordering;
 use std::collections::Bound::*;
 use std::collections::{BTreeSet, Bound};
 use std::fmt::{self, Debug};
-use std::iter::{FromIterator, Peekable};
+use std::iter::Peekable;
 use std::mem;
 use std::ops::{BitAnd, BitOr, BitXor, RangeBounds, Sub};
 

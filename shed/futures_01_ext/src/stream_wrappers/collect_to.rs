@@ -8,7 +8,6 @@
  */
 
 use futures::{Async, Future, Poll, Stream};
-use std::default::Default;
 use std::mem;
 
 /// Stream returned as a result of calling [crate::StreamExt::collect_to]

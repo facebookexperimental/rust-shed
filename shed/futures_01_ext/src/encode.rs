@@ -103,7 +103,6 @@ mod test {
     use futures::Future;
     use quickcheck::quickcheck;
     use std::io;
-    use std::iter::Iterator;
     use std::vec;
 
     struct EncU16;

@@ -12,7 +12,6 @@
 
 //! Crate extending functionality of [std::time]
 
-use std::convert::TryInto;
 use std::time::{Duration, Instant};
 
 use anyhow::Result;

@@ -12,7 +12,6 @@ use serde::{
     Serialize,
 };
 use std::{
-    convert::TryInto,
     fmt::{self, Display},
     io,
     iter::{once, repeat},

@@ -27,7 +27,6 @@ pub use mysql_stub::{
 };
 
 use super::WriteResult as SqlWriteResult;
-use std::convert::Into;
 
 impl Into<SqlWriteResult> for WriteResult {
     fn into(self) -> SqlWriteResult {

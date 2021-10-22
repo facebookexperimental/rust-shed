@@ -12,7 +12,6 @@ use futures::{
     try_ready, Async, IntoFuture, Stream,
 };
 use std::collections::VecDeque;
-use std::iter::FromIterator;
 
 /// `bounded_traversal_stream` traverses implicit asynchronous tree specified by `init`
 /// and `unfold` arguments. All `unfold` operations are executed in parallel if they

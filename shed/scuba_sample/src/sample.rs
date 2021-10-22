@@ -13,7 +13,6 @@ use crate::value::{NullScubaValue, ScubaValue};
 
 use serde_json::{Error, Map, Number, Value};
 use std::collections::hash_map::{Entry, HashMap};
-use std::convert::Into;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const TIME_COLUMN: &str = "time";

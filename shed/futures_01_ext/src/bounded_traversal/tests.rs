@@ -18,9 +18,8 @@ use lock_ext::LockExt;
 use maplit::hashmap;
 use pretty_assertions::assert_eq;
 use std::{
-    cmp::{Ord, Ordering},
+    cmp::Ordering,
     collections::{BTreeSet, BinaryHeap},
-    iter::FromIterator,
     sync::{Arc, Mutex},
     thread,
     time::Duration,

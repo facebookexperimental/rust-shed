@@ -1183,7 +1183,6 @@ mod test {
     }
 
     use std::collections::HashSet;
-    use std::iter::Iterator;
 
     fn assert_same_elements<I, T>(src: Vec<I>, iter: T)
     where
