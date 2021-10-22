@@ -31,6 +31,7 @@ pub struct SslConfig {
     ca_pem: String,
     cert: String,
     private_key: String,
+    #[allow(unused)] // TODO unused warning after rustc upgrade
     tls_seed_path: Option<PathBuf>,
 }
 
