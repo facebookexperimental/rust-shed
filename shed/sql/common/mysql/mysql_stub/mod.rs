@@ -102,6 +102,6 @@ pub trait OptionalTryFromRowField: Sized {
 }
 
 /// The function converts RowField object into Rust type.
-pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<Option<T>, MysqlError> {
+pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<T, MysqlError> {
     unimplemented!("This is a stub");
 }
