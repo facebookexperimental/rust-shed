@@ -26,7 +26,7 @@ impl ToValue for A {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, mysql::OptTryFromRowField)]
+#[derive(Debug, Eq, PartialEq, mysql::TryFromRowField)]
 pub struct B;
 pub struct IntB;
 

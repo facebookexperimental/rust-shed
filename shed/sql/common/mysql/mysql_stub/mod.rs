@@ -101,6 +101,12 @@ pub trait OptionalTryFromRowField: Sized {
     fn try_from_opt(field: RowField) -> Result<Option<Self>, MysqlError>;
 }
 
+/// The trait you need to implement to be able to read a query result into the custom type where NULL maps to Some
+pub trait TryFromRowField: Sized {
+    /// Try to convert from row field.
+    fn try_from(field: RowField) -> Result<Self, MysqlError>;
+}
+
 /// The function converts RowField object into Rust type.
 pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<T, MysqlError> {
     unimplemented!("This is a stub");
