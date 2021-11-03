@@ -42,7 +42,7 @@
 //! }
 //! ```
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 #![allow(clippy::needless_doctest_main)]
 pub mod collector_serializer;
 mod glog_format;

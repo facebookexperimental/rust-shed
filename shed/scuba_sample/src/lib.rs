@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 #![allow(elided_lifetimes_in_paths)]
 
 //! Defines the [sample::ScubaSample] structure and the

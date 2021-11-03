@@ -12,7 +12,7 @@
 //! [tokio_io::AsyncRead] respectively so they might be used efficiently in an
 //! asynchronous contexts.
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 mod compressor;
 mod decompressor;

@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-#![deny(warnings, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, clippy::all, rustdoc::broken_intra_doc_links)]
 // See https://github.com/rust-lang/rust/pull/60562
 // #![deny(missing_docs)]
 

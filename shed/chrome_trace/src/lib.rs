@@ -17,7 +17,7 @@
 //! [1]: https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview
 //! [2]: http://dev.chromium.org/developers/how-tos/trace-event-profiling-tool
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 use anyhow::Result;
 use bytes::Bytes;

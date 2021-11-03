@@ -8,7 +8,7 @@
  */
 
 #![cfg_attr(fbcode_build, feature(backtrace))]
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 //! Crate extending functionality of [`failure`] and [`anyhow`] crates
 

@@ -12,7 +12,7 @@
 //! passes this value to a callback upon completion of the Future. This is useful for
 //! recording performance information about Futures.
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 #![feature(never_type)]
 
 use std::time::Duration;

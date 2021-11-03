@@ -10,7 +10,7 @@
 //! Contains basic definitions for the sql crate and for any crate that wish
 //! to implement traits to be used with the sql's queries macro.
 
-#![deny(warnings, missing_docs, clippy::all, broken_intra_doc_links)]
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 pub mod deprecated_mysql;
 pub mod error;
