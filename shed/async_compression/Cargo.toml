@@ -21,5 +21,4 @@ zstd = "=0.8.0+zstd.1.4.9"
 [dev-dependencies]
 assert_matches = "1.5"
 quickcheck = "1.0"
-rand = { version = "0.8", features = ["small_rng"] }
 tokio = "0.1"
