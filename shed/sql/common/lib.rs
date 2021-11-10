@@ -12,9 +12,7 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-pub mod deprecated_mysql;
 pub mod error;
-pub mod ext;
 pub mod mysql;
 pub mod sqlite;
 pub mod transaction;
@@ -149,12 +147,6 @@ pub enum Connection {
     /// Sqlite lets you use this crate with rusqlite connections such as in memory or on disk Sqlite
     /// databases, both useful in case of testing or local sql db use cases.
     Sqlite(Arc<sqlite::SqliteMultithreaded>),
-    /// An enum variant for the mysql-based connections, your structure have to
-    /// implement [deprecated_mysql::MysqlConnection] in order to be usable here.
-    ///
-    /// This backend is based on MyRouter connections and is deprecated soon. Please
-    /// use new Mysql client instead.
-    DeprecatedMysql(deprecated_mysql::BoxMysqlConnection),
     /// A variant used for the new Mysql client connection factory.
     Mysql(mysql::Connection),
 }
@@ -162,12 +154,6 @@ pub enum Connection {
 impl From<sqlite::SqliteMultithreaded> for Connection {
     fn from(con: sqlite::SqliteMultithreaded) -> Self {
         Connection::Sqlite(Arc::new(con))
-    }
-}
-
-impl From<deprecated_mysql::BoxMysqlConnection> for Connection {
-    fn from(con: deprecated_mysql::BoxMysqlConnection) -> Self {
-        Connection::DeprecatedMysql(con)
     }
 }
 
@@ -181,7 +167,6 @@ impl Debug for Connection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Connection::Sqlite(..) => write!(f, "Sqlite"),
-            Connection::DeprecatedMysql(ref con) => con.fmt(f),
             Connection::Mysql(..) => write!(f, "Mysql client"),
         }
     }

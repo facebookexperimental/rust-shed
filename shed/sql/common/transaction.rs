@@ -10,11 +10,8 @@
 //! Module that provides support for SQL transactions to this library.
 
 use anyhow::Error;
-use futures::compat::Future01CompatExt;
 use futures::future::TryFutureExt;
-use mysql_async::TransactionOptions;
 
-use crate::deprecated_mysql::BoxMysqlTransaction;
 use crate::mysql;
 use crate::sqlite::SqliteConnectionGuard;
 
@@ -23,15 +20,6 @@ impl crate::Connection {
     /// more info
     pub async fn start_transaction(&self) -> Result<Transaction, Error> {
         Transaction::new(self).await
-    }
-
-    /// Start an SQL transaction for this connection. Refer to `transaction::Transaction` docs for
-    /// more info
-    pub async fn start_transaction_with_options(
-        &self,
-        options: TransactionOptions,
-    ) -> Result<Transaction, Error> {
-        Transaction::new_with_options(self, options).await
     }
 }
 
@@ -74,12 +62,6 @@ pub enum Transaction {
     /// When a Sqlite transaction is dropped a "rollback" is performed, so one should always make
     /// sure to call "commit" if they want to persist the transation.
     Sqlite(Option<SqliteConnectionGuard>),
-    /// An enum variant for the mysql-based transactions, your structure have to
-    /// implement [crate::deprecated_mysql::MysqlTransaction] in order to be usable here.
-    ///
-    /// This backend is based on MyRouter connections and is deprecated soon. Please
-    /// use new Mysql client instead.
-    DeprecatedMysql(Option<BoxMysqlTransaction>),
     /// A variant used for the new Mysql client connection.
     Mysql(Option<mysql::Transaction>),
 }
@@ -88,15 +70,12 @@ impl Transaction {
     /// Create a new transaction for the provided connection using default
     /// transaction options.
     pub async fn new(connection: &super::Connection) -> Result<Transaction, Error> {
-        Transaction::new_with_options(connection, TransactionOptions::new()).await
+        Transaction::new_with_options(connection).await
     }
 
     /// Create a new transaction for the provided connection using provided
     /// transaction options.
-    pub async fn new_with_options(
-        connection: &super::Connection,
-        options: TransactionOptions,
-    ) -> Result<Transaction, Error> {
+    pub async fn new_with_options(connection: &super::Connection) -> Result<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
                 let con = con.get_sqlite_guard();
@@ -104,10 +83,6 @@ impl Transaction {
                 con.execute_batch("BEGIN DEFERRED")
                     .map(move |_| Transaction::Sqlite(Some(con)))
                     .map_err(failure_ext::convert)
-            }
-            super::Connection::DeprecatedMysql(con) => {
-                let transaction = con.transaction_with_options(options).compat().await?;
-                Ok(Transaction::DeprecatedMysql(Some(transaction)))
             }
             super::Connection::Mysql(conn) => {
                 let transaction = conn.begin_transaction().map_err(Error::from).await?;
@@ -133,13 +108,6 @@ impl Transaction {
 
                 Ok(res?)
             }
-            Transaction::DeprecatedMysql(ref mut con) => {
-                con.take()
-                    .expect("Called commit after drop")
-                    .commit()
-                    .compat()
-                    .await
-            }
             Transaction::Mysql(ref mut tr) => {
                 let tr = tr.take().expect("Called commit after drop");
                 Ok(tr.commit().await?)
@@ -150,13 +118,6 @@ impl Transaction {
     /// Perform a rollback on this transaction
     pub async fn rollback(mut self) -> Result<(), Error> {
         match self {
-            Transaction::DeprecatedMysql(ref mut con) => {
-                con.take()
-                    .expect("Called rollback after drop")
-                    .rollback()
-                    .compat()
-                    .await
-            }
             // Sqlite will rollback on drop
             Transaction::Sqlite(..) => Ok(()),
             Transaction::Mysql(ref mut tr) => {
@@ -185,7 +146,6 @@ impl Drop for Transaction {
                     );
                 }
             }
-            Transaction::DeprecatedMysql(_) => {}
             Transaction::Mysql(_) => {}
         }
     }

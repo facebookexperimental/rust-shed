@@ -480,7 +480,6 @@ macro_rules! _query_common {
             types::ToSql as ToSqliteValue, Connection as SqliteConnection, Result as SqliteResult,
             Statement as SqliteStatement,
         };
-        use $crate::sql_common::deprecated_mysql::{MysqlConnectionExt, MysqlTransactionExt};
         use $crate::{
             sqlite::{SqliteConnectionGuard, SqliteMultithreaded},
             Connection, Transaction, ValueWrapper,
@@ -509,9 +508,6 @@ macro_rules! _read_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
                 }
-                Connection::DeprecatedMysql(con) => {
-                    con.read_query(mysql_query($( $pname, )* $( $lname, )*)).compat().await
-                }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
                     conn.read_query(query).map_err(Error::from).await
@@ -535,15 +531,6 @@ macro_rules! _read_query_impl {
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                }
-                Transaction::DeprecatedMysql(ref mut transaction) => {
-                    let transaction = transaction.take()
-                        .expect("should be Some before transaction ended");
-                    transaction
-                        .read_query(mysql_query($( $pname, )* $( $lname, )*))
-                        .compat()
-                        .await
-                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -692,9 +679,6 @@ macro_rules! _write_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_exec_query(multithread_con.clone(), values, $( $pname ),*).await
                 }
-                Connection::DeprecatedMysql(con) => {
-                    con.write_query(mysql_query(values, $( $pname ),*)).compat().await
-                }
                 Connection::Mysql(conn) => {
                     let query = mysql_query(values, $( $pname ),*);
                     let res = conn.write_query(query).map_err(Error::from).await?;
@@ -723,16 +707,6 @@ macro_rules! _write_query_impl {
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                }
-                Transaction::DeprecatedMysql(ref mut transaction) => {
-                    let transaction = transaction
-                        .take()
-                        .expect("should be Some before transaction ended");
-                    transaction
-                        .write_query(mysql_query(values, $( $pname ),*))
-                        .compat()
-                        .await
-                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query(values, $( $pname ),*);
@@ -879,9 +853,6 @@ macro_rules! _write_query_impl {
                 Connection::Sqlite(multithread_con) => {
                     sqlite_exec_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
                 }
-                Connection::DeprecatedMysql(con) => {
-                    con.write_query(mysql_query($( $pname, )* $( $lname, )*)).compat().await
-                }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
                     let res = conn.write_query(query).map_err(Error::from).await?;
@@ -906,16 +877,6 @@ macro_rules! _write_query_impl {
                         .map(move |(con, res)| {
                             (Transaction::Sqlite(Some(con)), res)
                         })
-                }
-                Transaction::DeprecatedMysql(ref mut transaction) => {
-                    let transaction = transaction
-                        .take()
-                        .expect("should be Some before transaction ended");
-                    transaction
-                        .write_query(mysql_query($( $pname, )* $( $lname, )*))
-                        .compat()
-                        .await
-                        .map(|(tra, result)| (Transaction::DeprecatedMysql(Some(tra)), result))
                 }
                 Transaction::Mysql(ref mut transaction) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
