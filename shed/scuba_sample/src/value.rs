@@ -144,6 +144,15 @@ macro_rules! from_int_types {
                     ScubaValue::Int(value as i64)
                 }
             }
+
+            impl From<Option<$t>> for ScubaValue {
+                fn from(value: Option<$t>) -> Self {
+                    match value {
+                        None => ScubaValue::Null(NullScubaValue::Int),
+                        Some(v) => ScubaValue::Int(v as i64),
+                    }
+                }
+            }
         )*
     };
 }
@@ -211,6 +220,33 @@ impl From<Option<String>> for ScubaValue {
         match value {
             None => ScubaValue::Null(NullScubaValue::Normal),
             Some(s) => ScubaValue::Normal(s),
+        }
+    }
+}
+
+impl<'a> From<Option<&'a str>> for ScubaValue {
+    fn from(value: Option<&'a str>) -> Self {
+        match value {
+            None => ScubaValue::Null(NullScubaValue::Normal),
+            Some(s) => ScubaValue::Normal(s.to_string()),
+        }
+    }
+}
+
+impl From<Option<f64>> for ScubaValue {
+    fn from(value: Option<f64>) -> Self {
+        match value {
+            None => ScubaValue::Null(NullScubaValue::Double),
+            Some(v) => ScubaValue::Double(v),
+        }
+    }
+}
+
+impl From<Option<f32>> for ScubaValue {
+    fn from(value: Option<f32>) -> Self {
+        match value {
+            None => ScubaValue::Null(NullScubaValue::Double),
+            Some(v) => ScubaValue::Double(v as f64),
         }
     }
 }
@@ -347,6 +383,55 @@ mod tests {
         let vec = vec!["a", "b", "c"];
         let value = vec.iter().cloned().collect::<ScubaValue>();
         assert_matches!(value, ScubaValue::NormVector(ref v) if *v == vec);
+    }
+
+    #[test]
+    fn from_option_string() {
+        assert_matches!(ScubaValue::from(Some("str")), ScubaValue::Normal(_));
+        assert_matches!(
+            ScubaValue::from(Some("str".to_string())),
+            ScubaValue::Normal(_)
+        );
+        assert_matches!(
+            ScubaValue::from(None::<String>),
+            ScubaValue::Null(NullScubaValue::Normal)
+        );
+        assert_matches!(
+            ScubaValue::from(None::<&'static str>),
+            ScubaValue::Null(NullScubaValue::Normal)
+        );
+    }
+
+    macro_rules! test_option_int {
+        ( $( $t:ty ),* ) => {
+            $(
+                assert_matches!(ScubaValue::from(Some(1 as $t)), ScubaValue::Int(1));
+                assert_matches!(
+                    ScubaValue::from(None::<$t>),
+                    ScubaValue::Null(NullScubaValue::Int)
+                );
+            )*
+        };
+    }
+
+    #[test]
+    fn from_option_int() {
+        test_option_int!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+    }
+
+    #[test]
+    fn from_option_float() {
+        assert_matches!(ScubaValue::from(Some(1f32)), ScubaValue::Double(_));
+        assert_matches!(ScubaValue::from(Some(1f64)), ScubaValue::Double(_));
+
+        assert_matches!(
+            ScubaValue::from(None::<f32>),
+            ScubaValue::Null(NullScubaValue::Double)
+        );
+        assert_matches!(
+            ScubaValue::from(None::<f64>),
+            ScubaValue::Null(NullScubaValue::Double)
+        );
     }
 
     #[test]
