@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use bytes::Bytes;
 use std::{fs, path::PathBuf, time::SystemTime};
 
@@ -38,7 +38,8 @@ impl Source for FileSource {
             self.directory.join(path_with_extension)
         };
 
-        let contents = fs::read_to_string(&path)?;
+        let contents = fs::read_to_string(&path)
+            .with_context(|| format!("failed to open {}", path.to_string_lossy()))?;
         let version = contents.clone();
 
         let mod_time = fs::metadata(path)?
