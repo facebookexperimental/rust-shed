@@ -38,7 +38,7 @@ name = "facet_static_test"
 path = "test/static_test.rs"
 
 [dependencies]
-anyhow = "1.0.47"
+anyhow = "1.0.48"
 async-trait = "0.1.51"
 facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
 futures = { version = "0.3.13", features = ["async-await", "compat"] }
