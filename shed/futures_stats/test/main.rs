@@ -7,13 +7,15 @@
  * of this source tree.
  */
 
-use futures_old::{future, stream, Stream};
+use futures::compat::Future01CompatExt;
+use futures::{future, stream, TryStreamExt};
+use futures_old::future as future01;
 
-use futures_stats::{Timed, TimedStreamTrait};
+use futures_stats::{Timed, TimedStreamExt};
 
 fn main() {
-    let mut runtime = tokio_old::runtime::Runtime::new().unwrap();
-    let fut = future::lazy(|| {
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let fut = future01::lazy(|| {
         println!("future polled");
         Ok(())
     })
@@ -21,18 +23,22 @@ fn main() {
         println!("{:#?}", stats);
         Ok(())
     });
-    runtime.block_on(fut).unwrap();
+    runtime.block_on(fut.compat()).unwrap();
 
-    let stream = stream::iter_ok([1, 2, 3].iter()).timed(|stats, _: Result<_, &()>| {
+    let stream = stream::iter([1, 2, 3].map(Ok::<u32, ()>)).timed(|stats| {
         println!("{:#?}", stats);
-        Ok(())
+        future::ready(())
     });
-    runtime.block_on(stream.for_each(|_| Ok(()))).unwrap();
+    runtime
+        .block_on(stream.try_for_each(|_| future::ok(())))
+        .unwrap();
 
-    let empty: Vec<u32> = vec![];
-    let stream = stream::iter_ok(empty.into_iter()).timed(|stats, _: Result<_, &()>| {
+    let empty: Vec<Result<u32, ()>> = vec![];
+    let stream = stream::iter(empty.into_iter()).timed(|stats| {
         assert!(stats.first_item_time.is_none());
-        Ok(())
+        future::ready(())
     });
-    runtime.block_on(stream.for_each(|_| Ok(()))).unwrap();
+    runtime
+        .block_on(stream.try_for_each(|_| future::ok(())))
+        .unwrap();
 }
