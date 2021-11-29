@@ -18,4 +18,4 @@ tokio_1x = { package = "tokio", version = "1.10", features = ["full", "test-util
 tokio_1x_stream = { package = "tokio-stream", version = "0.1.4", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
 [dev-dependencies]
-anyhow = "1.0.48"
+anyhow = "1.0.51"
