@@ -82,6 +82,7 @@ impl<E> Future for ErrFuture<E> {
 mod test {
     use super::*;
     use futures::{future, stream};
+    use futures03::compat::Future01CompatExt;
 
     #[test]
     fn simple() {
@@ -90,15 +91,18 @@ mod test {
 
         let (s, err) = split_err(s);
 
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
 
-        let res: Result<Vec<_>, ()> = rt.block_on(future::lazy(move || {
-            s.collect()
-                .map_err(|_| unreachable!())
-                .select(err.map(|_| -> Vec<_> { unreachable!() }))
-                .map(|(ok, _)| ok)
-                .map_err(|(err, _)| err)
-        }));
+        let res: Result<Vec<_>, ()> = rt.block_on(
+            future::lazy(move || {
+                s.collect()
+                    .map_err(|_| unreachable!())
+                    .select(err.map(|_| -> Vec<_> { unreachable!() }))
+                    .map(|(ok, _)| ok)
+                    .map_err(|(err, _)| err)
+            })
+            .compat(),
+        );
 
         assert_eq!(res, Ok(vec));
     }
@@ -110,15 +114,18 @@ mod test {
 
         let (s, err) = split_err(s);
 
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
 
-        let res: Result<Vec<_>, &str> = rt.block_on(future::lazy(move || {
-            s.collect()
-                .map_err(|_| -> &str { unreachable!() })
-                .select(err.map(|_| -> Vec<_> { unreachable!() }))
-                .map(|(ok, _)| ok)
-                .map_err(|(err, _)| err)
-        }));
+        let res: Result<Vec<_>, &str> = rt.block_on(
+            future::lazy(move || {
+                s.collect()
+                    .map_err(|_| -> &str { unreachable!() })
+                    .select(err.map(|_| -> Vec<_> { unreachable!() }))
+                    .map(|(ok, _)| ok)
+                    .map_err(|(err, _)| err)
+            })
+            .compat(),
+        );
 
         assert_eq!(res, Err("badness"));
     }

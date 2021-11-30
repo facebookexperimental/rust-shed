@@ -135,12 +135,13 @@ where
 mod tests {
     use super::*;
     use futures::stream::iter_ok;
+    use futures03::compat::Future01CompatExt;
 
     #[test]
     fn select_all_many_streams() {
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
         let streams: Vec<_> = (1..5).map(|i| iter_ok::<_, ()>(0..i)).collect();
-        let result = rt.block_on(select_all(streams).collect()).unwrap();
+        let result = rt.block_on(select_all(streams).collect().compat()).unwrap();
         assert_eq!(result.len(), 10);
     }
 }

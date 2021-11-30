@@ -123,6 +123,7 @@ mod test {
     use anyhow::{Error, Result};
     use bytes_old::Bytes;
     use futures::{stream, Stream};
+    use futures03::compat::Future01CompatExt;
 
     use super::*;
 
@@ -150,7 +151,7 @@ mod test {
 
     #[test]
     fn simple() {
-        let mut runtime = tokio::runtime::Runtime::new().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
 
         let decoder = TestDecoder::default();
 
@@ -165,7 +166,7 @@ mod test {
             })
             .forward(out);
 
-        let (_, out) = runtime.block_on(xfer).unwrap();
+        let (_, out) = runtime.block_on(xfer.compat()).unwrap();
         let out = out
             .into_iter()
             .flat_map(|x| x.as_ref().to_vec())
@@ -175,7 +176,7 @@ mod test {
 
     #[test]
     fn large() {
-        let mut runtime = tokio::runtime::Runtime::new().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
 
         let decoder = TestDecoder::default();
 
@@ -191,7 +192,7 @@ mod test {
             })
             .forward(out);
 
-        let (_, out) = runtime.block_on(xfer).unwrap();
+        let (_, out) = runtime.block_on(xfer.compat()).unwrap();
         let out = out
             .into_iter()
             .flat_map(|x| x.as_ref().to_vec())
@@ -202,7 +203,7 @@ mod test {
 
     #[test]
     fn partial() {
-        let mut runtime = tokio::runtime::Runtime::new().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
 
         let decoder = TestDecoder::default();
 
@@ -220,7 +221,7 @@ mod test {
             })
             .forward(out);
 
-        let (_, out) = runtime.block_on(xfer).unwrap();
+        let (_, out) = runtime.block_on(xfer.compat()).unwrap();
         let out = out
             .into_iter()
             .flat_map(|x| x.as_ref().to_vec())

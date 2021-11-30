@@ -757,31 +757,7 @@ macro_rules! try_left_future {
 
 /// Simple adapter from `Sink` interface to `AsyncWrite` interface.
 /// It can be useful to convert from the interface that supports only AsyncWrite, and get
-/// Stream as a result. See pseudocode below
-///
-///  ```
-/// # use anyhow::Error;
-/// # use futures::Future;
-/// # use futures_01_ext::{BoxFuture, SinkToAsyncWrite};
-/// # use tokio::io::AsyncWrite;
-/// # use tokio;
-/// fn async_write_interface(writer: &mut dyn AsyncWrite) -> BoxFuture<(), Error> {
-///     unimplemented!()
-/// }
-///
-/// fn foo() {
-///     use futures::sync::mpsc;
-///     let (sender, receiver) = mpsc::channel(1);
-///
-///     tokio::spawn(
-///        async_write_interface(&mut SinkToAsyncWrite::new(sender))
-///            .map_err(|err| {})
-///     );
-///
-///     // receiver is a stream of values written from async_write_interface
-/// }
-/// # fn main() {}
-///  ```
+/// Stream as a result.
 pub struct SinkToAsyncWrite<S> {
     sink: S,
 }
@@ -911,13 +887,13 @@ mod test {
     use futures::sync::mpsc;
     use futures::IntoFuture;
     use futures::Stream;
+    use futures03::compat::Future01CompatExt;
 
     use cloned::cloned;
     use futures::future::{err, ok};
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::Arc;
     use tokio::runtime::Runtime;
-
     #[derive(Debug)]
     struct MyErr;
 
@@ -931,15 +907,15 @@ mod test {
     fn discard() {
         use futures::sync::mpsc;
 
-        let mut runtime = Runtime::new().unwrap();
+        let runtime = Runtime::new().unwrap();
 
         let (tx, rx) = mpsc::channel(1);
 
         let xfer = stream::iter_ok::<_, MyErr>(vec![123]).forward(tx);
 
-        runtime.spawn(xfer.discard());
+        runtime.spawn(xfer.discard().compat());
 
-        match runtime.block_on(rx.collect()) {
+        match runtime.block_on(rx.collect().compat()) {
             Ok(v) => assert_eq!(v, vec![123]),
             bad => panic!("bad {:?}", bad),
         }
@@ -949,12 +925,12 @@ mod test {
     fn inspect_err() {
         let count = Arc::new(AtomicUsize::new(0));
         cloned!(count as count_cloned);
-        let mut runtime = Runtime::new().unwrap();
+        let runtime = Runtime::new().unwrap();
         let work = err::<i32, i32>(42).inspect_err(move |e| {
             assert_eq!(42, *e);
             count_cloned.fetch_add(1, Ordering::SeqCst);
         });
-        if runtime.block_on(work).is_ok() {
+        if runtime.block_on(work.compat()).is_ok() {
             panic!("future is supposed to fail");
         }
         assert_eq!(1, count.load(Ordering::SeqCst));
@@ -964,11 +940,11 @@ mod test {
     fn inspect_ok() {
         let count = Arc::new(AtomicUsize::new(0));
         cloned!(count as count_cloned);
-        let mut runtime = Runtime::new().unwrap();
+        let runtime = Runtime::new().unwrap();
         let work = ok::<i32, i32>(42).inspect_err(move |_| {
             count_cloned.fetch_add(1, Ordering::SeqCst);
         });
-        if runtime.block_on(work).is_err() {
+        if runtime.block_on(work.compat()).is_err() {
             panic!("future is supposed to succeed");
         }
         assert_eq!(0, count.load(Ordering::SeqCst));
@@ -978,7 +954,7 @@ mod test {
     fn inspect_result() {
         let count = Arc::new(AtomicUsize::new(0));
         cloned!(count as count_cloned);
-        let mut runtime = Runtime::new().unwrap();
+        let runtime = Runtime::new().unwrap();
         let work = err::<i32, i32>(42).inspect_result(move |res| {
             if let Err(e) = res {
                 assert_eq!(42, *e);
@@ -987,7 +963,7 @@ mod test {
                 count_cloned.fetch_add(2, Ordering::SeqCst);
             }
         });
-        if runtime.block_on(work).is_ok() {
+        if runtime.block_on(work.compat()).is_ok() {
             panic!("future is supposed to fail");
         }
         assert_eq!(1, count.load(Ordering::SeqCst));
@@ -1024,39 +1000,42 @@ mod test {
         let s = stream::iter_ok::<_, ()>(vec!["hello", "there", "world"]).fuse();
         let (mut s, mut remainder) = s.return_remainder();
 
-        let mut runtime = Runtime::new().unwrap();
-        let res: Result<(), ()> = runtime.block_on(poll_fn(move || {
-            assert_matches!(
-                remainder.poll(),
-                Err(ConservativeReceiverError::ReceiveBeforeSend)
-            );
+        let runtime = Runtime::new().unwrap();
+        let res: Result<(), ()> = runtime.block_on(
+            poll_fn(move || {
+                assert_matches!(
+                    remainder.poll(),
+                    Err(ConservativeReceiverError::ReceiveBeforeSend)
+                );
 
-            assert_eq!(s.poll(), Ok(Async::Ready(Some("hello"))));
-            assert_matches!(
-                remainder.poll(),
-                Err(ConservativeReceiverError::ReceiveBeforeSend)
-            );
+                assert_eq!(s.poll(), Ok(Async::Ready(Some("hello"))));
+                assert_matches!(
+                    remainder.poll(),
+                    Err(ConservativeReceiverError::ReceiveBeforeSend)
+                );
 
-            assert_eq!(s.poll(), Ok(Async::Ready(Some("there"))));
-            assert_matches!(
-                remainder.poll(),
-                Err(ConservativeReceiverError::ReceiveBeforeSend)
-            );
+                assert_eq!(s.poll(), Ok(Async::Ready(Some("there"))));
+                assert_matches!(
+                    remainder.poll(),
+                    Err(ConservativeReceiverError::ReceiveBeforeSend)
+                );
 
-            assert_eq!(s.poll(), Ok(Async::Ready(Some("world"))));
-            assert_matches!(
-                remainder.poll(),
-                Err(ConservativeReceiverError::ReceiveBeforeSend)
-            );
+                assert_eq!(s.poll(), Ok(Async::Ready(Some("world"))));
+                assert_matches!(
+                    remainder.poll(),
+                    Err(ConservativeReceiverError::ReceiveBeforeSend)
+                );
 
-            assert_eq!(s.poll(), Ok(Async::Ready(None)));
-            match remainder.poll() {
-                Ok(Async::Ready(s)) => assert!(s.is_done()),
-                bad => panic!("unexpected result: {:?}", bad),
-            }
+                assert_eq!(s.poll(), Ok(Async::Ready(None)));
+                match remainder.poll() {
+                    Ok(Async::Ready(s)) => assert!(s.is_done()),
+                    bad => panic!("unexpected result: {:?}", bad),
+                }
 
-            Ok(Async::Ready(()))
-        }));
+                Ok(Async::Ready(()))
+            })
+            .compat(),
+        );
 
         assert_matches!(res, Ok(()));
     }
@@ -1098,31 +1077,36 @@ mod test {
     fn sink_to_async_write() {
         use futures::sync::mpsc;
         use std::io::Write;
-        let mut rt = tokio::runtime::Runtime::new().unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
 
         let (tx, rx) = mpsc::channel::<Bytes>(1);
 
         let messages_num = 10;
 
-        rt.spawn(Ok(()).into_future().map(move |()| {
-            let mut async_write = SinkToAsyncWrite::new(tx);
-            for i in 0..messages_num {
-                loop {
-                    let res = async_write.write(format!("{}", i).as_bytes());
-                    if let Err(ref e) = res {
-                        assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
-                        assert_flush(&mut async_write);
-                    } else {
-                        break;
+        rt.spawn(
+            Ok::<_, ()>(())
+                .into_future()
+                .map(move |()| {
+                    let mut async_write = SinkToAsyncWrite::new(tx);
+                    for i in 0..messages_num {
+                        loop {
+                            let res = async_write.write(format!("{}", i).as_bytes());
+                            if let Err(ref e) = res {
+                                assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
+                                assert_flush(&mut async_write);
+                            } else {
+                                break;
+                            }
+                        }
                     }
-                }
-            }
 
-            assert_flush(&mut async_write);
-            assert_shutdown(&mut async_write);
-        }));
+                    assert_flush(&mut async_write);
+                    assert_shutdown(&mut async_write);
+                })
+                .compat(),
+        );
 
-        let res = rt.block_on(rx.collect()).unwrap();
+        let res = rt.block_on(rx.collect().compat()).unwrap();
         assert_eq!(res.len(), messages_num);
     }
 
@@ -1150,7 +1134,7 @@ mod test {
             )
         }
 
-        let mut runtime = tokio::runtime::Builder::new().build().unwrap();
+        let runtime = tokio::runtime::Runtime::new().unwrap();
 
         let (counter, s) = create_stream();
         let params = BufferedParams {
@@ -1158,9 +1142,9 @@ mod test {
             buffer_size: 10,
         };
         let s = s.buffered_weight_limited(params);
-        if let Ok((Some(()), s)) = runtime.block_on(s.into_future()) {
+        if let Ok((Some(()), s)) = runtime.block_on(s.into_future().compat()) {
             assert_eq!(counter.load(Ordering::SeqCst), 1);
-            assert_eq!(runtime.block_on(s.collect()).unwrap().len(), 1);
+            assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
             assert_eq!(counter.load(Ordering::SeqCst), 2);
         } else {
             panic!("failed to block on a stream");
@@ -1172,9 +1156,9 @@ mod test {
             buffer_size: 10,
         };
         let s = s.buffered_weight_limited(params);
-        if let Ok((Some(()), s)) = runtime.block_on(s.into_future()) {
+        if let Ok((Some(()), s)) = runtime.block_on(s.into_future().compat()) {
             assert_eq!(counter.load(Ordering::SeqCst), 2);
-            assert_eq!(runtime.block_on(s.collect()).unwrap().len(), 1);
+            assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
             assert_eq!(counter.load(Ordering::SeqCst), 2);
         } else {
             panic!("failed to block on a stream");
@@ -1200,9 +1184,9 @@ mod test {
     #[test]
     fn collect_into_vec() {
         let items = vec![1, 2, 3];
-        let future = futures::stream::iter_ok::<_, ()>(items.clone()).collect_to();
-        let mut runtime = Runtime::new().unwrap();
-        match runtime.block_on::<_, Vec<i32>, _>(future) {
+        let future = futures::stream::iter_ok::<_, ()>(items.clone()).collect_to::<Vec<i32>>();
+        let runtime = Runtime::new().unwrap();
+        match runtime.block_on(future.compat()) {
             Ok(collections) => assert_same_elements(items, collections),
             Err(()) => panic!("future is supposed to succeed"),
         }
@@ -1211,9 +1195,9 @@ mod test {
     #[test]
     fn collect_into_set() {
         let items = vec![1, 2, 3];
-        let future = futures::stream::iter_ok::<_, ()>(items.clone()).collect_to();
-        let mut runtime = Runtime::new().unwrap();
-        match runtime.block_on::<_, HashSet<i32>, _>(future) {
+        let future = futures::stream::iter_ok::<_, ()>(items.clone()).collect_to::<HashSet<i32>>();
+        let runtime = Runtime::new().unwrap();
+        match runtime.block_on(future.compat()) {
             Ok(collections) => assert_same_elements(items, collections),
             Err(()) => panic!("future is supposed to succeed"),
         }

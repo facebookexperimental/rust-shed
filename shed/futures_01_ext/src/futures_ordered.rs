@@ -109,6 +109,7 @@ mod test {
     use futures::sync::mpsc;
     use futures::task;
     use futures::{Future, Sink, Stream};
+    use futures03::compat::Future01CompatExt;
 
     use super::*;
 
@@ -129,9 +130,11 @@ mod test {
         // stream ends.
         let futs = vec![delayed_future(10, tx.clone(), 4), delayed_future(20, tx, 2)];
 
-        let mut runtime = tokio::runtime::Runtime::new().unwrap();
-        runtime.block_on(futures_ordered(futs).collect()).unwrap();
-        let results = runtime.block_on(rx.collect());
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        runtime
+            .block_on(futures_ordered(futs).collect().compat())
+            .unwrap();
+        let results = runtime.block_on(rx.collect().compat());
         assert_eq!(results, Ok(vec![10, 20]));
     }
 
