@@ -21,7 +21,6 @@ use tokio_io::{
     AsyncWrite,
 };
 
-pub mod bounded_traversal;
 mod bytes_stream;
 pub mod decode;
 pub mod encode;
