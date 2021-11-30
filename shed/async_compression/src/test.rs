@@ -11,6 +11,7 @@ use std::io::{self, BufReader, Cursor, Read, Write};
 
 use assert_matches::assert_matches;
 use futures::{Async, Poll};
+use futures03::compat::Future01CompatExt;
 use quickcheck::{quickcheck, Arbitrary, Gen, TestResult};
 use tokio_io::io::read_to_end;
 use tokio_io::AsyncWrite;
@@ -120,8 +121,8 @@ fn roundtrip(ct: CompressorType, input: &[u8]) -> TestResult {
     let result = Vec::with_capacity(32 * 1024);
     let read_future = read_to_end(decoder, result);
 
-    let mut runtime = tokio::runtime::Runtime::new().unwrap();
-    let (decoder, result) = runtime.block_on(read_future).unwrap();
+    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let (decoder, result) = runtime.block_on(read_future.compat()).unwrap();
     assert_eq!(decoder.total_thru(), input.len() as u64);
     assert_eq!(
         decoder.get_ref().get_ref().get_ref().total_thru(),
