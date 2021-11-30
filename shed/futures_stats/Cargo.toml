@@ -16,10 +16,5 @@ path = "test/main.rs"
 
 [dependencies]
 futures = { version = "0.3.13", features = ["async-await", "compat"] }
-futures-old = { package = "futures", version = "0.1.31" }
-futures_01_ext = { version = "0.1.0", path = "../futures_01_ext" }
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
 tokio = { version = "1.10", features = ["full", "test-util", "tracing"] }
-
-[dev-dependencies]
-tokio-old = { package = "tokio", version = "0.1" }

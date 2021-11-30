@@ -219,7 +219,7 @@ where
     }
 }
 
-/// A trait that provides the `timed` method to [futures_old::Future] for gathering stats
+/// A trait that provides the `timed` method to [futures::Future] for gathering stats
 pub trait TimedFutureExt: Future + Sized {
     /// Combinator that returns a future that will gather some statistics and
     /// return them together with the result of inner future.
@@ -242,7 +242,7 @@ pub trait TimedFutureExt: Future + Sized {
 
 impl<T: Future> TimedFutureExt for T {}
 
-/// A trait that provides the `timed` method to [futures_old::Future] for gathering stats
+/// A trait that provides the `timed` method to [futures::Future] for gathering stats
 pub trait TimedTryFutureExt: TryFuture + Sized {
     /// Combinator that returns a future that will gather some statistics and
     /// return them together with the result of inner future.
@@ -265,7 +265,7 @@ pub trait TimedTryFutureExt: TryFuture + Sized {
 
 impl<T: TryFuture> TimedTryFutureExt for T {}
 
-/// A trait that provides the `timed` method to [futures_old::Stream] for gathering stats
+/// A trait that provides the `timed` method to [futures::Stream] for gathering stats
 pub trait TimedStreamExt: Stream + Sized {
     /// Combinator that returns a stream that will gather some statistics and
     /// pass them for inspection to the provided callback when the stream

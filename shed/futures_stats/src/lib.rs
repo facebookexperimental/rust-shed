@@ -17,11 +17,7 @@
 
 use std::time::Duration;
 
-pub mod futures01;
 pub mod futures03;
-
-// Export old Futures 0.1 API.
-pub use futures01::{Timed, TimedFuture, TimedNonSend};
 
 // Export new Futures 0.3 API, which has different names.
 pub use futures03::{TimedFutureExt, TimedStreamExt, TimedTryFutureExt};

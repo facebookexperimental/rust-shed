@@ -7,23 +7,22 @@
  * of this source tree.
  */
 
-use futures::compat::Future01CompatExt;
-use futures::{future, stream, TryStreamExt};
-use futures_old::future as future01;
+use futures::{future, stream, FutureExt, TryStreamExt};
 
-use futures_stats::{Timed, TimedStreamExt};
+use futures_stats::{TimedFutureExt, TimedStreamExt};
 
 fn main() {
     let runtime = tokio::runtime::Runtime::new().unwrap();
-    let fut = future01::lazy(|| {
+    let fut = future::lazy(|_| {
         println!("future polled");
-        Ok(())
+        Ok::<(), ()>(())
     })
-    .timed(|stats, _: Result<&(), &()>| {
+    .timed()
+    .map(|(stats, res)| {
         println!("{:#?}", stats);
-        Ok(())
+        res
     });
-    runtime.block_on(fut.compat()).unwrap();
+    runtime.block_on(fut).unwrap();
 
     let stream = stream::iter([1, 2, 3].map(Ok::<u32, ()>)).timed(|stats| {
         println!("{:#?}", stats);
