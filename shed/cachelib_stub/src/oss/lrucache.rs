@@ -196,6 +196,7 @@ impl<'a> LruCacheRemoteHandle<'a> {
 
 #[derive(Clone)]
 pub struct LruCachePool {
+    #[allow(dead_code)]
     pool_name: String,
 }
 
@@ -293,6 +294,7 @@ impl LruCachePool {
 
 #[derive(Clone)]
 pub struct VolatileLruCachePool {
+    #[allow(dead_code)]
     inner: LruCachePool,
 }
 
