@@ -266,6 +266,12 @@ pub enum ServerData {
     BuildRevision,
     /// Build rule of the current binary
     BuildRule,
+    /// Chronos cluster
+    ScheduledJobCluster,
+    /// Chronos job instance id
+    ScheduledJobInstanceId,
+    /// Chronos job name
+    ScheduledJobName,
 }
 
 impl ServerData {
@@ -281,6 +287,9 @@ impl ServerData {
             ServerData::JobHandle => "tw_handle",
             ServerData::BuildRevision => "build_revision",
             ServerData::BuildRule => "build_rule",
+            ServerData::ScheduledJobCluster => "chronos_cluster",
+            ServerData::ScheduledJobInstanceId => "chronos_job_instance_id",
+            ServerData::ScheduledJobName => "chronos_job_name",
         }
     }
 }
