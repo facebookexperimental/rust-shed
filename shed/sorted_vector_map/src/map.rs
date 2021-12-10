@@ -478,6 +478,12 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
     }
 }
 
+impl<'a, K: 'a, V: 'a> ExactSizeIterator for Iter<'a, K, V> {
+    fn len(&self) -> usize {
+        self.0.len()
+    }
+}
+
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
@@ -503,6 +509,12 @@ impl<'a, K: 'a, V: 'a> DoubleEndedIterator for IterMut<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
         self.0.next_back().map(|&mut (ref k, ref mut v)| (k, v))
+    }
+}
+
+impl<'a, K: 'a, V: 'a> ExactSizeIterator for IterMut<'a, K, V> {
+    fn len(&self) -> usize {
+        self.0.len()
     }
 }
 
