@@ -17,16 +17,16 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 #[error("ERROR {state} ({code}): {message}")]
 pub struct ServerError {
-    /// Contains [::mysql_async::error::ServerError::code]
+    /// Contains [::mysql_async::ServerError::code]
     pub code: u16,
     message: String,
     state: String,
 }
 
 /// Used to convert a mysql_async error type into [anyhow::Error]
-pub fn from_failure(failure: mysql_async::error::Error) -> anyhow::Error {
+pub fn from_failure(failure: mysql_async::Error) -> anyhow::Error {
     match failure {
-        mysql_async::error::Error::Server(mysql_async::error::ServerError {
+        mysql_async::Error::Server(mysql_async::ServerError {
             code,
             message,
             state,
