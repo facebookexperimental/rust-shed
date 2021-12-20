@@ -139,6 +139,9 @@ pub trait DynamicSingletonCounter<'a, T> {
 
     /// Dynamic version of `SingletonCounter::get_value`
     fn get_value(&'a self, fb: FacebookInit, args: T) -> Option<i64>;
+
+    /// Dynamic version of `SingletonCounter::increment_value`
+    fn increment_value(&'a self, fb: FacebookInit, value: i64, args: T);
 }
 
 impl<'a, T> DynamicSingletonCounter<'a, T> for DynamicStat<T, BoxSingletonCounter> {
@@ -149,6 +152,10 @@ impl<'a, T> DynamicSingletonCounter<'a, T> for DynamicStat<T, BoxSingletonCounte
     fn get_value(&'a self, fb: FacebookInit, args: T) -> Option<i64> {
         self.get_or_default(args, |s| s.get_value(fb))
     }
+
+    fn increment_value(&'a self, fb: FacebookInit, value: i64, args: T) {
+        self.get_or_default(args, |s| s.increment_value(fb, value))
+    }
 }
 
 impl<T> DynamicSingletonCounter<'static, T> for LocalKey<DynamicStat<T, BoxSingletonCounter>> {
@@ -158,5 +165,9 @@ impl<T> DynamicSingletonCounter<'static, T> for LocalKey<DynamicStat<T, BoxSingl
 
     fn get_value(&'static self, fb: FacebookInit, args: T) -> Option<i64> {
         self.with(|s| s.get_value(fb, args))
+    }
+
+    fn increment_value(&'static self, fb: FacebookInit, value: i64, args: T) {
+        self.with(|s| s.increment_value(fb, value, args))
     }
 }
