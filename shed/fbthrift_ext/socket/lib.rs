@@ -18,9 +18,9 @@ use std::future::Future;
 use std::io::Cursor;
 use std::pin::Pin;
 use std::sync::Arc;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::sync::Mutex;
 use tokio_tower::pipeline::client::Client;
-use tokio_uds_compat::UnixStream;
 use tokio_util::codec::{Decoder, Framed};
 use tower_service::Service;
 
@@ -29,19 +29,28 @@ use tower_service::Service;
 /// let transport = SocketTransport::new(stream);
 /// let client = <dyn fb303::client::FacebookService>::new(CompactProtocol, transport);
 /// ```
-pub struct SocketTransport {
-    service: Arc<Mutex<Client<Framed<UnixStream, FramedTransport>, Error, Bytes>>>,
+pub struct SocketTransport<T>
+where
+    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+{
+    service: Arc<Mutex<Client<Framed<T, FramedTransport>, Error, Bytes>>>,
 }
 
-impl SocketTransport {
-    pub fn new(stream: UnixStream) -> Self {
+impl<T> SocketTransport<T>
+where
+    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+{
+    pub fn new(stream: T) -> Self {
         SocketTransport {
             service: Arc::new(Mutex::new(Client::new(FramedTransport.framed(stream)))),
         }
     }
 }
 
-impl Framing for SocketTransport {
+impl<T> Framing for SocketTransport<T>
+where
+    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+{
     type EncBuf = BytesMut;
     type DecBuf = Cursor<Bytes>;
 
@@ -50,7 +59,10 @@ impl Framing for SocketTransport {
     }
 }
 
-impl Transport for SocketTransport {
+impl<T> Transport for SocketTransport<T>
+where
+    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+{
     fn call(
         &self,
         _service_name: &'static CStr,
