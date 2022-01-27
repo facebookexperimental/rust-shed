@@ -160,7 +160,10 @@ impl Config {
 
     fn infer_thrift_binary(&self) -> OsString {
         if let Some(base) = self.base_path.as_ref() {
-            let candidate = base.join("thrift/facebook/rpm/thrift1");
+            let mut candidate = base.clone();
+            candidate.push("thrift/facebook/rpm/thrift1");
+            #[cfg(windows)]
+            candidate.set_extension("exe");
             if Path::new(&candidate).exists() {
                 return candidate.into_os_string();
             }
