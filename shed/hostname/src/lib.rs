@@ -16,12 +16,12 @@ use anyhow::Result;
 
 /// Returns hostname as reported by the system
 pub fn get_hostname() -> Result<String> {
-    #[cfg(not(any(fbcode_build, feature = "fb")))]
+    #[cfg(not(fbcode_build))]
     {
         Ok(::hostname_orig::get()?.to_string_lossy().into_owned())
     }
 
-    #[cfg(any(fbcode_build, feature = "fb"))]
+    #[cfg(fbcode_build)]
     {
         use hostname_orig as _; // used in oss
 
