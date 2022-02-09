@@ -77,7 +77,7 @@ fbcode/configerator/structs/scm/hg/public_autocargo = configerator/structs/scm/h
 
 [shipit.strip.fb=off]
 ^fbcode/common/rust/shed(?!/public_autocargo).*/Cargo\.toml$
-^fbcode/configerator/structs/hg(?!/public_autocargo).*/Cargo\.toml$
+^fbcode/configerator/structs/scm/hg(?!/public_autocargo).*/Cargo\.toml$
 ^fbcode/eden/fs(?!/public_autocargo).*/Cargo\.toml$
 ^fbcode/eden/scm/lib(?!/public_autocargo).*/Cargo\.toml$
 ^.*/facebook/.*$

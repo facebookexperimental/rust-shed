@@ -38,7 +38,7 @@ fbcode/tools/lfs = tools/lfs
 fbcode/fboss/common = common
 
 [shipit.strip]
-^fbcode/configerator/structs/hg(?!/public_autocargo).*/Cargo\.toml$
+^fbcode/configerator/structs/scm/hg(?!/public_autocargo).*/Cargo\.toml$
 ^fbcode/eden/fs/eden-config\.h$
 ^fbcode/eden/fs/py/eden/config\.py$
 ^fbcode/eden/hg-server/.*$
@@ -56,8 +56,6 @@ fbcode/fboss/common = common
 [dependencies]
 fb303
 fbthrift
-fb303-source
-fbthrift-source
 python
 rust-shed
 
