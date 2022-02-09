@@ -224,6 +224,12 @@ impl From<Option<String>> for ScubaValue {
     }
 }
 
+impl From<Option<&String>> for ScubaValue {
+    fn from(value: Option<&String>) -> Self {
+        ScubaValue::from(value.map(|s| &s[..]))
+    }
+}
+
 impl<'a> From<Option<&'a str>> for ScubaValue {
     fn from(value: Option<&'a str>) -> Self {
         match value {
@@ -390,6 +396,10 @@ mod tests {
         assert_matches!(ScubaValue::from(Some("str")), ScubaValue::Normal(_));
         assert_matches!(
             ScubaValue::from(Some("str".to_string())),
+            ScubaValue::Normal(_)
+        );
+        assert_matches!(
+            ScubaValue::from(Some(&"str".to_string())),
             ScubaValue::Normal(_)
         );
         assert_matches!(
