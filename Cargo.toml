@@ -47,6 +47,7 @@ members = [
   "shed/netstring",
   "shed/panichandler",
   "shed/perthread",
+  "shed/quickcheck_arbitrary_derive",
   "shed/scuba_sample",
   "shed/scuba_stub",
   "shed/secure_utils",
