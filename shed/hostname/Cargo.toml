@@ -13,7 +13,3 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.51"
 hostname_orig = { package = "hostname", version = "0.3" }
-
-[features]
-default = []
-fb = []
