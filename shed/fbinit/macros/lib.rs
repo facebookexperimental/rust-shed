@@ -29,7 +29,7 @@ use syn::punctuated::Punctuated;
 // to:
 //
 //     fn main() {
-//         let fb: FacebookInit = fbinit::r#impl::perform_init();
+//         let fb: FacebookInit = fbinit::perform_init();
 //         ...
 //     }
 //
@@ -69,7 +69,7 @@ pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
 //
 //     #[test]
 //     fn name_of_test() {
-//         let fb: FacebookInit = fbinit::r#impl::perform_init();
+//         let fb: FacebookInit = fbinit::perform_init();
 //         ...
 //     }
 //

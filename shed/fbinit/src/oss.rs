@@ -20,9 +20,9 @@ use quickcheck::{Arbitrary, Gen};
 /// modify process-global state like env vars or gflags without the risk of
 /// undefined behavior from other code concurrently reading those things.
 ///
-/// The only way to obtain a proof token is through a pair of attribute macros
-/// exported by this crate. `#\[fbinit::main\]` is placed on your main function
-/// and will call initFacebook and provide the resulting proof:
+/// The preferred way to obtain a proof token is through a pair of attribute
+/// macros exported by this crate. `#\[fbinit::main\]` is placed on your main
+/// function and will call initFacebook and provide the resulting proof:
 ///
 ///     #[fbinit::main]
 ///     fn main(fb: fbinit::FacebookInit) {
@@ -93,8 +93,26 @@ impl Debug for FacebookInit {
 
 impl Arbitrary for FacebookInit {
     fn arbitrary(_: &mut Gen) -> Self {
-        unsafe { r#impl::perform_init() }
+        unsafe { perform_init() }
     }
+}
+
+/// Initializes fbinit, returning proof that `initFacebook` was called.
+///
+/// Calling this function is discouraged in favor of the `#\[fbinit::main\]` or
+/// `#\[fbinit::test\]`, as the macros safely maintain invariants about the
+/// construction of [`FacebookInit`] that otherwise makes calling this function
+/// unsafe. Avoid calling this function unless you need to run code before
+/// `initFacebook` is called.
+///
+/// # Safety
+///
+/// This function must be called at the beginning of main before there are
+/// additional threads. It must be allowed to modify process-global state like
+/// env vars or gflags without the risk of undefined behavior from other code
+/// concurrently reading those things.
+pub const unsafe fn perform_init() -> FacebookInit {
+    assume_init()
 }
 
 // Not public API. These are used by the attribute macros.
@@ -102,11 +120,10 @@ impl Arbitrary for FacebookInit {
 // initializations.
 #[doc(hidden)]
 pub mod r#impl {
-    pub use super::assume_init as perform_init;
     use crate::FacebookInit;
 
     pub const unsafe fn perform_init_with_disable_signals(_: u64) -> FacebookInit {
-        perform_init()
+        super::perform_init()
     }
 
     pub struct DestroyGuard;

@@ -148,7 +148,7 @@ pub fn expand(
         }
         DisableFatalSignals::None(_) => {
             quote! {
-                fbinit::r#impl::perform_init()
+                fbinit::perform_init()
             }
         }
     };
