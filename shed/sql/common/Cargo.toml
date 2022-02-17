@@ -35,4 +35,4 @@ sql = { version = "0.1.0", path = ".." }
 sql_tests_lib = { version = "0.1.0", path = "../tests_lib" }
 
 [features]
-default = ["rusqlite/bundled"]
+default = ["mio/os-poll", "mio/tcp", "rusqlite/bundled"]
