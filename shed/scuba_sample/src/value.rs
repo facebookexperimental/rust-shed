@@ -257,6 +257,15 @@ impl From<Option<f32>> for ScubaValue {
     }
 }
 
+impl From<Option<bool>> for ScubaValue {
+    fn from(value: Option<bool>) -> Self {
+        match value {
+            None => ScubaValue::Null(NullScubaValue::Normal),
+            Some(v) => ScubaValue::Normal(v.to_string()),
+        }
+    }
+}
+
 impl<'a> From<HashSet<&'a str>> for ScubaValue {
     fn from(value: HashSet<&'a str>) -> Self {
         let set = value.into_iter().map(|s| s.to_string()).collect();
@@ -408,6 +417,11 @@ mod tests {
         );
         assert_matches!(
             ScubaValue::from(None::<&'static str>),
+            ScubaValue::Null(NullScubaValue::Normal)
+        );
+        // Option<bool>
+        assert_matches!(
+            ScubaValue::from(None::<bool>),
             ScubaValue::Null(NullScubaValue::Normal)
         );
     }
