@@ -36,6 +36,7 @@ members = [
   "shed/fbthrift_ext/util",
   "shed/futures_01_ext",
   "shed/futures_ext",
+  "shed/futures_lazy_shared",
   "shed/futures_stats",
   "shed/hash_memo",
   "shed/hostcaps",
