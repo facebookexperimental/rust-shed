@@ -19,7 +19,9 @@ use std::fmt::{self, Debug, Display};
 pub use failure;
 
 mod slogkv;
-pub use crate::slogkv::{cause_workaround as cause, SlogKVError, SlogKVErrorKey};
+pub use crate::slogkv::{
+    cause_workaround as cause, SlogKVError, SlogKVErrorKey, SlogKVErrorWithoutBackTrace,
+};
 
 mod convert;
 pub use self::convert::convert;

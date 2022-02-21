@@ -45,6 +45,30 @@ impl slog::KV for SlogKVError {
     }
 }
 
+impl slog::KV for SlogKVErrorWithoutBackTrace {
+    fn serialize(
+        &self,
+        _record: &slog::Record<'_>,
+        serializer: &mut dyn slog::Serializer,
+    ) -> slog::Result {
+        let error = &self.0;
+        serializer.emit_str(Error.into_str(), &format!("{}", error))?;
+        serializer.emit_str(ErrorDebug.into_str(), &format!("{:#?}", error))?;
+
+        let mut error = error.deref() as &dyn StdError;
+        while let Some(cause) = cause_workaround(error) {
+            serializer.emit_str(Cause.into_str(), &format!("{}", cause))?;
+            error = cause;
+        }
+        serializer.emit_str(RootCause.into_str(), &format!("{}", error))?;
+
+        Ok(())
+    }
+}
+
+/// Wrapper around [Error] that implements [slog::KV] trait, but without backtraces
+pub struct SlogKVErrorWithoutBackTrace(pub Error);
+
 /// Enum used in [slog::Serializer] implementation when [SlogKVError] is used
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum SlogKVErrorKey {
