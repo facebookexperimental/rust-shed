@@ -562,7 +562,7 @@ macro_rules! _read_query_impl {
 
             sqlite_statement(&con  $( , $lname )*)
                 .and_then(|mut stmt| {
-                    stmt.query_map_named(
+                    stmt.query_map(
                         &ref_params[..],
                         |row| {
                             #[allow(clippy::eval_order_dependence)]
@@ -604,7 +604,7 @@ macro_rules! _read_query_impl {
 
             let res: SqliteResult<Vec<($( $rtype, )*)>> = {
                 let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
-                let res = stmt.query_map_named(
+                let res = stmt.query_map(
                     &ref_params[..],
                     |row| {
                         #[allow(clippy::eval_order_dependence)]
@@ -767,7 +767,8 @@ macro_rules! _write_query_impl {
                     param_refs.push((param.0, &param.1));
                 }
 
-                res.push(stmt.execute_named(param_refs.as_ref())?);
+                let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
+                res.push(stmt.execute(a)?);
             }
 
             Ok(WriteResult::new(
@@ -796,7 +797,7 @@ macro_rules! _write_query_impl {
                 multi_params.push(params);
             }
 
-            let res = {
+            let res: usize = {
                 let mut stmt = sqlite_statement(&transaction)?;
 
                 let mut res = Vec::new();
@@ -806,7 +807,8 @@ macro_rules! _write_query_impl {
                         param_refs.push((param.0, &param.1));
                     }
 
-                    res.push(stmt.execute_named(param_refs.as_ref())?);
+                    let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
+                    res.push(stmt.execute(a)?);
                 }
 
                 res.into_iter().sum::<usize>()
@@ -913,7 +915,8 @@ macro_rules! _write_query_impl {
                 param_refs.push((&param.0, &param.1));
             }
 
-            let res = stmt.execute_named(param_refs.as_ref())?;
+                    let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
+                    let res = stmt.execute(a)?;
 
             Ok(WriteResult::new(
                 Some(con.last_insert_rowid() as u64),
@@ -940,7 +943,8 @@ macro_rules! _write_query_impl {
                     param_refs.push((&param.0, &param.1));
                 }
 
-                stmt.execute_named(param_refs.as_ref())?
+                    let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
+                    stmt.execute(a)?
             };
 
             let res = WriteResult::new(
