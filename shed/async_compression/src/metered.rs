@@ -90,7 +90,7 @@ impl<R: AsyncRead> AsyncRead for MeteredRead<R> {
     where
         Self: Sized,
     {
-        let read_bytes = try_ready!(self.inner.read_buf(buf));
+        let read_bytes = try_ready!(AsyncRead::read_buf(&mut self.inner, buf));
         self.total_thru += read_bytes as u64;
         Ok(Async::Ready(read_bytes))
     }
