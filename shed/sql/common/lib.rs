@@ -173,6 +173,7 @@ impl Debug for Connection {
 }
 
 /// Value returned from a `write` type of query
+#[derive(Debug)]
 pub struct WriteResult {
     last_insert_id: Option<u64>,
     affected_rows: u64,
