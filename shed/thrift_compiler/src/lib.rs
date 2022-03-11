@@ -22,6 +22,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{anyhow, ensure, Context, Result};
+use which::which;
 
 /// Builder for thrift compilare wrapper
 pub struct Config {
@@ -101,13 +102,7 @@ impl Config {
     /// Run the compiler on the input files. As a result a `lib.rs` file will
     /// be generated inside the output dir.
     pub fn run(&self, input_files: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<()> {
-        let thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
-            Cow::Borrowed(bin)
-        } else {
-            Cow::Owned(self.infer_thrift_binary())
-        };
-
-        println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
+        let thrift_bin = self.resolve_thrift_bin()?;
 
         let input = name_and_path_from_input(input_files)?;
         create_dir_all(&self.out_dir)?;
@@ -156,6 +151,29 @@ impl Config {
         }
 
         Ok(())
+    }
+
+    fn resolve_thrift_bin(&self) -> Result<Cow<'_, OsString>> {
+        // Get raw location
+        let mut thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
+            Cow::Borrowed(bin)
+        } else {
+            Cow::Owned(self.infer_thrift_binary())
+        };
+        // Resolve based on PATH if needed
+        let thrift_bin_path: &Path = thrift_bin.as_ref().as_ref();
+        if thrift_bin_path.components().count() == 1 {
+            println!("cargo:rerun-if-env-changed=PATH");
+            let new_path = which(thrift_bin.as_ref()).with_context(|| {
+                format!(
+                    "Failed to resolve thrift binary `{}` to an absolute path",
+                    thrift_bin.to_string_lossy()
+                )
+            })?;
+            thrift_bin = Cow::Owned(new_path.into_os_string())
+        }
+        println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
+        Ok(thrift_bin)
     }
 
     fn infer_thrift_binary(&self) -> OsString {
