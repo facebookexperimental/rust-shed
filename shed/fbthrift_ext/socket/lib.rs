@@ -63,11 +63,14 @@ impl<T> Transport for SocketTransport<T>
 where
     T: AsyncRead + AsyncWrite + Sized + Send + 'static,
 {
+    type RpcOptions = ();
+
     fn call(
         &self,
         _service_name: &'static CStr,
         _fn_name: &'static CStr,
         req: FramingEncodedFinal<Self>,
+        _rpc_options: &Self::RpcOptions,
     ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
         let svc = self.service.clone();
         (async move {
