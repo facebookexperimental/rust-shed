@@ -40,7 +40,7 @@ path = "test/testrunner.rs"
 
 [dependencies]
 backtrace = "0.3"
-libc = "0.2.98"
+libc = "0.2.121"
 
 [dev-dependencies]
 anyhow = "1.0.51"
