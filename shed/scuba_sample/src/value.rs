@@ -10,7 +10,7 @@
 //! See the [ScubaValue] documentation
 
 use serde_json::{Number, Value};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
 use std::{f32, f64};
 
@@ -212,6 +212,17 @@ impl<T: Into<String>> FromIterator<T> for ScubaValue {
 impl From<HashSet<String>> for ScubaValue {
     fn from(value: HashSet<String>) -> Self {
         ScubaValue::TagSet(value)
+    }
+}
+
+impl<K: AsRef<str>, V: AsRef<str>> From<HashMap<K, V>> for ScubaValue {
+    fn from(value: HashMap<K, V>) -> Self {
+        let mut values: Vec<String> = value
+            .iter()
+            .map(|(k, v)| format!("{}:{}", k.as_ref(), v.as_ref()))
+            .collect();
+        values.sort();
+        ScubaValue::NormVector(values)
     }
 }
 
@@ -423,6 +434,20 @@ mod tests {
         assert_matches!(
             ScubaValue::from(None::<bool>),
             ScubaValue::Null(NullScubaValue::Normal)
+        );
+    }
+
+    #[test]
+    fn from_hashmap_string() {
+        let mut input = HashMap::new();
+        input.insert("foo", "bar");
+        input.insert("bar", "10");
+
+        let expected = vec!["bar:10", "foo:bar"];
+
+        assert_matches!(
+            ScubaValue::from(input),
+            ScubaValue::NormVector(ref actual) if *actual == expected
         );
     }
 
