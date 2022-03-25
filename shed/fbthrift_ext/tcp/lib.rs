@@ -58,7 +58,7 @@ impl Transport for TcpTransport {
         _service_name: &'static CStr,
         _fn_name: &'static CStr,
         req: FramingEncodedFinal<Self>,
-        _rpc_options: &Self::RpcOptions,
+        _rpc_options: Self::RpcOptions,
     ) -> Pin<Box<dyn Future<Output = Result<FramingDecoded<Self>>> + Send + 'static>> {
         let svc = self.service.clone();
         (async move {
