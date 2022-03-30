@@ -25,7 +25,7 @@ pub fn derive_opttryfrom_rowfield(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl mysql::OptionalTryFromRowField for #name {
-            fn try_from_opt(field: mysql::RowField) -> Result<Option<Self>, mysql::MysqlError> {
+            fn try_from_opt(field: mysql::RowField) -> Result<Option<Self>, mysql::ValueError> {
                 mysql::opt_try_from_rowfield(field)
             }
         }
@@ -43,7 +43,7 @@ pub fn derive_tryfrom_rowfield(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl mysql::TryFromRowField for #name {
-            fn try_from(field: mysql::RowField) -> Result<Self, mysql::MysqlError> {
+            fn try_from(field: mysql::RowField) -> Result<Self, mysql::ValueError> {
                 mysql::opt_try_from_rowfield(field)
             }
         }

@@ -22,6 +22,22 @@ impl Display for MysqlError {
     }
 }
 
+/// Value conversion error for Mysql client
+#[derive(Error, Debug)]
+pub struct ValueError;
+
+impl Display for ValueError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "ValueError")
+    }
+}
+
+impl From<ValueError> for MysqlError {
+    fn from(_: ValueError) -> Self {
+        Self
+    }
+}
+
 /// Result returned by a write query
 pub struct WriteResult;
 
@@ -98,16 +114,16 @@ pub struct RowField;
 /// The trait you need to implement to be able to read a query result into the custom type.
 pub trait OptionalTryFromRowField: Sized {
     /// Try to convert from row field.
-    fn try_from_opt(field: RowField) -> Result<Option<Self>, MysqlError>;
+    fn try_from_opt(field: RowField) -> Result<Option<Self>, ValueError>;
 }
 
 /// The trait you need to implement to be able to read a query result into the custom type where NULL maps to Some
 pub trait TryFromRowField: Sized {
     /// Try to convert from row field.
-    fn try_from(field: RowField) -> Result<Self, MysqlError>;
+    fn try_from(field: RowField) -> Result<Self, ValueError>;
 }
 
 /// The function converts RowField object into Rust type.
-pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<T, MysqlError> {
+pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<T, ValueError> {
     unimplemented!("This is a stub");
 }
