@@ -81,7 +81,6 @@ fn gen_factory_builder(
         }
     };
 
-
     Ok(builder)
 }
 

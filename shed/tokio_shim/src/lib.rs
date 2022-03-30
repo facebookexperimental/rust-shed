@@ -30,7 +30,6 @@ pub mod task {
     impl JoinHandleError {
         // For now just implement the required apis
 
-
         // See https://docs.rs/tokio/1/tokio/task/struct.JoinError.html#method.into_panic
         pub fn into_panic(self) -> Box<dyn Any + Send + 'static> {
             match self {
