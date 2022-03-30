@@ -84,7 +84,7 @@ where
     W: AsyncWrite + Send,
 {
     fn try_finish(self: Box<Self>)
-        -> result::Result<W, (Box<dyn RawEncoder<W> + Send>, io::Error)>;
+    -> result::Result<W, (Box<dyn RawEncoder<W> + Send>, io::Error)>;
 }
 
 impl<W> RawEncoder<W> for BzEncoder<W>
