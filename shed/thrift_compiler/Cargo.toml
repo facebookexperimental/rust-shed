@@ -15,6 +15,6 @@ name = "compiler"
 path = "src/main.rs"
 
 [dependencies]
-anyhow = "1.0.51"
+anyhow = "1.0.56"
 clap = "2.33"
 which = "4.2.4"
