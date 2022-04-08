@@ -35,6 +35,6 @@ pub fn from_failure(failure: mysql_async::Error) -> anyhow::Error {
             message,
             state,
         }),
-        _ => failure_ext::convert(failure),
+        _ => anyhow::Error::new(failure),
     }
 }

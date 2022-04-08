@@ -80,9 +80,8 @@ impl Transaction {
             super::Connection::Sqlite(con) => {
                 let con = con.get_sqlite_guard();
                 // Transactions in SQLite are always SERIALIZABLE; no transaction options.
-                con.execute_batch("BEGIN DEFERRED")
-                    .map(move |_| Transaction::Sqlite(Some(con)))
-                    .map_err(failure_ext::convert)
+                con.execute_batch("BEGIN DEFERRED")?;
+                Ok(Transaction::Sqlite(Some(con)))
             }
             super::Connection::Mysql(conn) => {
                 let transaction = conn.begin_transaction().map_err(Error::from).await?;
