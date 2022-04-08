@@ -10,21 +10,16 @@
 #![cfg_attr(fbcode_build, feature(backtrace))]
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-//! Crate extending functionality of [`failure`] and [`anyhow`] crates
+//! Crate extending functionality of the [`anyhow`] crate
 
 use anyhow::Error;
 use std::error::Error as StdError;
 use std::fmt::{self, Debug, Display};
 
-pub use failure;
-
 mod slogkv;
 pub use crate::slogkv::{
     cause_workaround as cause, SlogKVError, SlogKVErrorKey, SlogKVErrorWithoutBackTrace,
 };
-
-mod convert;
-pub use self::convert::convert;
 
 pub mod prelude {
     //! A "prelude" of `failure_ext` crate.
