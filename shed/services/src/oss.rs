@@ -21,7 +21,7 @@ pub fn run_service_framework<T: Into<Vec<u8>>>(
     _: i32,
     _: i32,
     _: Box<dyn Fb303Service>,
-) -> Result<!> {
+) -> Result<!, ServicesError> {
     loop {
         sleep(Duration::from_secs(3600))
     }

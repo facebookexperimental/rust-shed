@@ -11,20 +11,16 @@
 
 //! Crate defining basic trates and structures for handing fb303 thrift services
 
-mod errors {
-    #![allow(renamed_and_removed_lints)] // unused_doc_comment -> unused_doc_comments
-    #![allow(deprecated)]
+use thiserror::Error;
 
-    use error_chain::error_chain;
-
-    // Create Error, ErrorKind, ResultExt, and Result types.
-    error_chain! {
-        foreign_links {
-            CString(::std::ffi::NulError) #[doc = "Error that can be returned when dealing with thrift services"];
-        }
-    }
+/// Services Error type.
+#[derive(Error, Debug)]
+pub enum ServicesError {
+    /// Unknown C++ exception
+    #[error("Unknown C++ exception")]
+    CxxException(#[from] cxx::Exception),
 }
-pub use crate::errors::*;
+
 #[cfg(fbcode_build)]
 mod facebook;
 
