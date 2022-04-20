@@ -8,6 +8,7 @@
  */
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+#![cfg_attr(not(fbcode_build), allow(unused_crate_dependencies))]
 
 //! Crate defining basic trates and structures for handing fb303 thrift services
 

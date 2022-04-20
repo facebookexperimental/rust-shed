@@ -11,6 +11,7 @@
 //! to implement traits to be used with the sql's queries macro.
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+#![cfg_attr(not(fbcode_build), allow(unused_crate_dependencies))]
 
 pub mod error;
 pub mod mysql;

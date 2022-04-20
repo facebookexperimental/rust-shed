@@ -10,6 +10,7 @@
 //! Crate with useful security utilities
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+#![cfg_attr(not(fbcode_build), allow(unused_crate_dependencies))]
 
 #[cfg(fbcode_build)]
 pub mod facebook;
