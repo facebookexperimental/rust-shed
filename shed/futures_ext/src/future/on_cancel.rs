@@ -15,7 +15,7 @@ use futures::task::{Context, Poll};
 use pin_project::{pin_project, pinned_drop};
 
 /// Future combinator that executes the `on_cancel` closure if the inner future
-/// is cancelled (dropped before completion).
+/// is canceled (dropped before completion).
 #[pin_project(PinnedDrop)]
 pub struct OnCancel<Fut, OnCancelFn>
 where
@@ -34,7 +34,7 @@ where
     OnCancelFn: FnOnce(),
 {
     /// Construct an `OnCancel` combinator that will run `on_cancel` if `inner`
-    /// is cancelled.
+    /// is canceled.
     pub fn new(inner: Fut, on_cancel: OnCancelFn) -> Self {
         Self {
             inner,
@@ -79,18 +79,18 @@ mod test {
     use std::sync::atomic::{AtomicBool, Ordering};
 
     #[tokio::test]
-    async fn runs_when_cancelled() {
-        let cancelled = AtomicBool::new(false);
-        let fut = OnCancel::new(async {}, || cancelled.store(true, Ordering::Relaxed));
+    async fn runs_when_canceled() {
+        let canceled = AtomicBool::new(false);
+        let fut = OnCancel::new(async {}, || canceled.store(true, Ordering::Relaxed));
         drop(fut);
-        assert!(cancelled.load(Ordering::Relaxed));
+        assert!(canceled.load(Ordering::Relaxed));
     }
 
     #[tokio::test]
     async fn doesnt_run_when_complete() {
-        let cancelled = AtomicBool::new(false);
-        let fut = OnCancel::new(async {}, || cancelled.store(true, Ordering::Relaxed));
+        let canceled = AtomicBool::new(false);
+        let fut = OnCancel::new(async {}, || canceled.store(true, Ordering::Relaxed));
         fut.await;
-        assert!(!cancelled.load(Ordering::Relaxed));
+        assert!(!canceled.load(Ordering::Relaxed));
     }
 }

@@ -39,7 +39,7 @@ pub trait FbFutureExt: Future {
         tokio_shim::time::timeout(timeout, self)
     }
 
-    /// Call the `on_cancel` callback if this future is cancelled (dropped
+    /// Call the `on_cancel` callback if this future is canceled (dropped
     /// without completion).
     fn on_cancel<F: FnOnce()>(self, on_cancel: F) -> OnCancel<Self, F>
     where
@@ -48,7 +48,7 @@ pub trait FbFutureExt: Future {
         OnCancel::new(self, on_cancel)
     }
 
-    /// Call the `on_cancel` callback if this future is cancelled (dropped
+    /// Call the `on_cancel` callback if this future is canceled (dropped
     /// without completion).  Pass additional data extracted from the
     /// inner future via the CancelData trait.
     fn on_cancel_with_data<F>(self, on_cancel: F) -> OnCancelWithData<Self, F>

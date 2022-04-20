@@ -15,9 +15,9 @@ use futures::task::{Context, Poll};
 use pin_project::{pin_project, pinned_drop};
 
 /// Trait to be implemented by futures that wish to provide additional data
-/// when they are cancelled.
+/// when they are canceled.
 pub trait CancelData {
-    /// The type of the data provided when the future is cancelled.
+    /// The type of the data provided when the future is canceled.
     type Data;
 
     /// Provide cancellation data for this future.
@@ -25,7 +25,7 @@ pub trait CancelData {
 }
 
 /// Future combinator that executes the `on_cancel` closure if the inner future
-/// is cancelled (dropped before completion).
+/// is canceled (dropped before completion).
 #[pin_project(PinnedDrop)]
 pub struct OnCancelWithData<Fut, OnCancelFn>
 where
@@ -44,7 +44,7 @@ where
     OnCancelFn: FnOnce(Fut::Data),
 {
     /// Construct an `OnCancelWithData` combinator that will run `on_cancel` if `inner`
-    /// is cancelled.  Additional data will be extracted from `inner` and
+    /// is canceled.  Additional data will be extracted from `inner` and
     /// passed to `on_cancel`.
     pub fn new(inner: Fut, on_cancel: OnCancelFn) -> Self {
         Self {
@@ -112,27 +112,27 @@ mod test {
     }
 
     #[tokio::test]
-    async fn runs_when_cancelled() {
-        let cancelled = AtomicUsize::new(0);
+    async fn runs_when_canceled() {
+        let canceled = AtomicUsize::new(0);
         let fut = WithCancelData {
             result: 100,
             data: 200,
         };
-        let fut = OnCancelWithData::new(fut, |data| cancelled.store(data, Ordering::Relaxed));
+        let fut = OnCancelWithData::new(fut, |data| canceled.store(data, Ordering::Relaxed));
         drop(fut);
-        assert_eq!(cancelled.load(Ordering::Relaxed), 200);
+        assert_eq!(canceled.load(Ordering::Relaxed), 200);
     }
 
     #[tokio::test]
     async fn doesnt_run_when_complete() {
-        let cancelled = AtomicUsize::new(0);
+        let canceled = AtomicUsize::new(0);
         let fut = WithCancelData {
             result: 100,
             data: 200,
         };
-        let fut = OnCancelWithData::new(fut, |data| cancelled.store(data, Ordering::Relaxed));
+        let fut = OnCancelWithData::new(fut, |data| canceled.store(data, Ordering::Relaxed));
         let val = fut.await;
         assert_eq!(val, 100);
-        assert_eq!(cancelled.load(Ordering::Relaxed), 0);
+        assert_eq!(canceled.load(Ordering::Relaxed), 0);
     }
 }
