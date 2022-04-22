@@ -210,7 +210,7 @@ impl OnelineMetadata {
             tname: thread::current()
                 .name()
                 .map(|s| format!("[{}]", s))
-                .unwrap_or_else(|| String::from("")),
+                .unwrap_or_default(),
         }
     }
 }

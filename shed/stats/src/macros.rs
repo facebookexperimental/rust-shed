@@ -61,6 +61,7 @@ pub mod common_macro_prelude {
 ///     pub use self::STATS::*;
 /// }
 ///
+/// # #[allow(clippy::needless_doctest_main)]
 /// #[fbinit::main]
 /// fn main(fb: FacebookInit) {
 ///     STATS::manual_c.set_value(fb, 1);

@@ -267,8 +267,8 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     where
         T: ?Sized + Serialize,
     {
-        if name.starts_with("call:") {
-            value.serialize(&mut CallSerializer::with(self, &name[5..]))
+        if let Some(s) = name.strip_prefix("call:") {
+            value.serialize(&mut CallSerializer::with(self, s))
         } else {
             value.serialize(self)
         }

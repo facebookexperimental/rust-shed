@@ -132,9 +132,8 @@ mod tests {
     async fn test_schedule_stats_aggregation_preview() {
         let _lock = TEST_MUTEX.lock().expect("poisoned lock");
 
-        match schedule_stats_aggregation_preview() {
-            Ok(_) => {}
-            Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
+        if let Err(err) = schedule_stats_aggregation_preview() {
+            panic!("Scheduler is not Ok. Reason: {:?}", err);
         }
 
         if schedule_stats_aggregation_preview().is_ok() {

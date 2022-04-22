@@ -26,8 +26,7 @@ fn main() -> Result<()> {
 
     let out = matches
         .value_of_os("out")
-        .map(PathBuf::from)
-        .unwrap_or(env::current_dir()?);
+        .map_or_else(env::current_dir, |x| Ok(PathBuf::from(x)))?;
     let input = matches.values_of_os("input").unwrap();
 
     let compiler = if matches.is_present("use_env") {
