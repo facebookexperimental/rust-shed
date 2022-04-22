@@ -65,7 +65,7 @@ where
     fn poll(mut self: Pin<&mut Self>, ctx: &mut Context<'_>) -> Poll<Self::Output> {
         let mut fut = Box::pin(self.lock.lock());
         match fut.as_mut().poll(ctx) {
-            Poll::Ready(mut locked) => match (&mut self.f)(&mut locked, ctx) {
+            Poll::Ready(mut locked) => match (self.f)(&mut locked, ctx) {
                 Poll::Ready(Ok(())) => Poll::Ready(Ok(locked)),
                 Poll::Ready(Err(e)) => Poll::Ready(Err(e)),
                 Poll::Pending => Poll::Pending,

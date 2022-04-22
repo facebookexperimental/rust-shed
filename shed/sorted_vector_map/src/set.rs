@@ -236,7 +236,7 @@ where
         T: Borrow<Q>,
         Q: Ord + ?Sized,
     {
-        match self.find_index(&value) {
+        match self.find_index(value) {
             Ok(index) => Some(self.0.remove(index)),
             Err(_index) => None,
         }
@@ -577,7 +577,7 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
-        while let Some(next) = self.0.next() {
+        for next in &mut self.0 {
             match next {
                 (Some(left), None) => return Some(left),
                 _ => continue,
@@ -607,7 +607,7 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
-        while let Some(next) = self.0.next() {
+        for next in self.0.by_ref() {
             match next {
                 (Some(left), None) => return Some(left),
                 (None, Some(right)) => return Some(right),
@@ -638,7 +638,7 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
-        while let Some(next) = self.0.next() {
+        for next in self.0.by_ref() {
             match next {
                 (Some(left), Some(_right)) => return Some(left),
                 _ => continue,
@@ -668,7 +668,7 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<&'a T> {
-        while let Some(next) = self.0.next() {
+        for next in self.0.by_ref() {
             match next {
                 (_, Some(right)) => return Some(right),
                 (Some(left), None) => return Some(left),
@@ -783,18 +783,18 @@ mod tests {
     #[test]
     fn insert_contains_take_remove() {
         let mut svs = SortedVectorSet::new();
-        assert_eq!(svs.insert("test1"), true);
-        assert_eq!(svs.insert("test2"), true);
-        assert_eq!(svs.insert("test4"), true);
-        assert_eq!(svs.insert("test3"), true);
-        assert_eq!(svs.insert("test1"), false);
-        assert_eq!(svs.contains(&"test1"), true);
-        assert_eq!(svs.contains(&"never"), false);
+        assert!(svs.insert("test1"));
+        assert!(svs.insert("test2"));
+        assert!(svs.insert("test4"));
+        assert!(svs.insert("test3"));
+        assert!(!svs.insert("test1"));
+        assert!(svs.contains(&"test1"));
+        assert!(!svs.contains(&"never"));
         assert_eq!(svs.take(&"test3"), Some("test3"));
         assert_eq!(svs.take(&"never"), None);
-        assert_eq!(svs.remove(&"test2"), true);
-        assert_eq!(svs.remove(&"test2"), false);
-        assert_eq!(svs.remove(&"never"), false);
+        assert!(svs.remove(&"test2"));
+        assert!(!svs.remove(&"test2"));
+        assert!(!svs.remove(&"never"));
     }
 
     #[test]

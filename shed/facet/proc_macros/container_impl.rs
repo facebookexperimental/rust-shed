@@ -150,8 +150,8 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
     let container_name = &container.ident;
 
     let attr_impls = gen_attr_impls(&facet_crate, container_name, &members);
-    let buildable_impl = gen_buildable_impl(&facet_crate, &container_name, &members);
-    let async_buildable_impl = gen_async_buildable_impl(&facet_crate, &container_name, &members);
+    let buildable_impl = gen_buildable_impl(&facet_crate, container_name, &members);
+    let async_buildable_impl = gen_async_buildable_impl(&facet_crate, container_name, &members);
 
     Ok(quote! {
         #container

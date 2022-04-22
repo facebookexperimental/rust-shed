@@ -65,7 +65,7 @@ mod tests {
         let result = serializer.into_inner();
         assert!(result.len() == 1);
         assert_eq!(result[0].0, "hostname");
-        assert!(result[0].1 != "");
+        assert!(!result[0].1.is_empty());
     }
 
     #[test]
@@ -82,6 +82,6 @@ mod tests {
         let result = serializer.into_inner();
         assert!(result.len() == 1);
         assert_eq!(result[0].0, "funny");
-        assert!(result[0].1 != "");
+        assert!(!result[0].1.is_empty());
     }
 }

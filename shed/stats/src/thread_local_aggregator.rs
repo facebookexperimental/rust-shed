@@ -137,9 +137,8 @@ mod tests {
             Err(err) => panic!("Scheduler is not Ok. Reason: {:?}", err),
         }
 
-        match schedule_stats_aggregation_preview() {
-            Ok(_) => panic!("Scheduler should already be initialized"),
-            Err(StatsScheduledErrorPreview(_)) => {}
+        if schedule_stats_aggregation_preview().is_ok() {
+            panic!("Scheduler should already be initialized");
         }
 
         STATS_SCHEDULED.swap(false, atomic::Ordering::AcqRel);

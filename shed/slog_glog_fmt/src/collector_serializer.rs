@@ -277,7 +277,7 @@ mod tests {
         ];
         let n = || normal.iter().cloned();
         let i = || ignore.iter().cloned();
-        let e = || vec![];
+        let e = Vec::new;
 
         do_test(&TestCategorizer, e(), e());
         do_test(&TestCategorizer, n(), n());

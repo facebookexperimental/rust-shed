@@ -168,7 +168,7 @@ mod test {
             }
 
             let res: Vec<u8> = res.into_iter().flatten().collect();
-            let input: Vec<u16> = v.into_iter().filter_map(|v| v).collect();
+            let input: Vec<u16> = v.into_iter().flatten().collect();
             assert_eq!(input.len() * 2, res.len());
 
             let mut output = Vec::new();

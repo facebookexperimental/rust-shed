@@ -158,7 +158,7 @@ mod tests {
         fn some_fallible_func() -> Result<(), SharedError> {
             let result: Result<(), TestError> =
                 Err(TestError::SomeError("some context".to_owned()));
-            Ok(result.shared_error()?)
+            result.shared_error()
         }
 
         let shared_error_result = some_fallible_func();
@@ -179,7 +179,7 @@ mod tests {
         fn some_fallible_func() -> Result<(), SharedError> {
             let result: Result<(), Error> =
                 Err(TestError::SomeError("some context".to_owned()).into());
-            Ok(result.shared_error()?)
+            result.shared_error()
         }
 
         let shared_error_result = some_fallible_func();

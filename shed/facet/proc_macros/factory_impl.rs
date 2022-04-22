@@ -74,10 +74,10 @@ fn gen_factory_builder(
 
     let builder = match is_async {
         Asyncness::Synchronous => {
-            gen_sync_factory_builder(&facet_crate, &factory_ty, &builder_ident, &params, &facets)?
+            gen_sync_factory_builder(&facet_crate, factory_ty, &builder_ident, params, facets)?
         }
         Asyncness::Asynchronous => {
-            gen_async_factory_builder(&facet_crate, &factory_ty, &builder_ident, &params, &facets)?
+            gen_async_factory_builder(&facet_crate, factory_ty, &builder_ident, params, facets)?
         }
     };
 
@@ -457,7 +457,7 @@ impl Parse for Params {
     fn parse(input: ParseStream) -> Result<Self, Error> {
         let mut param_idents = Vec::new();
         let mut param_types = Vec::new();
-        for arg in Punctuated::<FnArg, Token![,]>::parse_terminated(&input)? {
+        for arg in Punctuated::<FnArg, Token![,]>::parse_terminated(input)? {
             match arg {
                 FnArg::Typed(pat_type) => match *pat_type.pat {
                     Pat::Ident(pat_ident) => {

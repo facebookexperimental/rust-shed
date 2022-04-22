@@ -37,7 +37,7 @@ where
 impl<S: Stream> CollectNoConsume<S> {
     fn finish(&mut self) -> (Vec<S::Item>, S) {
         (
-            mem::replace(&mut self.items, Vec::new()),
+            mem::take(&mut self.items),
             self.stream.take().expect("finish called after completion"),
         )
     }

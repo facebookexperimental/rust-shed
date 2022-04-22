@@ -105,7 +105,7 @@ where
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.inner.poll() {
             Err(err) => {
-                let context = (&mut self.displayable)();
+                let context = (self.displayable)();
                 Err(Error::new(err).context(context))
             }
             Ok(item) => Ok(item),
@@ -203,7 +203,7 @@ where
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.inner.poll() {
             Err(err) => {
-                let context = (&mut self.displayable)();
+                let context = (self.displayable)();
                 Err(err.context(context))
             }
             Ok(item) => Ok(item),

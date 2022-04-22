@@ -549,7 +549,7 @@ mod tests {
         let json = "{\"name\":\"my_event\",\"cat\":\"my_category\",\
                     \"ph\":\"B\",\"ts\":123,\"pid\":1234,\"tid\":5678,\
                     \"args\":{\"foo\":123}}";
-        let parsed = Event::parse(&json).unwrap();
+        let parsed = Event::parse(json).unwrap();
 
         assert_eq!(parsed, event);
     }

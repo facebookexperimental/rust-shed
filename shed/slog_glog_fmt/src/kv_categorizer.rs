@@ -89,9 +89,7 @@ impl KVCategorizer for FacebookCategorizer {
     }
 
     fn name(&self, key: Key) -> &'static str {
-        match key {
-            _ => ErrorCategorizer.name(key),
-        }
+        ErrorCategorizer.name(key)
     }
 }
 
