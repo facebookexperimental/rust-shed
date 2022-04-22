@@ -45,6 +45,13 @@ where
         LazyShared::Lazy(Arc::new(OnceCell::new()))
     }
 
+    /// Initialize the lazy-shared future with a future.
+    pub fn new_future(f: impl Future<Output = T> + Send + 'static) -> Self {
+        let cell = OnceCell::new();
+        cell.set(f.boxed().shared()).unwrap();
+        LazyShared::Lazy(Arc::new(cell))
+    }
+
     /// Get the value of the shared future, providing an initialization
     /// function for the shared future if it has not yet been initialized.
     pub async fn get_or_init<F, Fut>(&self, init: F) -> T
