@@ -13,6 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 fbinit = { version = "0.1.0", path = "../fbinit" }
 rand = { version = "0.8", features = ["small_rng"] }
+serde = { version = "1.0.136", features = ["derive", "rc"] }
 serde_json = { version = "1.0.79", features = ["float_roundtrip", "unbounded_depth"] }
 
 [dev-dependencies]

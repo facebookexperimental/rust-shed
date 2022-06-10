@@ -149,6 +149,7 @@ impl ScubaSample {
                 ScubaValue::Int(_) => INT_KEY,
                 ScubaValue::Double(_) => DOUBLE_KEY,
                 ScubaValue::Normal(_) => NORMAL_KEY,
+                #[allow(deprecated)]
                 ScubaValue::Denorm(_) => DENORM_KEY,
                 ScubaValue::NormVector(_) => NORMVECTOR_KEY,
                 ScubaValue::TagSet(_) => TAGSET_KEY,
@@ -156,6 +157,7 @@ impl ScubaSample {
                     NullScubaValue::Int => INT_KEY,
                     NullScubaValue::Double => DOUBLE_KEY,
                     NullScubaValue::Normal => NORMAL_KEY,
+                    #[allow(deprecated)]
                     NullScubaValue::Denorm => DENORM_KEY,
                     NullScubaValue::NormVector => NORMVECTOR_KEY,
                     NullScubaValue::TagSet => TAGSET_KEY,
@@ -244,6 +246,7 @@ mod tests {
         sample.add("normal1", "The quick brown fox...");
         sample.add(
             "denorm1",
+            #[allow(deprecated)]
             ScubaValue::Denorm("...jumps over the lazy dog.".into()),
         );
         sample.add("normvec1", test_vec.clone());

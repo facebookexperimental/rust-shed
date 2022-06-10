@@ -9,6 +9,7 @@
 
 //! See the [ScubaValue] documentation
 
+use serde::ser::{Serialize, SerializeSeq, Serializer};
 use serde_json::{Number, Value};
 use std::collections::{HashMap, HashSet};
 use std::fmt::{self, Display};
@@ -24,7 +25,8 @@ pub enum NullScubaValue {
     Double,
     /// Basically a String type
     Normal,
-    /// A deprecated String type, see <https://fburl.com/qa/ep3v9a1h>
+    /// A deprecated String type.
+    #[deprecated(note = "use Normal instead, see <https://fburl.com/qa/ep3v9a1h>.")]
     Denorm,
     /// A list of String
     NormVector,
@@ -41,7 +43,8 @@ pub enum ScubaValue {
     Double(f64),
     /// Basically a String type
     Normal(String),
-    /// A deprecated String type, see <https://fburl.com/qa/ep3v9a1h>
+    /// A deprecated String type.
+    #[deprecated(note = "use Normal instead, see <https://fburl.com/qa/ep3v9a1h>.")]
     Denorm(String),
     /// A list of String
     NormVector(Vec<String>),
@@ -57,6 +60,7 @@ impl Display for ScubaValue {
             ScubaValue::Int(i) => i.fmt(f),
             ScubaValue::Double(d) => d.fmt(f),
             ScubaValue::Normal(ref s) => s.fmt(f),
+            #[allow(deprecated)]
             ScubaValue::Denorm(ref s) => s.fmt(f),
             ScubaValue::NormVector(ref norms) => <Vec<String> as fmt::Debug>::fmt(norms, f),
             ScubaValue::TagSet(ref tags) => {
@@ -69,6 +73,40 @@ impl Display for ScubaValue {
     }
 }
 
+impl Serialize for ScubaValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match self {
+            &ScubaValue::Int(v) => serializer.serialize_i64(v),
+            &ScubaValue::Double(v) => serializer.serialize_f64(v),
+            #[allow(deprecated)]
+            &ScubaValue::Normal(ref v) | &ScubaValue::Denorm(ref v) => serializer.collect_str(&v),
+            &ScubaValue::NormVector(ref v) => {
+                let mut seq = serializer.serialize_seq(Some(v.len()))?;
+                for element in v {
+                    seq.serialize_element(&element)?;
+                }
+                seq.end()
+            }
+            &ScubaValue::TagSet(ref v) => {
+                // Need to sort HashSet values to ensure deterministic JSON output.
+                let mut vec = v.iter().collect::<Vec<_>>();
+                vec.sort();
+
+                let mut seq = serializer.serialize_seq(Some(vec.len()))?;
+                for element in vec {
+                    seq.serialize_element(&element)?;
+                }
+                seq.end()
+            }
+            &ScubaValue::Null(_) => serializer.serialize_none(),
+        }
+    }
+}
+
+/// **DEPRECATED: Please use serde's serialization directly instead.**
 impl From<ScubaValue> for Value {
     fn from(val: ScubaValue) -> Value {
         match val {
@@ -84,6 +122,7 @@ impl From<ScubaValue> for Value {
                 }
             }
             ScubaValue::Normal(v) => Value::String(v),
+            #[allow(deprecated)]
             ScubaValue::Denorm(v) => Value::String(v),
             ScubaValue::NormVector(v) => Value::Array(v.into_iter().map(Value::String).collect()),
             ScubaValue::TagSet(v) => {
@@ -102,7 +141,6 @@ impl TryFrom<Value> for ScubaValue {
 
     fn try_from(this: Value) -> Result<ScubaValue, Value> {
         match this {
-            // Use Normal instead of Denorm. See https://our.inter.facebook.com/intern/qa/4462
             Value::String(s) => Ok(ScubaValue::Normal(s)),
             Value::Number(i) => {
                 if let Some(i) = i.as_i64() {
@@ -286,6 +324,8 @@ impl<'a> From<HashSet<&'a str>> for ScubaValue {
 
 #[cfg(test)]
 mod tests {
+    #![allow(deprecated)]
+
     use super::*;
     use assert_matches::assert_matches;
     use quickcheck::quickcheck;
@@ -521,6 +561,74 @@ mod tests {
         assert!(ScubaValue::try_from(json!({})).is_err());
         assert!(ScubaValue::try_from(json!(null)).is_err());
         assert!(ScubaValue::try_from(json!([null])).is_err());
+    }
+
+    #[test]
+    fn serialize() {
+        use serde_json::to_value;
+        assert_eq!(to_value(ScubaValue::Int(123)).unwrap(), json!(123),);
+        assert_eq!(to_value(ScubaValue::Int(-123)).unwrap(), json!(-123),);
+
+        assert_eq!(to_value(ScubaValue::Double(1.5)).unwrap(), json!(1.5),);
+
+        assert_eq!(
+            to_value(&ScubaValue::Normal("abc".to_string())).unwrap(),
+            json!("abc")
+        );
+        assert_eq!(
+            to_value(&ScubaValue::Denorm("abc".to_string())).unwrap(),
+            json!("abc")
+        );
+
+        assert_eq!(to_value(ScubaValue::NormVector(vec![])).unwrap(), json!([]),);
+        assert_eq!(
+            to_value(ScubaValue::NormVector(vec![
+                "b".to_string(),
+                "".to_string(),
+                "a".to_string()
+            ]))
+            .unwrap(),
+            json!(["b", "", "a"]),
+        );
+
+        assert_eq!(
+            to_value(ScubaValue::TagSet(vec![].into_iter().collect())).unwrap(),
+            json!([]),
+        );
+        assert_eq!(
+            to_value(ScubaValue::TagSet(
+                vec!["b".to_string(), "".to_string(), "a".to_string()]
+                    .into_iter()
+                    .collect()
+            ))
+            .unwrap(),
+            json!(["", "a", "b"]),
+        );
+
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::Int)).unwrap(),
+            json!(null),
+        );
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::Double)).unwrap(),
+            json!(null),
+        );
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::Normal)).unwrap(),
+            json!(null),
+        );
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::Denorm)).unwrap(),
+            json!(null),
+        );
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::NormVector)).unwrap(),
+            json!(null),
+        );
+        assert_eq!(
+            to_value(ScubaValue::Null(NullScubaValue::TagSet)).unwrap(),
+            json!(null),
+        );
     }
 
     #[test]
