@@ -17,7 +17,7 @@
 use std::borrow::Cow;
 use std::env;
 use std::ffi::{OsStr, OsString};
-use std::fs::{copy, create_dir_all, read_to_string, write};
+use std::fs::{copy, create_dir_all, read_to_string, rename, write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -132,21 +132,28 @@ impl Config {
             let partial_dir = self.out_dir.join("partial");
             create_dir_all(&partial_dir)?;
 
+            for (name, file) in &input {
+                let out = partial_dir.join(&name);
+                create_dir_all(&out)?;
+                self.run_compiler(thrift_bin.as_os_str(), &out, file)?;
+                rename(out.join("lib.rs"), out.join("mod.rs"))?;
+            }
+
+            let partial_lib_modules = input
+                .iter()
+                .map(|(name, _file)| format!("pub mod {};\n", name.to_string_lossy()))
+                .collect::<Vec<_>>()
+                .join("\n");
+            write(partial_dir.join("mod.rs"), partial_lib_modules)?;
+
+            let lib_modules = input
+                .iter()
+                .map(|(name, _file)| format!("pub use partial::{};\n", name.to_string_lossy()))
+                .collect::<Vec<_>>()
+                .join("\n");
             write(
                 self.out_dir.join("lib.rs"),
-                input
-                    .into_iter()
-                    .map(|(name, file)| {
-                        let out = partial_dir.join(&name);
-                        create_dir_all(&out)?;
-                        Ok(format!(
-                            "pub mod {} {{\n{}\n}}\n",
-                            name.to_string_lossy(),
-                            self.run_compiler(thrift_bin.as_os_str(), out, file)?,
-                        ))
-                    })
-                    .collect::<Result<Vec<_>>>()?
-                    .join("\n"),
+                format!("pub mod partial;\n\n{}", lib_modules),
             )?;
         }
 
