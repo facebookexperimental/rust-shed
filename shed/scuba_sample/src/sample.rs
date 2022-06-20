@@ -226,6 +226,20 @@ impl<'a> IntoIterator for &'a mut ScubaSample {
     }
 }
 
+/// A trait that allows for deriving `From<T>` for [ScubaSample].
+///
+/// ```ignore
+/// use scuba_sample::{ScubaSample, StructuredSample};
+///
+/// #[derive(StructuredSample)]
+/// struct Foo {
+///     bar: i32,
+/// }
+///
+/// let sample: ScubaSample = Foo { bar: 4 }.into();
+/// ```
+pub trait StructuredSample {}
+
 #[cfg(test)]
 mod tests {
     use super::*;
