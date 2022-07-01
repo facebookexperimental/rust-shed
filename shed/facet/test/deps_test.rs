@@ -160,7 +160,9 @@ pub mod containers {
     }
 }
 
-use containers::{Deps, ThreeOnly, TwoOnly};
+use containers::Deps;
+use containers::ThreeOnly;
+use containers::TwoOnly;
 use facets::one::OneRef;
 use facets::three::ThreeRef;
 use facets::two::TwoRef;

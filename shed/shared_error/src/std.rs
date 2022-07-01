@@ -7,7 +7,8 @@
  * of this source tree.
  */
 
-use std::{error::Error, sync::Arc};
+use std::error::Error;
+use std::sync::Arc;
 use thiserror::Error;
 
 /// SharedError is a simple, cloneable Error wrapper.

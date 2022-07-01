@@ -11,7 +11,10 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-use slog::{Drain, Level, OwnedKVList, Record};
+use slog::Drain;
+use slog::Level;
+use slog::OwnedKVList;
+use slog::Record;
 use stats::prelude::*;
 
 define_stats! {
@@ -59,7 +62,10 @@ impl<D: Drain> Drain for StatsDrain<D> {
 mod tests {
     use super::*;
 
-    use slog::{info, o, Discard, Logger};
+    use slog::info;
+    use slog::o;
+    use slog::Discard;
+    use slog::Logger;
 
     #[test]
     fn test() {

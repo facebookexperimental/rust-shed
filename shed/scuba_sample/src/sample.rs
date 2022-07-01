@@ -9,11 +9,17 @@
 
 //! See the [ScubaSample] documentation
 
-use crate::value::{NullScubaValue, ScubaValue};
+use crate::value::NullScubaValue;
+use crate::value::ScubaValue;
 
-use serde_json::{Error, Map, Number, Value};
-use std::collections::hash_map::{Entry, HashMap};
-use std::time::{SystemTime, UNIX_EPOCH};
+use serde_json::Error;
+use serde_json::Map;
+use serde_json::Number;
+use serde_json::Value;
+use std::collections::hash_map::Entry;
+use std::collections::hash_map::HashMap;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 const TIME_COLUMN: &str = "time";
 const INT_KEY: &str = "int";

@@ -8,8 +8,13 @@
  */
 
 use futures::sink::Sink;
-use futures::stream::{Fuse, Stream};
-use futures::{try_ready, Async, AsyncSink, Future, Poll};
+use futures::stream::Fuse;
+use futures::stream::Stream;
+use futures::try_ready;
+use futures::Async;
+use futures::AsyncSink;
+use futures::Future;
+use futures::Poll;
 
 /// Fork a Stream into two
 ///
@@ -206,8 +211,13 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use futures::stream::{iter_ok, once};
-    use futures::{sink::Sink, Async, AsyncSink, Future, StartSend};
+    use futures::sink::Sink;
+    use futures::stream::iter_ok;
+    use futures::stream::once;
+    use futures::Async;
+    use futures::AsyncSink;
+    use futures::Future;
+    use futures::StartSend;
 
     #[test]
     fn simple() {

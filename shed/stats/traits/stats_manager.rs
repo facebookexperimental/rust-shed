@@ -11,7 +11,9 @@ use std::time::Duration;
 
 use auto_impl::auto_impl;
 
-use crate::stat_types::{BoxCounter, BoxHistogram, BoxTimeseries};
+use crate::stat_types::BoxCounter;
+use crate::stat_types::BoxHistogram;
+use crate::stat_types::BoxTimeseries;
 
 pub trait StatsManagerFactory {
     fn create(&self) -> BoxStatsManager;

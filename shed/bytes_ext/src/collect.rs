@@ -7,7 +7,9 @@
  * of this source tree.
  */
 
-use bytes::{BufMut, Bytes, BytesMut};
+use bytes::BufMut;
+use bytes::Bytes;
+use bytes::BytesMut;
 
 /// Wrapper for using Bytes in futures::TryStreamExt::try_collect which requires
 /// a trait bound T: Default + Extend<Self\::Ok>. With this wrapper we get to

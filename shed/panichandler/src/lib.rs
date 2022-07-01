@@ -12,11 +12,15 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-use std::io::{self, BufWriter, Write};
-use std::panic::{self, PanicInfo};
+use std::io;
+use std::io::BufWriter;
+use std::io::Write;
+use std::panic;
+use std::panic::PanicInfo;
 use std::ptr;
 
-use backtrace::{Backtrace, SymbolName};
+use backtrace::Backtrace;
+use backtrace::SymbolName;
 
 const MAX_FRAMES: usize = 1000;
 

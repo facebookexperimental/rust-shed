@@ -11,7 +11,8 @@
 
 extern crate proc_macro;
 
-use syn::{spanned::Spanned, DeriveInput};
+use syn::spanned::Spanned;
+use syn::DeriveInput;
 
 /// Derive the [`quickcheck::Arbitrary`](https://docs.rs/quickcheck/latest/quickcheck/trait.Arbitrary.html) trait.
 ///

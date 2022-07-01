@@ -9,10 +9,13 @@
 
 #![deny(warnings)]
 
-use sql_tests_lib::{
-    test_datetime_query, test_read_query, test_transaction_commit, test_transaction_rollback,
-    test_transaction_rollback_on_drop, test_write_query, TestSemantics,
-};
+use sql_tests_lib::test_datetime_query;
+use sql_tests_lib::test_read_query;
+use sql_tests_lib::test_transaction_commit;
+use sql_tests_lib::test_transaction_rollback;
+use sql_tests_lib::test_transaction_rollback_on_drop;
+use sql_tests_lib::test_write_query;
+use sql_tests_lib::TestSemantics;
 
 use crate::rusqlite::Connection as SqliteConnection;
 use crate::Connection;
@@ -70,15 +73,19 @@ async fn test_transaction_commit_with_sqlite() {
 #[cfg(test)]
 mod mysql {
     use super::*;
-    use crate::sql_common::mysql::{Connection as MysqlConnection, ConnectionStats};
+    use crate::sql_common::mysql::Connection as MysqlConnection;
+    use crate::sql_common::mysql::ConnectionStats;
 
-    use anyhow::{Error, Result};
+    use anyhow::Error;
+    use anyhow::Result;
     use fbinit::FacebookInit;
-    use mysql_client::{
-        ConnectionPool, ConnectionPoolOptionsBuilder, DbLocator, InstanceRequirement,
-        MysqlCppClient,
-    };
-    use sql_tests_lib::{test_basic_query, test_basic_transaction};
+    use mysql_client::ConnectionPool;
+    use mysql_client::ConnectionPoolOptionsBuilder;
+    use mysql_client::DbLocator;
+    use mysql_client::InstanceRequirement;
+    use mysql_client::MysqlCppClient;
+    use sql_tests_lib::test_basic_query;
+    use sql_tests_lib::test_basic_transaction;
     use std::sync::Arc;
 
     async fn setup_connection(fb: FacebookInit) -> Result<Connection> {

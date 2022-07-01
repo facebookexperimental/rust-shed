@@ -9,7 +9,9 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DataStruct, Fields};
+use syn::Data;
+use syn::DataStruct;
+use syn::Fields;
 
 #[proc_macro_derive(StructuredSample)]
 pub fn structured_sample_derive(input: TokenStream) -> TokenStream {

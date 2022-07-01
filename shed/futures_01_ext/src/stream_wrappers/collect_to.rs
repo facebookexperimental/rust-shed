@@ -7,7 +7,10 @@
  * of this source tree.
  */
 
-use futures::{Async, Future, Poll, Stream};
+use futures::Async;
+use futures::Future;
+use futures::Poll;
+use futures::Stream;
 use std::mem;
 
 /// Stream returned as a result of calling [crate::StreamExt::collect_to]

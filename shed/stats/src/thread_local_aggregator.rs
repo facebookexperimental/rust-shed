@@ -23,13 +23,19 @@
 
 use std::fmt;
 use std::future::Future as NewFuture;
-use std::sync::{atomic, Arc, Mutex};
+use std::sync::atomic;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::Duration;
 
-use futures::{future::ready, FutureExt as _, Stream as NewStream, StreamExt as _};
+use futures::future::ready;
+use futures::FutureExt as _;
+use futures::Stream as NewStream;
+use futures::StreamExt as _;
 use lazy_static::lazy_static;
 use perthread::ThreadMap;
-use stats_traits::stats_manager::{BoxStatsManager, StatsManager};
+use stats_traits::stats_manager::BoxStatsManager;
+use stats_traits::stats_manager::StatsManager;
 
 lazy_static! {
     static ref STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);

@@ -68,17 +68,24 @@ pub use futures_ext;
 pub use futures_util;
 pub use mysql_async;
 pub use rusqlite;
+pub use sql_common::error;
 pub use sql_common::mysql;
-pub use sql_common::{
-    self, error, sqlite, transaction::Transaction, Connection, SqlConnections,
-    SqlConnectionsWithSchema, SqlShardedConnections, WriteResult,
-};
+pub use sql_common::sqlite;
+pub use sql_common::transaction::Transaction;
+pub use sql_common::Connection;
+pub use sql_common::SqlConnections;
+pub use sql_common::SqlConnectionsWithSchema;
+pub use sql_common::SqlShardedConnections;
+pub use sql_common::WriteResult;
+pub use sql_common::{self};
 
 use mysql_async::Value;
-use rusqlite::types::{
-    FromSql as FromSqliteValue, FromSqlResult as FromSqliteValueResult, ToSql as ToSqliteValue,
-    ToSqlOutput as ToSqliteOutput, Value as SqliteValue, ValueRef as SqliteValueRef,
-};
+use rusqlite::types::FromSql as FromSqliteValue;
+use rusqlite::types::FromSqlResult as FromSqliteValueResult;
+use rusqlite::types::ToSql as ToSqliteValue;
+use rusqlite::types::ToSqlOutput as ToSqliteOutput;
+use rusqlite::types::Value as SqliteValue;
+use rusqlite::types::ValueRef as SqliteValueRef;
 use rusqlite::Result as SqliteResult;
 
 /// Wrapper around MySql Value to implement Sqlite traits on it.
@@ -470,21 +477,23 @@ macro_rules! _query_common {
         use std::result::Result;
         use std::sync::Arc;
 
-        use $crate::anyhow::{Context, Error};
+        use $crate::anyhow::Context;
+        use $crate::anyhow::Error;
         use $crate::cloned::cloned;
-        use $crate::futures::{
-            compat::Future01CompatExt,
-            future::{Future, FutureExt, TryFutureExt},
-        };
+        use $crate::futures::compat::Future01CompatExt;
+        use $crate::futures::future::Future;
+        use $crate::futures::future::FutureExt;
+        use $crate::futures::future::TryFutureExt;
         use $crate::mysql_async::prelude::*;
-        use $crate::rusqlite::{
-            types::ToSql as ToSqliteValue, Connection as SqliteConnection, Result as SqliteResult,
-            Statement as SqliteStatement,
-        };
-        use $crate::{
-            sqlite::{SqliteConnectionGuard, SqliteMultithreaded},
-            Connection, Transaction, ValueWrapper,
-        };
+        use $crate::rusqlite::types::ToSql as ToSqliteValue;
+        use $crate::rusqlite::Connection as SqliteConnection;
+        use $crate::rusqlite::Result as SqliteResult;
+        use $crate::rusqlite::Statement as SqliteStatement;
+        use $crate::sqlite::SqliteConnectionGuard;
+        use $crate::sqlite::SqliteMultithreaded;
+        use $crate::Connection;
+        use $crate::Transaction;
+        use $crate::ValueWrapper;
 
         #[allow(unused_imports)]
         use super::*;

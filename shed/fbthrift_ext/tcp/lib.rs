@@ -7,9 +7,14 @@
  * of this source tree.
  */
 
-use anyhow::{Error, Result};
-use bytes::{Bytes, BytesMut};
-use fbthrift::{Framing, FramingDecoded, FramingEncodedFinal, Transport};
+use anyhow::Error;
+use anyhow::Result;
+use bytes::Bytes;
+use bytes::BytesMut;
+use fbthrift::Framing;
+use fbthrift::FramingDecoded;
+use fbthrift::FramingEncodedFinal;
+use fbthrift::Transport;
 use fbthrift_framed::FramedTransport;
 use fbthrift_util::poll_with_lock;
 use futures::future::FutureExt;
@@ -21,7 +26,8 @@ use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio_tower::pipeline::client::Client;
-use tokio_util::codec::{Decoder, Framed};
+use tokio_util::codec::Decoder;
+use tokio_util::codec::Framed;
 use tower_service::Service;
 
 /// ```ignore

@@ -15,7 +15,9 @@
 mod client;
 mod keygen;
 
-pub use crate::client::{MemcacheClient, MemcacheGetType, MemcacheSetType};
+pub use crate::client::MemcacheClient;
+pub use crate::client::MemcacheGetType;
+pub use crate::client::MemcacheSetType;
 pub use crate::keygen::KeyGen;
 
 /// Memcache max size for key + value + overhead is around 1MB, so we are leaving 1KB for key +

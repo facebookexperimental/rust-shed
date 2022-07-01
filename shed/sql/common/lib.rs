@@ -18,8 +18,12 @@ pub mod mysql;
 pub mod sqlite;
 pub mod transaction;
 
-use anyhow::{bail, format_err, Context, Error};
-use std::fmt::{self, Debug};
+use anyhow::bail;
+use anyhow::format_err;
+use anyhow::Context;
+use anyhow::Error;
+use std::fmt;
+use std::fmt::Debug;
 use std::sync::Arc;
 
 // Used in docs

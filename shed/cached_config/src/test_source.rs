@@ -7,14 +7,17 @@
  * of this source tree.
  */
 
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
+use anyhow::Result;
 use bytes::Bytes;
-use std::{
-    collections::{HashMap, HashSet},
-    sync::{Arc, Mutex},
-};
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::sync::Arc;
+use std::sync::Mutex;
 
-use crate::{Entity, ModificationTime, Source};
+use crate::Entity;
+use crate::ModificationTime;
+use crate::Source;
 
 /// In-memory version of config source. Useful for testing
 #[derive(Debug)]

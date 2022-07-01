@@ -7,7 +7,10 @@
  * of this source tree.
  */
 
-use slog::{debug, error, info, o};
+use slog::debug;
+use slog::error;
+use slog::info;
+use slog::o;
 
 pub fn main() {
     let log = slog::Logger::root(slog_glog_fmt::default_drain(), o!());

@@ -7,20 +7,35 @@
  * of this source tree.
  */
 
-use std::collections::{BTreeMap, BTreeSet, VecDeque};
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
+use std::collections::VecDeque;
 
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
-use syn::parse::{Parse, ParseStream};
+use quote::format_ident;
+use quote::quote;
+use syn::parse::Parse;
+use syn::parse::ParseStream;
+use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{
-    parse_macro_input, Error, FnArg, GenericArgument, Ident, ImplItem, ItemImpl, Pat, PatType,
-    PathArguments, ReturnType, Signature, Token, Type,
-};
+use syn::Error;
+use syn::FnArg;
+use syn::GenericArgument;
+use syn::Ident;
+use syn::ImplItem;
+use syn::ItemImpl;
+use syn::Pat;
+use syn::PatType;
+use syn::PathArguments;
+use syn::ReturnType;
+use syn::Signature;
+use syn::Token;
+use syn::Type;
 
 use crate::facet_crate_name;
-use crate::util::{Asyncness, Fallibility};
+use crate::util::Asyncness;
+use crate::util::Fallibility;
 
 pub fn factory(
     attr: proc_macro::TokenStream,

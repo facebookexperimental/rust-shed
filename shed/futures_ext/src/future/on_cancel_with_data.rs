@@ -11,8 +11,10 @@ use std::pin::Pin;
 
 use futures::future::Future;
 use futures::ready;
-use futures::task::{Context, Poll};
-use pin_project::{pin_project, pinned_drop};
+use futures::task::Context;
+use futures::task::Poll;
+use pin_project::pin_project;
+use pin_project::pinned_drop;
 
 /// Trait to be implemented by futures that wish to provide additional data
 /// when they are canceled.
@@ -88,7 +90,8 @@ where
 mod test {
     use super::*;
 
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
 
     struct WithCancelData {
         result: usize,

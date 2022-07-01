@@ -8,7 +8,8 @@
  */
 
 use anyhow::Error;
-use futures::{Future, Poll};
+use futures::Future;
+use futures::Poll;
 use std::error::Error as StdError;
 use std::fmt::Display;
 

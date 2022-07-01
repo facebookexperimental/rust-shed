@@ -12,7 +12,8 @@
 use std::str::FromStr;
 
 use failure_ext::SlogKVErrorKey;
-use slog::{Key, Level};
+use slog::Key;
+use slog::Level;
 
 /// The KV value is being processed based on the category it is bucketed in
 #[derive(Debug, PartialEq, Eq)]
@@ -100,7 +101,9 @@ mod tests {
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
-    use slog::{b, record, KV};
+    use slog::b;
+    use slog::record;
+    use slog::KV;
     use thiserror::Error;
 
     use crate::collector_serializer::CollectorSerializer;

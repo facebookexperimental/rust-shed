@@ -12,21 +12,25 @@ use bytes::Bytes;
 use fbthrift::deserialize::Deserialize;
 use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
 use serde::de::DeserializeOwned;
-use slog::{info, warn, Logger};
-use std::{
-    collections::HashMap,
-    fmt,
-    io::Cursor,
-    path::PathBuf,
-    str,
-    sync::{Arc, Condvar, Mutex, Weak},
-    thread,
-    time::Duration,
-};
+use slog::info;
+use slog::warn;
+use slog::Logger;
+use std::collections::HashMap;
+use std::fmt;
+use std::io::Cursor;
+use std::path::PathBuf;
+use std::str;
+use std::sync::Arc;
+use std::sync::Condvar;
+use std::sync::Mutex;
+use std::sync::Weak;
+use std::thread;
+use std::time::Duration;
 
 use crate::file_source::FileSource;
 use crate::handle::ConfigHandle;
-use crate::refreshable_entities::{Refreshable, RegisteredConfigEntity};
+use crate::refreshable_entities::Refreshable;
+use crate::refreshable_entities::RegisteredConfigEntity;
 use crate::Source;
 
 /// A wrapper around the configerator APIs to provide an easily mocked way of reading JSON configs
@@ -244,7 +248,8 @@ impl fmt::Debug for ConfigStore {
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::{ModificationTime, TestSource};
+    use crate::ModificationTime;
+    use crate::TestSource;
     use anyhow::Error;
     use std::time::Instant;
 

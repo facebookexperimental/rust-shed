@@ -8,10 +8,19 @@
  */
 
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::format_ident;
+use quote::quote;
+use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, Attribute, Error, Expr, Fields, Ident, ItemStruct, Token, Type};
+use syn::Attribute;
+use syn::Error;
+use syn::Expr;
+use syn::Fields;
+use syn::Ident;
+use syn::ItemStruct;
+use syn::Token;
+use syn::Type;
 
 use crate::facet_crate_name;
 

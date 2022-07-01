@@ -10,15 +10,20 @@
 //! See the [ScubaSampleBuilder] documentation
 
 use fbinit::FacebookInit;
-use serde_json::{Error, Value};
+use serde_json::Error;
+use serde_json::Value;
 use std::collections::hash_map::Entry;
 use std::fmt;
-use std::fs::{File, OpenOptions};
-use std::io::{Error as IoError, Write};
+use std::fs::File;
+use std::fs::OpenOptions;
+use std::io::Error as IoError;
+use std::io::Write;
 use std::num::NonZeroU64;
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::time::Duration;
 
 use crate::sample::ScubaSample;

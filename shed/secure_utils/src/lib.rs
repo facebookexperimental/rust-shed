@@ -17,14 +17,19 @@ pub mod facebook;
 #[cfg(not(fbcode_build))]
 mod oss;
 
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use openssl::pkcs12::ParsedPkcs12;
 use openssl::pkey::PKey;
-use openssl::ssl::{SslAcceptor, SslAcceptorBuilder, SslMethod, SslVerifyMode};
+use openssl::ssl::SslAcceptor;
+use openssl::ssl::SslAcceptorBuilder;
+use openssl::ssl::SslMethod;
+use openssl::ssl::SslVerifyMode;
 use openssl::x509::X509;
 use slog::Logger;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+use std::path::PathBuf;
 
 /// Certificates for the TLS acceptor
 #[derive(Clone, Debug)]

@@ -8,8 +8,13 @@
  */
 
 use anyhow::Error;
-use futures::future::{self, FutureExt, Shared, TryFuture, TryFutureExt};
-use shared_error::anyhow::{IntoSharedError, SharedError};
+use futures::future;
+use futures::future::FutureExt;
+use futures::future::Shared;
+use futures::future::TryFuture;
+use futures::future::TryFutureExt;
+use shared_error::anyhow::IntoSharedError;
+use shared_error::anyhow::SharedError;
 
 /// Type returned by the `try_shared` method provided by the `FbFutureExt` trait.
 pub type TryShared<Fut> = Shared<future::MapErr<Fut, NewSharedError>>;

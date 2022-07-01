@@ -7,14 +7,15 @@
  * of this source tree.
  */
 
-use futures::{
-    channel::oneshot::{channel, Sender},
-    ready,
-    task::{Context, Poll},
-    Stream,
-};
+use futures::channel::oneshot::channel;
+use futures::channel::oneshot::Sender;
+use futures::ready;
+use futures::task::Context;
+use futures::task::Poll;
+use futures::Stream;
 use pin_project::pin_project;
-use std::{marker::Unpin, pin::Pin};
+use std::marker::Unpin;
+use std::pin::Pin;
 
 use crate::future::ConservativeReceiver;
 
@@ -70,10 +71,9 @@ mod test {
     use super::*;
 
     use assert_matches::assert_matches;
-    use futures::{
-        future,
-        stream::{iter, StreamExt},
-    };
+    use futures::future;
+    use futures::stream::iter;
+    use futures::stream::StreamExt;
 
     #[tokio::test]
     async fn success_get_remainder() {

@@ -40,8 +40,10 @@ pub mod facets {
 
 pub mod factories {
     pub mod simple_factory {
-        use crate::facets::one::{ArcOne, One};
-        use crate::facets::two::{ArcTwo, Two};
+        use crate::facets::one::ArcOne;
+        use crate::facets::one::One;
+        use crate::facets::two::ArcTwo;
+        use crate::facets::two::Two;
         use std::sync::Arc;
 
         pub struct SimpleFactory;
@@ -74,7 +76,8 @@ pub mod containers {
 }
 
 use crate::facets::one::OneRef;
-use crate::facets::two::{Two, TwoRef};
+use crate::facets::two::Two;
+use crate::facets::two::TwoRef;
 
 fn test_values(container: impl OneRef + TwoRef) {
     assert_eq!(container.one().get(), 1);

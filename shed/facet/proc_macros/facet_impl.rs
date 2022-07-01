@@ -8,9 +8,12 @@
  */
 
 use proc_macro2::TokenStream;
-use quote::{format_ident, quote};
+use quote::format_ident;
+use quote::quote;
+use syn::parse_macro_input;
 use syn::spanned::Spanned;
-use syn::{parse_macro_input, Error, Item};
+use syn::Error;
+use syn::Item;
 
 use crate::facet_crate_name;
 

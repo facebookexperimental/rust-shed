@@ -7,9 +7,11 @@
  * of this source tree.
  */
 
-use std::fmt::{self, Debug};
+use std::fmt;
+use std::fmt::Debug;
 
-use quickcheck::{Arbitrary, Gen};
+use quickcheck::Arbitrary;
+use quickcheck::Gen;
 
 /// This type is a token that allows code to prove initFacebook has been called.
 /// A function can require this proof by taking `_fb: FacebookInit` as an

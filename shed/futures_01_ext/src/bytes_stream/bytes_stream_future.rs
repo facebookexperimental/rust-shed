@@ -8,7 +8,11 @@
  */
 
 use bytes_old::Bytes;
-use futures::{try_ready, Async, Future, Poll, Stream};
+use futures::try_ready;
+use futures::Async;
+use futures::Future;
+use futures::Poll;
+use futures::Stream;
 use tokio_io::codec::Decoder;
 
 use super::BytesStream;

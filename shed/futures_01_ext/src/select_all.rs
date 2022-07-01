@@ -16,11 +16,15 @@
 //!
 //! [1]: https://docs.rs/futures-util/0.2.0-beta/src/futures_util/stream/select_all.rs.html#23-25
 
-use std::fmt::{self, Debug};
+use std::fmt;
+use std::fmt::Debug;
 
-use futures::{Async, Poll, Stream};
+use futures::Async;
+use futures::Poll;
+use futures::Stream;
 
-use futures::stream::{FuturesUnordered, StreamFuture};
+use futures::stream::FuturesUnordered;
+use futures::stream::StreamFuture;
 
 /// An unbounded set of streams
 ///

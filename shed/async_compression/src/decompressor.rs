@@ -9,8 +9,12 @@
 
 //! Non-blocking, buffered compression and decompression
 
-use std::fmt::{self, Debug, Formatter};
-use std::io::{self, BufRead, Read};
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::io;
+use std::io::BufRead;
+use std::io::Read;
 
 use bzip2::bufread::BzDecoder;
 use flate2::bufread::GzDecoder;

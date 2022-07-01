@@ -10,8 +10,10 @@
 use std::fmt::Write;
 use std::marker::PhantomData;
 
-use anyhow::{Error, Result};
-use bytes::{BufMut, BytesMut};
+use anyhow::Error;
+use anyhow::Result;
+use bytes::BufMut;
+use bytes::BytesMut;
 use tokio_util::codec::Encoder;
 
 /// A Netstring encoder.

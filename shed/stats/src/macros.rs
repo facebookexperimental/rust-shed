@@ -14,12 +14,17 @@
 #[doc(hidden)]
 pub mod common_macro_prelude {
     pub use lazy_static::lazy_static;
-    pub use perthread::{PerThread, ThreadMap};
-    pub use stats_traits::{
-        dynamic_stat_types::DynamicStat,
-        stat_types::{BoxCounter, BoxHistogram, BoxSingletonCounter, BoxTimeseries},
-        stats_manager::{AggregationType::*, BoxStatsManager, BucketConfig, StatsManager},
-    };
+    pub use perthread::PerThread;
+    pub use perthread::ThreadMap;
+    pub use stats_traits::dynamic_stat_types::DynamicStat;
+    pub use stats_traits::stat_types::BoxCounter;
+    pub use stats_traits::stat_types::BoxHistogram;
+    pub use stats_traits::stat_types::BoxSingletonCounter;
+    pub use stats_traits::stat_types::BoxTimeseries;
+    pub use stats_traits::stats_manager::AggregationType::*;
+    pub use stats_traits::stats_manager::BoxStatsManager;
+    pub use stats_traits::stats_manager::BucketConfig;
+    pub use stats_traits::stats_manager::StatsManager;
     pub use std::sync::Arc;
     pub use std::time::Duration;
 

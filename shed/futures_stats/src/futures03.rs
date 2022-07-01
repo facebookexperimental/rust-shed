@@ -9,15 +9,19 @@
 
 //! An implementation of `futures_stats` for Futures 0.3.
 
-use futures::future::{Future, TryFuture};
+use futures::future::Future;
+use futures::future::TryFuture;
 
 use futures::stream::Stream;
-use futures::task::{Context, Poll};
+use futures::task::Context;
+use futures::task::Poll;
 use futures_ext::future::CancelData;
 use std::pin::Pin;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 
-use super::{FutureStats, StreamStats};
+use super::FutureStats;
+use super::StreamStats;
 
 /// A Future that gathers some basic statistics for inner Future.
 /// This structure's main usage is by calling [TimedFutureExt::timed].
@@ -304,10 +308,13 @@ impl<T: Stream> TimedStreamExt for T {}
 mod tests {
     use super::*;
 
-    use std::sync::atomic::{AtomicBool, Ordering};
-    use std::sync::{Arc, Mutex};
+    use std::sync::atomic::AtomicBool;
+    use std::sync::atomic::Ordering;
+    use std::sync::Arc;
+    use std::sync::Mutex;
 
-    use futures::stream::{self, StreamExt};
+    use futures::stream;
+    use futures::stream::StreamExt;
     use futures_ext::FbFutureExt;
 
     #[tokio::test]

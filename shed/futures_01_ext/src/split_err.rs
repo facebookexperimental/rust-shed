@@ -7,7 +7,8 @@
  * of this source tree.
  */
 
-use futures::{prelude::*, sync::oneshot};
+use futures::prelude::*;
+use futures::sync::oneshot;
 
 /// Given an input stream, split its error out to a separate Future, and returning that
 /// error Future and an infallable Stream. There are two outcomes:
@@ -81,7 +82,8 @@ impl<E> Future for ErrFuture<E> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use futures::{future, stream};
+    use futures::future;
+    use futures::stream;
     use futures03::compat::Future01CompatExt;
 
     #[test]

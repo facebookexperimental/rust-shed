@@ -9,10 +9,13 @@
 
 //! Extends the functionality of [std::io] and [::tokio_io]
 
-use std::io::{self, Read, Write};
+use std::io;
+use std::io::Read;
+use std::io::Write;
 
 use futures::Poll;
-use tokio_io::{AsyncRead, AsyncWrite};
+use tokio_io::AsyncRead;
+use tokio_io::AsyncWrite;
 
 /// Like [::futures::future::Either], combines two different types implementing
 /// the same trait into a single type.

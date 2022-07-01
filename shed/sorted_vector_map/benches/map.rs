@@ -7,9 +7,11 @@
  * of this source tree.
  */
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
+use std::collections::HashMap;
 
-use minibench::{bench, elapsed};
+use minibench::bench;
+use minibench::elapsed;
 use sorted_vector_map::SortedVectorMap;
 
 static WORDS: &[&str] = &[

@@ -21,17 +21,22 @@
 
 use anyhow::Result;
 use bytes::Bytes;
-use flate2::{read::GzDecoder, write::GzEncoder, Compression};
-use serde::{Deserialize, Serialize};
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::Value;
 
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Read;
+use std::io::Write;
 use std::path::Path;
 #[cfg(not(target_os = "linux"))]
 use std::thread::ThreadId;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 
 /// Type alias for the [Event::args] field.
 pub type Args = HashMap<String, Value>;
@@ -443,8 +448,10 @@ fn gettid() -> u64 {
 mod duration {
     use super::as_micros;
 
-    use serde::de::{self, Visitor};
-    use serde::{Deserializer, Serializer};
+    use serde::de;
+    use serde::de::Visitor;
+    use serde::Deserializer;
+    use serde::Serializer;
 
     use std::fmt;
     use std::time::Duration;

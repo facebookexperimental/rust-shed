@@ -14,7 +14,8 @@ extern crate proc_macro;
 
 mod expand;
 
-use self::expand::{expand, Mode};
+use self::expand::expand;
+use self::expand::Mode;
 use proc_macro::TokenStream;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;

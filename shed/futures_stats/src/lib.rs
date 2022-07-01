@@ -20,7 +20,9 @@ use std::time::Duration;
 pub mod futures03;
 
 // Export new Futures 0.3 API, which has different names.
-pub use futures03::{TimedFutureExt, TimedStreamExt, TimedTryFutureExt};
+pub use futures03::TimedFutureExt;
+pub use futures03::TimedStreamExt;
+pub use futures03::TimedTryFutureExt;
 
 /// A structure that holds some basic statistics for Future.
 #[derive(Clone, Debug)]

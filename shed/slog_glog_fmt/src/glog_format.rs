@@ -12,12 +12,27 @@ use std::sync;
 use std::thread;
 
 use anyhow::Result;
-use itertools::{Either, Itertools};
-use slog::{o, Drain, Key, Level, Logger, Never, OwnedKVList, Record, KV};
-use slog_term::{Decorator, PlainSyncDecorator, RecordDecorator, TermDecorator};
+use itertools::Either;
+use itertools::Itertools;
+use slog::o;
+use slog::Drain;
+use slog::Key;
+use slog::Level;
+use slog::Logger;
+use slog::Never;
+use slog::OwnedKVList;
+use slog::Record;
+use slog::KV;
+use slog_term::Decorator;
+use slog_term::PlainSyncDecorator;
+use slog_term::RecordDecorator;
+use slog_term::TermDecorator;
 
 use crate::collector_serializer::CollectorSerializer;
-use crate::kv_categorizer::{ErrorCategorizer, FacebookCategorizer, KVCategorizer, KVCategory};
+use crate::kv_categorizer::ErrorCategorizer;
+use crate::kv_categorizer::FacebookCategorizer;
+use crate::kv_categorizer::KVCategorizer;
+use crate::kv_categorizer::KVCategory;
 use crate::kv_defaults::FacebookKV;
 
 /// Create a default drain that outputs to stderr and inlines all KV values except for supported
@@ -217,21 +232,28 @@ impl OnelineMetadata {
 
 #[cfg(test)]
 mod tests {
-    use super::{get_tid, GlogFormat};
+    use super::get_tid;
+    use super::GlogFormat;
 
     use std::io;
-    use std::sync::{Arc, Mutex};
+    use std::sync::Arc;
+    use std::sync::Mutex;
 
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
     use lazy_static::lazy_static;
-    use regex::{Captures, Regex};
-    use slog::{info, o, Drain, Logger};
+    use regex::Captures;
+    use regex::Regex;
+    use slog::info;
+    use slog::o;
+    use slog::Drain;
+    use slog::Logger;
     use slog_term::PlainSyncDecorator;
     use thiserror::Error;
 
-    use crate::kv_categorizer::{FacebookCategorizer, InlineCategorizer};
+    use crate::kv_categorizer::FacebookCategorizer;
+    use crate::kv_categorizer::InlineCategorizer;
 
     lazy_static! {
         // Create a regex that matches log lines.

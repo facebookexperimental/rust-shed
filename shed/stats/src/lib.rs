@@ -28,24 +28,26 @@ pub mod prelude {
     //! # #![allow(unused)]
     //! use stats::prelude::*;
     //! ```
-    pub use crate::{define_stats, define_stats_struct};
-    pub use stats_traits::{
-        dynamic_stat_types::{
-            DynamicCounter, DynamicHistogram, DynamicSingletonCounter, DynamicTimeseries,
-        },
-        stat_types::{
-            Counter, CounterStatic, Histogram, HistogramStatic, Timeseries, TimeseriesStatic,
-        },
-    };
+    pub use crate::define_stats;
+    pub use crate::define_stats_struct;
+    pub use stats_traits::dynamic_stat_types::DynamicCounter;
+    pub use stats_traits::dynamic_stat_types::DynamicHistogram;
+    pub use stats_traits::dynamic_stat_types::DynamicSingletonCounter;
+    pub use stats_traits::dynamic_stat_types::DynamicTimeseries;
+    pub use stats_traits::stat_types::Counter;
+    pub use stats_traits::stat_types::CounterStatic;
+    pub use stats_traits::stat_types::Histogram;
+    pub use stats_traits::stat_types::HistogramStatic;
+    pub use stats_traits::stat_types::Timeseries;
+    pub use stats_traits::stat_types::TimeseriesStatic;
 }
 
 use std::sync::RwLock;
 
 use lazy_static::lazy_static;
-use stats_traits::{
-    stat_types::BoxSingletonCounter,
-    stats_manager::{BoxStatsManager, StatsManagerFactory},
-};
+use stats_traits::stat_types::BoxSingletonCounter;
+use stats_traits::stats_manager::BoxStatsManager;
+use stats_traits::stats_manager::StatsManagerFactory;
 
 pub use self::thread_local_aggregator::schedule_stats_aggregation_preview;
 

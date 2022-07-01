@@ -23,7 +23,8 @@
 
 use std::cell::UnsafeCell;
 use std::future::Future;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 
 use tokio::sync::Mutex as AsyncMutex;
 
@@ -163,8 +164,10 @@ impl<T> AsyncOnceCell<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use rand::{thread_rng, Rng};
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use rand::thread_rng;
+    use rand::Rng;
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
     use std::time::Duration;
 
     #[tokio::test]

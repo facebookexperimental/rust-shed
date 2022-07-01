@@ -18,4 +18,5 @@ mod convert;
 
 pub use crate::collect::BytesCollect;
 pub use crate::compat::BytesCompat;
-pub use crate::convert::{copy_from_new, copy_from_old};
+pub use crate::convert::copy_from_new;
+pub use crate::convert::copy_from_old;

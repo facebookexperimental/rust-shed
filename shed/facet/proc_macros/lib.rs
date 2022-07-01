@@ -15,7 +15,8 @@
 
 extern crate proc_macro;
 
-use proc_macro_crate::{crate_name, FoundCrate};
+use proc_macro_crate::crate_name;
+use proc_macro_crate::FoundCrate;
 
 mod container_impl;
 mod facet_impl;

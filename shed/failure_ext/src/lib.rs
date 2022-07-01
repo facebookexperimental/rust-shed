@@ -14,12 +14,15 @@
 
 use anyhow::Error;
 use std::error::Error as StdError;
-use std::fmt::{self, Debug, Display};
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Display;
 
 mod slogkv;
-pub use crate::slogkv::{
-    cause_workaround as cause, SlogKVError, SlogKVErrorKey, SlogKVErrorWithoutBackTrace,
-};
+pub use crate::slogkv::cause_workaround as cause;
+pub use crate::slogkv::SlogKVError;
+pub use crate::slogkv::SlogKVErrorKey;
+pub use crate::slogkv::SlogKVErrorWithoutBackTrace;
 
 pub mod prelude {
     //! A "prelude" of `failure_ext` crate.
@@ -33,17 +36,20 @@ pub mod prelude {
     //! use failure_ext::prelude::*;
     //! ```
 
-    pub use crate::{
-        FutureFailureErrorExt, FutureFailureExt, StreamFailureErrorExt, StreamFailureExt,
-    };
+    pub use crate::FutureFailureErrorExt;
+    pub use crate::FutureFailureExt;
+    pub use crate::StreamFailureErrorExt;
+    pub use crate::StreamFailureExt;
 }
 
 #[macro_use]
 mod macros;
 mod context_futures;
 mod context_streams;
-pub use crate::context_futures::{FutureFailureErrorExt, FutureFailureExt};
-pub use crate::context_streams::{StreamFailureErrorExt, StreamFailureExt};
+pub use crate::context_futures::FutureFailureErrorExt;
+pub use crate::context_futures::FutureFailureExt;
+pub use crate::context_streams::StreamFailureErrorExt;
+pub use crate::context_streams::StreamFailureExt;
 
 /// Shallow wrapper struct around [anyhow::Error] with [std::fmt::Display]
 /// implementation that shows the entire chain of errors

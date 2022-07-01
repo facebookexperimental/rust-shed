@@ -7,7 +7,8 @@
  * of this source tree.
  */
 
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
 
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 

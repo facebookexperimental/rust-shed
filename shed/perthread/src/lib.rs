@@ -43,7 +43,8 @@
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 use std::collections::HashMap;
-use std::fmt::{self, Debug};
+use std::fmt;
+use std::fmt::Debug;
 use std::ops::Deref;
 use std::ptr::NonNull;
 use std::sync::Mutex;

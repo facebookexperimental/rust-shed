@@ -9,9 +9,14 @@
 
 use anyhow::Result;
 use serde_derive::Deserialize;
-use std::{sync::Arc, thread, time::Duration};
+use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
 
-use crate::{ConfigHandle, ConfigStore, ModificationTime, TestSource};
+use crate::ConfigHandle;
+use crate::ConfigStore;
+use crate::ModificationTime;
+use crate::TestSource;
 
 #[derive(Debug, Deserialize, Eq, PartialEq)]
 struct TestConfig {

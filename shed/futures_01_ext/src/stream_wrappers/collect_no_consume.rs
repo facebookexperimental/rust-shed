@@ -9,7 +9,10 @@
 
 use std::mem;
 
-use futures::{Async, Future, Poll, Stream};
+use futures::Async;
+use futures::Future;
+use futures::Poll;
+use futures::Stream;
 
 /// A future which collects all of the values of a stream into a vector.
 ///

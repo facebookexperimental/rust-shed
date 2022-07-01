@@ -7,9 +7,13 @@
  * of this source tree.
  */
 
-use futures::{future, stream, FutureExt, TryStreamExt};
+use futures::future;
+use futures::stream;
+use futures::FutureExt;
+use futures::TryStreamExt;
 
-use futures_stats::{TimedFutureExt, TimedStreamExt};
+use futures_stats::TimedFutureExt;
+use futures_stats::TimedStreamExt;
 
 fn main() {
     let runtime = tokio::runtime::Runtime::new().unwrap();

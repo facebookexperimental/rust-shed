@@ -7,13 +7,13 @@
  * of this source tree.
  */
 
-use futures::{
-    stream::Stream,
-    task::{Context, Poll},
-};
+use futures::stream::Stream;
+use futures::task::Context;
+use futures::task::Poll;
 use pin_project::pin_project;
 use std::pin::Pin;
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 
 /// A stream that will yield control back to the caller if it runs for more than a given duration
 /// without yielding (i.e. returning Poll::Pending).  The clock starts counting the first time the

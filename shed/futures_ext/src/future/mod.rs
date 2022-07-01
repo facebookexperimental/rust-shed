@@ -16,16 +16,20 @@ mod on_cancel_with_data;
 mod try_shared;
 
 use anyhow::Error;
-use futures::future::{Future, FutureExt, TryFuture};
+use futures::future::Future;
+use futures::future::FutureExt;
+use futures::future::TryFuture;
 use std::time::Duration;
 use tokio_shim::time::Timeout;
 
 pub use shared_error::anyhow::SharedError;
 
-pub use self::abort_handle_ref::{spawn_controlled, ControlledHandle};
+pub use self::abort_handle_ref::spawn_controlled;
+pub use self::abort_handle_ref::ControlledHandle;
 pub use self::conservative_receiver::ConservativeReceiver;
 pub use self::on_cancel::OnCancel;
-pub use self::on_cancel_with_data::{CancelData, OnCancelWithData};
+pub use self::on_cancel_with_data::CancelData;
+pub use self::on_cancel_with_data::OnCancelWithData;
 pub use self::try_shared::TryShared;
 
 /// A trait implemented by default for all Futures which extends the standard

@@ -7,13 +7,17 @@
  * of this source tree.
  */
 
-use futures::{future::Future, ready, stream::Stream};
+use futures::future::Future;
+use futures::ready;
+use futures::stream::Stream;
 use pin_project::pin_project;
 use std::any::Any;
 use std::pin::Pin;
 use std::sync::Once;
-use std::task::{Context, Poll};
-use std::time::{Duration, Instant};
+use std::task::Context;
+use std::task::Poll;
+use std::time::Duration;
+use std::time::Instant;
 use thiserror::Error;
 
 pub mod task {
@@ -301,7 +305,8 @@ pub mod runtime {
 mod test {
     use super::*;
 
-    use futures::{future, stream::StreamExt};
+    use futures::future;
+    use futures::stream::StreamExt;
 
     async fn test() {
         task::spawn(future::ready(())).await.unwrap();

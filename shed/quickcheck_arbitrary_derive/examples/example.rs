@@ -32,7 +32,8 @@ enum EnumFoo {
 }
 
 fn main() {
-    use quickcheck::{Arbitrary, Gen};
+    use quickcheck::Arbitrary;
+    use quickcheck::Gen;
     let mut gen = Gen::new(10);
     println!("{:#?}", StructFoo::arbitrary(&mut gen));
     println!("{:#?}", TupleFoo::arbitrary(&mut gen));

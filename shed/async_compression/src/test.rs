@@ -7,21 +7,31 @@
  * of this source tree.
  */
 
-use std::io::{self, BufReader, Cursor, Read, Write};
+use std::io;
+use std::io::BufReader;
+use std::io::Cursor;
+use std::io::Read;
+use std::io::Write;
 
 use assert_matches::assert_matches;
-use futures::{Async, Poll};
+use futures::Async;
+use futures::Poll;
 use futures03::compat::Future01CompatExt;
-use quickcheck::{quickcheck, Arbitrary, Gen, TestResult};
+use quickcheck::quickcheck;
+use quickcheck::Arbitrary;
+use quickcheck::Gen;
+use quickcheck::TestResult;
 use tokio_io::io::read_to_end;
 use tokio_io::AsyncWrite;
 
 use crate::retry::retry_write;
 
-use crate::compressor::{Compressor, CompressorType};
+use crate::compressor::Compressor;
+use crate::compressor::CompressorType;
 use crate::decompressor::Decompressor;
 use crate::membuf::MemBuf;
-use crate::metered::{MeteredRead, MeteredWrite};
+use crate::metered::MeteredRead;
+use crate::metered::MeteredWrite;
 
 quickcheck! {
     fn test_bzip2_roundtrip(cmprs: BzipCompression, input: Vec<u8>) -> TestResult {

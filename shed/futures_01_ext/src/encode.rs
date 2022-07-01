@@ -17,8 +17,11 @@
 //! rather than restricting all codec operations to `AsyncRead`/`AsyncWrite` operations on
 //! an underlying transport.
 
-use bytes_old::{Bytes, BytesMut};
-use futures::{Async, Poll, Stream};
+use bytes_old::Bytes;
+use bytes_old::BytesMut;
+use futures::Async;
+use futures::Poll;
+use futures::Stream;
 use tokio_io::codec::Encoder;
 
 const INITIAL_CAPACITY: usize = 8192;
@@ -99,7 +102,9 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use bytes_old::{BigEndian, BufMut, ByteOrder};
+    use bytes_old::BigEndian;
+    use bytes_old::BufMut;
+    use bytes_old::ByteOrder;
     use futures::Future;
     use quickcheck::quickcheck;
     use std::io;

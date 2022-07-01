@@ -8,7 +8,10 @@
  */
 
 use crate::ErrorKind;
-use anyhow::{bail, ensure, Error, Result};
+use anyhow::bail;
+use anyhow::ensure;
+use anyhow::Error;
+use anyhow::Result;
 use bytes::BytesMut;
 use tokio_util::codec::Decoder;
 
@@ -177,7 +180,8 @@ impl Decoder for NetstringDecoder {
 
 #[cfg(test)]
 mod test {
-    use bytes::{BufMut, BytesMut};
+    use bytes::BufMut;
+    use bytes::BytesMut;
     use tokio_util::codec::Decoder;
 
     use super::*;

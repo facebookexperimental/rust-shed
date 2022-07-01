@@ -11,8 +11,10 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-use quickcheck::{Arbitrary, Gen};
-use std::{iter, ops::Deref};
+use quickcheck::Arbitrary;
+use quickcheck::Gen;
+use std::iter;
+use std::ops::Deref;
 
 /// [ascii::AsciiString] wrapper that implements [quickcheck::Arbitrary]
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash)]

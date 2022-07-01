@@ -9,9 +9,11 @@
 
 use anyhow::Result;
 use bytes::Bytes;
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use std::sync::RwLock;
 
-use crate::{Entity, ModificationTime};
+use crate::Entity;
+use crate::ModificationTime;
 
 // Type-erasure trick. I don't actually care about T for RegisteredConfigEntity,
 /// so hide it via a trait object

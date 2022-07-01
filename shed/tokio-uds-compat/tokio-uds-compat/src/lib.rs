@@ -12,12 +12,15 @@ pub use tokio::net::UnixStream;
 
 #[cfg(windows)]
 mod windows {
-    use std::{path::Path, pin::Pin};
+    use std::path::Path;
+    use std::pin::Pin;
 
     /// Compat layer for providing UNIX domain socket on Windows
     use async_io::Async;
     use std::io;
-    use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
+    use tokio::io::AsyncRead;
+    use tokio::io::AsyncWrite;
+    use tokio::io::ReadBuf;
 
     pub struct UnixStream(Async<uds_windows::UnixStream>);
 

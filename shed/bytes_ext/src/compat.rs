@@ -7,8 +7,10 @@
  * of this source tree.
  */
 
-use bytes::{Buf as BufNew, Bytes as BytesNew};
-use bytes_old::{Buf as BufOld, Bytes as BytesOld};
+use bytes::Buf as BufNew;
+use bytes::Bytes as BytesNew;
+use bytes_old::Buf as BufOld;
+use bytes_old::Bytes as BytesOld;
 use ref_cast::RefCast;
 
 /// Wrapper for using each of bytes 0.4 and 0.5's Bytes types as an

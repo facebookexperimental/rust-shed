@@ -13,7 +13,9 @@ extern crate proc_macro;
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Error, ItemTraitAlias};
+use syn::parse_macro_input;
+use syn::Error;
+use syn::ItemTraitAlias;
 
 /// Implement a trait alias using a subtrait and blanket definition.
 ///

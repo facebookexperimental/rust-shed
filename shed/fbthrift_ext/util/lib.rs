@@ -9,8 +9,10 @@
 
 use std::future::Future;
 use std::pin::Pin;
-use std::task::{Context, Poll};
-use tokio::sync::{Mutex, MutexGuard};
+use std::task::Context;
+use std::task::Poll;
+use tokio::sync::Mutex;
+use tokio::sync::MutexGuard;
 
 /// Future for the [`poll_with_lock`] function.
 pub struct PollWithLock<'a, T, F, E>

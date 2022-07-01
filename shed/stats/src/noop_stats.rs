@@ -10,14 +10,18 @@
 use fbinit::FacebookInit;
 use std::time::Duration;
 
-use stats_traits::{
-    stat_types::{
-        BoxCounter, BoxHistogram, BoxTimeseries, Counter, Histogram, SingletonCounter, Timeseries,
-    },
-    stats_manager::{
-        AggregationType, BoxStatsManager, BucketConfig, StatsManager, StatsManagerFactory,
-    },
-};
+use stats_traits::stat_types::BoxCounter;
+use stats_traits::stat_types::BoxHistogram;
+use stats_traits::stat_types::BoxTimeseries;
+use stats_traits::stat_types::Counter;
+use stats_traits::stat_types::Histogram;
+use stats_traits::stat_types::SingletonCounter;
+use stats_traits::stat_types::Timeseries;
+use stats_traits::stats_manager::AggregationType;
+use stats_traits::stats_manager::BoxStatsManager;
+use stats_traits::stats_manager::BucketConfig;
+use stats_traits::stats_manager::StatsManager;
+use stats_traits::stats_manager::StatsManagerFactory;
 
 pub struct NoopStatsFactory;
 

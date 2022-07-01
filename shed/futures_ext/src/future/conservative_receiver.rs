@@ -7,11 +7,11 @@
  * of this source tree.
  */
 
-use futures::{
-    channel::oneshot::{Canceled, Receiver},
-    task::{Context, Poll},
-    Future,
-};
+use futures::channel::oneshot::Canceled;
+use futures::channel::oneshot::Receiver;
+use futures::task::Context;
+use futures::task::Poll;
+use futures::Future;
 use pin_project::pin_project;
 use std::pin::Pin;
 use thiserror::Error;

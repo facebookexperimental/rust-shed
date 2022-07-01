@@ -16,12 +16,21 @@
 
 use std::borrow::Cow;
 use std::env;
-use std::ffi::{OsStr, OsString};
-use std::fs::{copy, create_dir_all, read_to_string, rename, write};
-use std::path::{Path, PathBuf};
+use std::ffi::OsStr;
+use std::ffi::OsString;
+use std::fs::copy;
+use std::fs::create_dir_all;
+use std::fs::read_to_string;
+use std::fs::rename;
+use std::fs::write;
+use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 
-use anyhow::{anyhow, ensure, Context, Result};
+use anyhow::anyhow;
+use anyhow::ensure;
+use anyhow::Context;
+use anyhow::Result;
 use which::which;
 
 /// Builder for thrift compilare wrapper

@@ -11,7 +11,9 @@
 
 use std::fmt::Arguments;
 
-use slog::{Key, Result, Serializer};
+use slog::Key;
+use slog::Result;
+use slog::Serializer;
 
 use crate::kv_categorizer::KVCategorizer;
 
@@ -88,10 +90,18 @@ mod tests {
     use super::*;
 
     use itertools::assert_equal;
-    use rand::{rngs::StdRng, Rng, SeedableRng};
-    use slog::{b, record, Level, Record, Result as SlogResult, KV};
+    use rand::rngs::StdRng;
+    use rand::Rng;
+    use rand::SeedableRng;
+    use slog::b;
+    use slog::record;
+    use slog::Level;
+    use slog::Record;
+    use slog::Result as SlogResult;
+    use slog::KV;
 
-    use crate::kv_categorizer::{InlineCategorizer, KVCategory};
+    use crate::kv_categorizer::InlineCategorizer;
+    use crate::kv_categorizer::KVCategory;
 
     #[derive(Clone)]
     struct TestKv {

@@ -12,7 +12,8 @@
 
 //! Crate extending functionality of [std::time]
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
+use std::time::Instant;
 
 use anyhow::Result;
 use thiserror::Error;

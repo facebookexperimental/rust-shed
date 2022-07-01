@@ -9,7 +9,10 @@
 
 //! Raw upstream decoders, plus a uniform interface for accessing them.
 
-use std::io::{self, BufRead, Read, Write};
+use std::io;
+use std::io::BufRead;
+use std::io::Read;
+use std::io::Write;
 use std::result;
 
 use futures::Poll;

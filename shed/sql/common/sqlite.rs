@@ -14,7 +14,9 @@
 use lazy_static::lazy_static;
 use rusqlite::Connection as SqliteConnection;
 use std::ops::Deref;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::Arc;
+use std::sync::Condvar;
+use std::sync::Mutex;
 
 lazy_static! {
     /// Lock to ensure that only one connection is in use for writes at a time inside the process

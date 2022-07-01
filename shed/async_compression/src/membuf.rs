@@ -14,7 +14,8 @@ use std::io;
 use std::io::Read;
 use std::mem;
 
-use bytes::{BufMut, BytesMut};
+use bytes::BufMut;
+use bytes::BytesMut;
 use futures::task;
 use tokio_io::AsyncRead;
 

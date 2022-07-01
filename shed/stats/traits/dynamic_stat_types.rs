@@ -17,10 +17,14 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::thread::LocalKey;
 
-use crate::stat_types::{
-    BoxCounter, BoxHistogram, BoxSingletonCounter, BoxTimeseries, Counter, Histogram,
-    SingletonCounter, Timeseries,
-};
+use crate::stat_types::BoxCounter;
+use crate::stat_types::BoxHistogram;
+use crate::stat_types::BoxSingletonCounter;
+use crate::stat_types::BoxTimeseries;
+use crate::stat_types::Counter;
+use crate::stat_types::Histogram;
+use crate::stat_types::SingletonCounter;
+use crate::stat_types::Timeseries;
 
 /// The struct to hold key and stat generators that are later being used in runtime to create new
 /// stats that are being held in a map to avoid reconstruction of the same counter.

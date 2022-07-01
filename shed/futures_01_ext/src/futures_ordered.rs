@@ -12,7 +12,11 @@
 
 use std::fmt;
 
-use futures::{Async, Future, IntoFuture, Poll, Stream};
+use futures::Async;
+use futures::Future;
+use futures::IntoFuture;
+use futures::Poll;
+use futures::Stream;
 
 /// A future which takes a list of futures, executes them serially, and
 /// resolves with a vector of the completed values.
@@ -108,7 +112,9 @@ mod test {
 
     use futures::sync::mpsc;
     use futures::task;
-    use futures::{Future, Sink, Stream};
+    use futures::Future;
+    use futures::Sink;
+    use futures::Stream;
     use futures03::compat::Future01CompatExt;
 
     use super::*;

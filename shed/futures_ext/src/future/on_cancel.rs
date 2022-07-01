@@ -11,8 +11,10 @@ use std::pin::Pin;
 
 use futures::future::Future;
 use futures::ready;
-use futures::task::{Context, Poll};
-use pin_project::{pin_project, pinned_drop};
+use futures::task::Context;
+use futures::task::Poll;
+use pin_project::pin_project;
+use pin_project::pinned_drop;
 
 /// Future combinator that executes the `on_cancel` closure if the inner future
 /// is canceled (dropped before completion).
@@ -76,7 +78,8 @@ where
 mod test {
     use super::*;
 
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::AtomicBool;
+    use std::sync::atomic::Ordering;
 
     #[tokio::test]
     async fn runs_when_canceled() {

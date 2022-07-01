@@ -7,7 +7,8 @@
  * of this source tree.
  */
 
-use anyhow::{Error, Result};
+use anyhow::Error;
+use anyhow::Result;
 use futures_ext::BoxFuture;
 use std::time::Duration;
 

@@ -10,7 +10,9 @@
 use anyhow::Result;
 use fbinit::FacebookInit;
 use slog::Logger;
-use std::{collections::HashMap, path::PathBuf, time::Duration};
+use std::collections::HashMap;
+use std::path::PathBuf;
+use std::time::Duration;
 
 use crate::ConfigStore;
 

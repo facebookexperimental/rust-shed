@@ -11,15 +11,22 @@
 
 use std::borrow::Borrow;
 use std::cmp::Ordering;
+use std::collections::BTreeSet;
+use std::collections::Bound;
 use std::collections::Bound::*;
-use std::collections::{BTreeSet, Bound};
-use std::fmt::{self, Debug};
+use std::fmt;
+use std::fmt::Debug;
 use std::iter::Peekable;
 use std::mem;
-use std::ops::{BitAnd, BitOr, BitXor, RangeBounds, Sub};
+use std::ops::BitAnd;
+use std::ops::BitOr;
+use std::ops::BitXor;
+use std::ops::RangeBounds;
+use std::ops::Sub;
 
 use itertools::Itertools;
-use quickcheck::{Arbitrary, Gen};
+use quickcheck::Arbitrary;
+use quickcheck::Gen;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Hash)]
 pub struct SortedVectorSet<T>(Vec<T>);

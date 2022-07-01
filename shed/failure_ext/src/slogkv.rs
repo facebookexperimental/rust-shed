@@ -7,7 +7,8 @@
  * of this source tree.
  */
 
-use super::{Compat, Error};
+use super::Compat;
+use super::Error;
 use futures::future::SharedError;
 use std::error::Error as StdError;
 use std::ops::Deref;

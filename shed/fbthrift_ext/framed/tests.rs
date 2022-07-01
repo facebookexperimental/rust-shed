@@ -9,7 +9,9 @@
 
 use crate::FramedTransport;
 use bytes::Bytes;
-use futures::stream::{self, StreamExt, TryStreamExt};
+use futures::stream;
+use futures::stream::StreamExt;
+use futures::stream::TryStreamExt;
 use std::io::Cursor;
 use tokio_util::codec::Decoder;
 

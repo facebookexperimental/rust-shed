@@ -13,13 +13,22 @@
 //! Crate extending functionality of [`futures`] crate
 
 use bytes_old::Bytes;
-use futures::sync::{mpsc, oneshot};
-use futures::{future, stream, try_ready, Async, AsyncSink, Future, Poll, Sink, Stream};
-use std::{fmt::Debug, io as std_io};
-use tokio_io::{
-    codec::{Decoder, Encoder},
-    AsyncWrite,
-};
+use futures::future;
+use futures::stream;
+use futures::sync::mpsc;
+use futures::sync::oneshot;
+use futures::try_ready;
+use futures::Async;
+use futures::AsyncSink;
+use futures::Future;
+use futures::Poll;
+use futures::Sink;
+use futures::Stream;
+use std::fmt::Debug;
+use std::io as std_io;
+use tokio_io::codec::Decoder;
+use tokio_io::codec::Encoder;
+use tokio_io::AsyncWrite;
 
 mod bytes_stream;
 pub mod decode;
@@ -31,11 +40,15 @@ mod split_err;
 mod stream_wrappers;
 mod streamfork;
 
-pub use crate::bytes_stream::{BytesStream, BytesStreamFuture};
-pub use crate::futures_ordered::{futures_ordered, FuturesOrdered};
-pub use crate::select_all::{select_all, SelectAll};
+pub use crate::bytes_stream::BytesStream;
+pub use crate::bytes_stream::BytesStreamFuture;
+pub use crate::futures_ordered::futures_ordered;
+pub use crate::futures_ordered::FuturesOrdered;
+pub use crate::select_all::select_all;
+pub use crate::select_all::SelectAll;
 pub use crate::split_err::split_err;
-pub use crate::stream_wrappers::{CollectNoConsume, CollectTo};
+pub use crate::stream_wrappers::CollectNoConsume;
+pub use crate::stream_wrappers::CollectTo;
 
 // Re-exports. Those are used by the macros in this crate in order to reference a stable version of
 // what "futures" means.
@@ -890,8 +903,10 @@ mod test {
     use futures03::compat::Future01CompatExt;
 
     use cloned::cloned;
-    use futures::future::{err, ok};
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use futures::future::err;
+    use futures::future::ok;
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
     use std::sync::Arc;
     use tokio::runtime::Runtime;
     #[derive(Debug)]

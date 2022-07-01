@@ -12,7 +12,8 @@
 //! Crate extending functionalities of [std::sync]
 
 use parking_lot::Mutex as ParkingLotMutex;
-use std::sync::{Mutex, RwLock};
+use std::sync::Mutex;
+use std::sync::RwLock;
 
 /// Extend functionality of [std::sync::Mutex]
 ///
@@ -110,8 +111,11 @@ impl<V> RwLockExt for RwLock<V> {
 
 #[cfg(test)]
 mod test {
-    use super::{LockExt, RwLockExt};
-    use std::sync::{Arc, Mutex, RwLock};
+    use super::LockExt;
+    use super::RwLockExt;
+    use std::sync::Arc;
+    use std::sync::Mutex;
+    use std::sync::RwLock;
 
     #[test]
     fn simple() {

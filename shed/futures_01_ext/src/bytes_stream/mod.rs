@@ -10,10 +10,17 @@
 mod bytes_stream_future;
 
 use std::cmp;
-use std::io::{self, BufRead, Read};
+use std::io;
+use std::io::BufRead;
+use std::io::Read;
 
-use bytes_old::{BufMut, Bytes, BytesMut};
-use futures::{try_ready, Async, Poll, Stream};
+use bytes_old::BufMut;
+use bytes_old::Bytes;
+use bytes_old::BytesMut;
+use futures::try_ready;
+use futures::Async;
+use futures::Poll;
+use futures::Stream;
 use tokio_io::codec::Decoder;
 use tokio_io::AsyncRead;
 

@@ -7,13 +7,17 @@
  * of this source tree.
  */
 
-use std::{
-    io::{self, Cursor, Read, Write},
-    marker::PhantomData,
-};
+use std::io;
+use std::io::Cursor;
+use std::io::Read;
+use std::io::Write;
+use std::marker::PhantomData;
 
 use anyhow::Result;
-use bytes::{buf::UninitSlice, Buf, BufMut, Bytes};
+use bytes::buf::UninitSlice;
+use bytes::Buf;
+use bytes::BufMut;
+use bytes::Bytes;
 
 pub fn init_cacheadmin() -> Result<()> {
     Ok(())

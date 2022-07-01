@@ -17,8 +17,13 @@
 //! rather than restricting all codec operations to `AsyncRead`/`AsyncWrite` operations on
 //! an underlying transport.
 
-use bytes_old::{BufMut, Bytes, BytesMut};
-use futures::{try_ready, Async, Poll, Stream};
+use bytes_old::BufMut;
+use bytes_old::Bytes;
+use bytes_old::BytesMut;
+use futures::try_ready;
+use futures::Async;
+use futures::Poll;
+use futures::Stream;
 use tokio_io::codec::Decoder;
 
 /// Returns a stream that will yield decoded items that are the result of decoding
@@ -120,9 +125,11 @@ where
 mod test {
     use std::io;
 
-    use anyhow::{Error, Result};
+    use anyhow::Error;
+    use anyhow::Result;
     use bytes_old::Bytes;
-    use futures::{stream, Stream};
+    use futures::stream;
+    use futures::Stream;
     use futures03::compat::Future01CompatExt;
 
     use super::*;

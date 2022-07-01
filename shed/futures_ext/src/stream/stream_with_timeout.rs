@@ -7,11 +7,10 @@
  * of this source tree.
  */
 
-use futures::{
-    future::Future,
-    stream::Stream,
-    task::{Context, Poll},
-};
+use futures::future::Future;
+use futures::stream::Stream;
+use futures::task::Context;
+use futures::task::Poll;
 use pin_project::pin_project;
 use std::pin::Pin;
 use std::time::Duration;
@@ -90,7 +89,8 @@ mod test {
     use super::*;
 
     use anyhow::Error;
-    use futures::stream::{StreamExt, TryStreamExt};
+    use futures::stream::StreamExt;
+    use futures::stream::TryStreamExt;
 
     #[tokio::test]
     async fn test_stream_timeout() -> Result<(), Error> {

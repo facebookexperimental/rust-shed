@@ -9,8 +9,11 @@
 
 //! Non-blocking, buffered compression.
 
-use std::fmt::{self, Debug, Formatter};
-use std::io::{self, Write};
+use std::fmt;
+use std::fmt::Debug;
+use std::fmt::Formatter;
+use std::io;
+use std::io::Write;
 use std::result;
 
 use bzip2::write::BzEncoder;
@@ -19,7 +22,8 @@ use futures::Poll;
 use tokio_io::AsyncWrite;
 
 use crate::decompressor::DecompressorType;
-use crate::raw::{AsyncZstdEncoder, RawEncoder};
+use crate::raw::AsyncZstdEncoder;
+use crate::raw::RawEncoder;
 use crate::retry::retry_write;
 
 /// Defines the supported compression types

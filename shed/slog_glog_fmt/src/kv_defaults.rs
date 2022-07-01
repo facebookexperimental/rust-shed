@@ -10,7 +10,10 @@
 //! Module defining FacebookKV structure that should be used by all Facebook services
 
 use anyhow::Result;
-use slog::{Record, Result as SlogResult, Serializer, KV};
+use slog::Record;
+use slog::Result as SlogResult;
+use slog::Serializer;
+use slog::KV;
 
 /// Structure containing all common KV values for Facebook services
 pub struct FacebookKV {
@@ -46,7 +49,9 @@ impl KV for FacebookKV {
 mod tests {
     use super::*;
 
-    use slog::{b, record, Level};
+    use slog::b;
+    use slog::record;
+    use slog::Level;
 
     use crate::collector_serializer::CollectorSerializer;
     use crate::kv_categorizer::InlineCategorizer;

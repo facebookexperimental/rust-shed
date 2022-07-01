@@ -10,11 +10,14 @@
 #[cfg(test)]
 mod tests;
 
-use byteorder::{BigEndian, ByteOrder};
+use byteorder::BigEndian;
+use byteorder::ByteOrder;
 use bytes::BufMut as _;
 use bytes::Bytes;
-use std::io::{self, Cursor};
-use tokio_util::codec::{Decoder, Encoder};
+use std::io;
+use std::io::Cursor;
+use tokio_util::codec::Decoder;
+use tokio_util::codec::Encoder;
 
 pub struct FramedTransport;
 

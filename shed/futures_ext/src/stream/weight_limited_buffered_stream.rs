@@ -7,13 +7,17 @@
  * of this source tree.
  */
 
-use futures::{
-    future,
-    future::BoxFuture,
-    ready, stream,
-    task::{Context, Poll},
-    Future, FutureExt, Stream, StreamExt, TryStream,
-};
+use futures::future;
+use futures::future::BoxFuture;
+use futures::ready;
+use futures::stream;
+use futures::task::Context;
+use futures::task::Poll;
+use futures::Future;
+use futures::FutureExt;
+use futures::Stream;
+use futures::StreamExt;
+use futures::TryStream;
 use pin_project::pin_project;
 use std::pin::Pin;
 
@@ -184,10 +188,14 @@ mod test {
     use super::*;
 
     use futures::future;
+    use futures::future::BoxFuture;
     use futures::stream;
-    use futures::{future::BoxFuture, stream::BoxStream, FutureExt, StreamExt};
+    use futures::stream::BoxStream;
+    use futures::FutureExt;
+    use futures::StreamExt;
 
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
     use std::sync::Arc;
 
     type TestStream = BoxStream<'static, (BoxFuture<'static, ()>, u64)>;

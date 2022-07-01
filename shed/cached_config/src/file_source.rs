@@ -7,11 +7,16 @@
  * of this source tree.
  */
 
-use anyhow::{Context, Result};
+use anyhow::Context;
+use anyhow::Result;
 use bytes::Bytes;
-use std::{fs, path::PathBuf, time::SystemTime};
+use std::fs;
+use std::path::PathBuf;
+use std::time::SystemTime;
 
-use crate::{Entity, ModificationTime, Source};
+use crate::Entity;
+use crate::ModificationTime;
+use crate::Source;
 
 #[derive(Debug)]
 pub(crate) struct FileSource {

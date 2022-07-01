@@ -14,9 +14,12 @@
 use once_cell::sync::OnceCell;
 use std::borrow::Borrow;
 use std::fmt;
-use std::hash::{BuildHasher, Hash, Hasher};
+use std::hash::BuildHasher;
+use std::hash::Hash;
+use std::hash::Hasher;
 use std::ops::Deref;
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering;
 
 /// `BuildMemoHasher` provides a way to construct a wrapper `MemoHasher` of a
 /// `std::hash::Hasher`s so that the memoized `Hasher::finish()` values

@@ -11,7 +11,8 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use futures::future::{FutureExt, Shared};
+use futures::future::FutureExt;
+use futures::future::Shared;
 use once_cell::sync::OnceCell;
 
 /// A lazily-initialized shared future
@@ -73,7 +74,8 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
 
     #[tokio::test]
     async fn test_ready() {

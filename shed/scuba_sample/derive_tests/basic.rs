@@ -7,7 +7,9 @@
  * of this source tree.
  */
 
-use ::scuba_sample::{ScubaSample, ScubaValue, StructuredSample};
+use ::scuba_sample::ScubaSample;
+use ::scuba_sample::ScubaValue;
+use ::scuba_sample::StructuredSample;
 
 #[derive(StructuredSample)]
 struct Basic {

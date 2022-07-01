@@ -318,11 +318,14 @@
 //! The build method will attempt to build facets concurrently where it can.
 
 extern crate facet_proc_macros;
-pub use facet_proc_macros::{container, facet, factory};
+pub use facet_proc_macros::container;
+pub use facet_proc_macros::facet;
+pub use facet_proc_macros::factory;
 
 use std::future::Future;
 use std::pin::Pin;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
+use std::sync::Mutex;
 
 use thiserror::Error;
 

@@ -10,11 +10,17 @@
 //! Metered read and write wrappers, to keep track of total bytes passed through
 //! streams.
 
-use std::io::{self, Read, Write};
+use std::io;
+use std::io::Read;
+use std::io::Write;
 
-use bytes::{Buf, BufMut};
-use futures::{try_ready, Async, Poll};
-use tokio_io::{AsyncRead, AsyncWrite};
+use bytes::Buf;
+use bytes::BufMut;
+use futures::try_ready;
+use futures::Async;
+use futures::Poll;
+use tokio_io::AsyncRead;
+use tokio_io::AsyncWrite;
 
 /// A reader wrapper that tracks the total number of bytes read through it.
 pub struct MeteredRead<R: Read> {

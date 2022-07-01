@@ -14,16 +14,21 @@ mod stream_with_timeout;
 mod weight_limited_buffered_stream;
 mod yield_periodically;
 
-use futures::{Future, Stream, StreamExt, TryFuture, TryStream};
+use futures::Future;
+use futures::Stream;
+use futures::StreamExt;
+use futures::TryFuture;
+use futures::TryStream;
 use std::time::Duration;
 
 use crate::future::ConservativeReceiver;
 
 pub use self::return_remainder::ReturnRemainder;
-pub use self::stream_with_timeout::{StreamTimeoutError, StreamWithTimeout};
-pub use self::weight_limited_buffered_stream::{
-    BufferedParams, WeightLimitedBufferedStream, WeightLimitedBufferedTryStream,
-};
+pub use self::stream_with_timeout::StreamTimeoutError;
+pub use self::stream_with_timeout::StreamWithTimeout;
+pub use self::weight_limited_buffered_stream::BufferedParams;
+pub use self::weight_limited_buffered_stream::WeightLimitedBufferedStream;
+pub use self::weight_limited_buffered_stream::WeightLimitedBufferedTryStream;
 pub use self::yield_periodically::YieldPeriodically;
 
 /// A trait implemented by default for all Streams which extends the standard

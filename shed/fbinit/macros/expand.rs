@@ -9,9 +9,14 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::parse::{Parse, ParseStream};
+use syn::parse::Parse;
+use syn::parse::ParseStream;
+use syn::parse_quote;
 use syn::punctuated::Punctuated;
-use syn::{parse_quote, Error, ItemFn, Result, Token};
+use syn::Error;
+use syn::ItemFn;
+use syn::Result;
+use syn::Token;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Mode {

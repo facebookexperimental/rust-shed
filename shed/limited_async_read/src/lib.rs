@@ -7,7 +7,9 @@
  * of this source tree.
  */
 
-use std::io::{BufRead, Read, Result};
+use std::io::BufRead;
+use std::io::Read;
+use std::io::Result;
 use tokio_io::AsyncRead;
 
 // This module provides an AsyncRead implementation that operates over a limited buffer size. This
