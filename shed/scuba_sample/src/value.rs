@@ -9,6 +9,11 @@
 
 //! See the [ScubaValue] documentation
 
+use serde::de::Deserialize;
+use serde::de::Deserializer;
+use serde::de::SeqAccess;
+use serde::de::Visitor;
+use serde::de::{self};
 use serde::ser::Serialize;
 use serde::ser::SerializeSeq;
 use serde::ser::Serializer;
@@ -112,6 +117,78 @@ impl Serialize for ScubaValue {
     }
 }
 
+struct ScubaValueVisitor;
+
+impl<'de> Visitor<'de> for ScubaValueVisitor {
+    type Value = ScubaValue;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("invalid scuba value")
+    }
+
+    fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(value.into())
+    }
+
+    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(value.into())
+    }
+
+    fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(value.into())
+    }
+
+    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        self.visit_string(value.to_string())
+    }
+
+    fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(value.into())
+    }
+
+    fn visit_seq<V>(self, mut seq: V) -> Result<Self::Value, V::Error>
+    where
+        V: SeqAccess<'de>,
+    {
+        let mut norm_vector = Vec::<String>::new();
+        while let Some(item) = seq.next_element()? {
+            norm_vector.push(item);
+        }
+        Ok(norm_vector.into())
+    }
+
+    fn visit_unit<E>(self) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        Ok(ScubaValue::Null(NullScubaValue::Int))
+    }
+}
+
+impl<'de> Deserialize<'de> for ScubaValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_any(ScubaValueVisitor)
+    }
+}
+
 /// **DEPRECATED: Please use serde's serialization directly instead.**
 impl From<ScubaValue> for Value {
     fn from(val: ScubaValue) -> Value {
@@ -142,6 +219,7 @@ impl From<ScubaValue> for Value {
     }
 }
 
+/// **DEPRECATED: Please use serde's deserialization directly instead.**
 impl TryFrom<Value> for ScubaValue {
     type Error = Value;
 
@@ -635,6 +713,52 @@ mod tests {
         assert_eq!(
             to_value(ScubaValue::Null(NullScubaValue::TagSet)).unwrap(),
             json!(null),
+        );
+    }
+
+    macro_rules! test_deserialize_int {
+        ( $( $t:ty ),* ) => {
+            $(
+                assert_eq!(
+                    from_str::<'_, ScubaValue>(&json!(123 as $t).to_string()).unwrap(),
+                    ScubaValue::Int(123)
+                );
+            )*
+        };
+    }
+
+    #[test]
+    fn deserialize() {
+        use serde_json::from_str;
+
+        test_deserialize_int!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!(1.5_f32).to_string()).unwrap(),
+            ScubaValue::Double(1.5)
+        );
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!(1.5_f64).to_string()).unwrap(),
+            ScubaValue::Double(1.5)
+        );
+
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!("abc").to_string()).unwrap(),
+            ScubaValue::Normal("abc".to_string())
+        );
+
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!(vec![] as Vec<String>).to_string()).unwrap(),
+            ScubaValue::NormVector(vec![])
+        );
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!(["b", "", "a"]).to_string()).unwrap(),
+            ScubaValue::NormVector(vec!["b".to_string(), "".to_string(), "a".to_string()])
+        );
+
+        assert_eq!(
+            from_str::<'_, ScubaValue>(&json!(null).to_string()).unwrap(),
+            ScubaValue::Null(NullScubaValue::Int)
         );
     }
 
