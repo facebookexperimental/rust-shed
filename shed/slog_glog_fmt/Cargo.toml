@@ -25,7 +25,7 @@ slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 slog-term = "2.8"
 
 [dev-dependencies]
-lazy_static = "1.0"
+lazy_static = "1.4"
 rand = { version = "0.8", features = ["small_rng"] }
 regex = "1.5.4"
 thiserror = "1.0.30"

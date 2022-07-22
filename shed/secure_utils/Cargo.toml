@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.56"
 hex = "0.4.3"
-lazy_static = "1.0"
+lazy_static = "1.4"
 libc = "0.2.121"
 openssl = "0.10.35"
 openssl-sys = "0.9"
