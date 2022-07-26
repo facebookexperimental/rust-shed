@@ -19,12 +19,14 @@
 //! understandable by Scuba.
 
 pub mod builder;
+pub mod client;
 pub mod sample;
 pub mod value;
 
 mod sampling;
 
 pub use crate::builder::ScubaSampleBuilder;
+pub use crate::client::ScubaClient;
 pub use crate::sample::ScubaSample;
 pub use crate::sample::StructuredSample;
 pub use crate::sampling::Sampling;
