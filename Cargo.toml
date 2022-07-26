@@ -56,6 +56,7 @@ members = [
   "shed/memcache_stub",
   "shed/memcache_stub/common",
   "shed/netstring",
+  "shed/ods",
   "shed/panichandler",
   "shed/perthread",
   "shed/quickcheck_arbitrary_derive",
