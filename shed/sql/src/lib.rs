@@ -68,6 +68,7 @@ pub use futures_ext;
 pub use futures_util;
 pub use mysql_async;
 pub use rusqlite;
+pub use sql_common;
 pub use sql_common::error;
 pub use sql_common::mysql;
 pub use sql_common::sqlite;
@@ -77,7 +78,6 @@ pub use sql_common::SqlConnections;
 pub use sql_common::SqlConnectionsWithSchema;
 pub use sql_common::SqlShardedConnections;
 pub use sql_common::WriteResult;
-pub use sql_common::{self};
 
 use mysql_async::Value;
 use rusqlite::types::FromSql as FromSqliteValue;
