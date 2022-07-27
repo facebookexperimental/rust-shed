@@ -16,7 +16,6 @@ doctest = false
 proc-macro = true
 
 [dependencies]
-anyhow = "1.0.56"
 darling = "0.14.0"
 itertools = "0.10.3"
 proc-macro2 = "1.0"
