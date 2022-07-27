@@ -14,7 +14,6 @@ use futures::task::Context;
 use futures::task::Poll;
 use futures::Stream;
 use pin_project::pin_project;
-use std::marker::Unpin;
 use std::pin::Pin;
 
 use crate::future::ConservativeReceiver;
