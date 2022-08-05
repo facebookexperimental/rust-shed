@@ -37,7 +37,7 @@ where
 /// key was inserted first)
 pub fn set_cached<T>(
     _cache_pool: &VolatileLruCachePool,
-    _cache_key: &String,
+    _cache_key: &str,
     _entry: &T,
     _ttl: Option<Duration>,
 ) -> Result<bool>
