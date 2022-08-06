@@ -19,15 +19,6 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-use anyhow::Result;
-use bytes::Bytes;
-use flate2::read::GzDecoder;
-use flate2::write::GzEncoder;
-use flate2::Compression;
-use serde::Deserialize;
-use serde::Serialize;
-use serde_json::Value;
-
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::Read;
@@ -37,6 +28,15 @@ use std::path::Path;
 use std::thread::ThreadId;
 use std::time::Duration;
 use std::time::Instant;
+
+use anyhow::Result;
+use bytes::Bytes;
+use flate2::read::GzDecoder;
+use flate2::write::GzEncoder;
+use flate2::Compression;
+use serde::Deserialize;
+use serde::Serialize;
+use serde_json::Value;
 
 /// Type alias for the [Event::args] field.
 pub type Args = HashMap<String, Value>;
@@ -446,15 +446,15 @@ fn gettid() -> u64 {
 /// Module for serializing and deserializing time::Duration structs as integer values
 /// in microseconds, as expected by the trace viewer.
 mod duration {
-    use super::as_micros;
+    use std::fmt;
+    use std::time::Duration;
 
     use serde::de;
     use serde::de::Visitor;
     use serde::Deserializer;
     use serde::Serializer;
 
-    use std::fmt;
-    use std::time::Duration;
+    use super::as_micros;
 
     pub fn serialize<S>(value: &Duration, serializer: S) -> Result<S::Ok, S::Error>
     where
@@ -509,9 +509,10 @@ fn as_micros(dur: &Duration) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use maplit::hashmap;
     use serde_json::json;
+
+    use super::*;
 
     #[test]
     fn to_json() {

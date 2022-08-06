@@ -88,13 +88,14 @@ pub mod facet_impls {
 
 pub mod factories {
     pub mod deps_factory {
+        use std::sync::Arc;
+
         use crate::facet_impls::combined_three::CombinedThree;
         use crate::facet_impls::combined_two::CombinedTwo;
         use crate::facet_impls::simple_one::SimpleOne;
         use crate::facets::one::ArcOne;
         use crate::facets::three::ArcThree;
         use crate::facets::two::ArcTwo;
-        use std::sync::Arc;
 
         pub struct DepsFactory;
 
@@ -115,9 +116,10 @@ pub mod factories {
     }
 
     pub mod just3_factory {
+        use std::sync::Arc;
+
         use crate::facet_impls::simple_three::SimpleThree;
         use crate::facets::three::ArcThree;
-        use std::sync::Arc;
 
         pub struct Just3Factory;
 

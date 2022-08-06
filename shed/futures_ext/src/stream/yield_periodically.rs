@@ -7,13 +7,14 @@
  * of this source tree.
  */
 
+use std::pin::Pin;
+use std::time::Duration;
+use std::time::Instant;
+
 use futures::stream::Stream;
 use futures::task::Context;
 use futures::task::Poll;
 use pin_project::pin_project;
-use std::pin::Pin;
-use std::time::Duration;
-use std::time::Instant;
 
 /// A stream that will yield control back to the caller if it runs for more than a given duration
 /// without yielding (i.e. returning Poll::Pending).  The clock starts counting the first time the
@@ -78,9 +79,9 @@ impl<S: Stream> Stream for YieldPeriodically<S> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use futures::stream::StreamExt;
+
+    use super::*;
 
     #[test]
     fn test_yield_happens() {

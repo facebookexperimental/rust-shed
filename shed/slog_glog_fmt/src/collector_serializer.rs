@@ -87,8 +87,6 @@ impl<'a, C: KVCategorizer> Serializer for CollectorSerializer<'a, C> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use itertools::assert_equal;
     use rand::rngs::StdRng;
     use rand::Rng;
@@ -100,6 +98,7 @@ mod tests {
     use slog::Result as SlogResult;
     use slog::KV;
 
+    use super::*;
     use crate::kv_categorizer::InlineCategorizer;
     use crate::kv_categorizer::KVCategory;
 

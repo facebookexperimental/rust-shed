@@ -11,6 +11,7 @@
 
 use std::fmt;
 use std::fmt::Display;
+
 use thiserror::Error;
 
 /// Error for Mysql client

@@ -79,13 +79,14 @@ pub mod facet_impls {
 
 pub mod factories {
     pub mod async_factory {
+        use std::sync::Arc;
+
         use crate::facet_impls::async_one::AsyncOne;
         use crate::facet_impls::async_two::AsyncTwo;
         use crate::facet_impls::sync_zero::SyncZero;
         use crate::facets::one::ArcOne;
         use crate::facets::two::ArcTwo;
         use crate::facets::zero::ArcZero;
-        use std::sync::Arc;
 
         pub struct AsyncFactory;
 
@@ -107,10 +108,11 @@ pub mod factories {
 }
 
 pub mod containers {
+    use std::sync::Arc;
+
     use crate::facets::one::One;
     use crate::facets::two::Two;
     use crate::facets::zero::Zero;
-    use std::sync::Arc;
 
     #[facet::container]
     pub struct Basic {

@@ -70,8 +70,9 @@ pub trait Histogram {
 }
 
 mod localkey_impls {
-    use super::*;
     use std::thread::LocalKey;
+
+    use super::*;
 
     pub trait CounterStatic {
         fn increment_value(&'static self, value: i64);

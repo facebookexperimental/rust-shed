@@ -168,10 +168,11 @@ where
 
 #[cfg(test)]
 mod tests {
+    use futures::stream::iter_ok;
+
     use super::*;
     use crate::BoxStream;
     use crate::StreamExt;
-    use futures::stream::iter_ok;
 
     fn make_reader(in_reads: Vec<Vec<u8>>) -> BytesStream<BoxStream<Bytes, io::Error>> {
         let stream = iter_ok(in_reads.into_iter().map(|v| v.into()));

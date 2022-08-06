@@ -59,12 +59,12 @@ where
 
 #[cfg(test)]
 mod test {
-    use crate::NetstringDecoder;
     use bytes::BytesMut;
     use quickcheck::quickcheck;
     use tokio_util::codec::Decoder;
 
     use super::*;
+    use crate::NetstringDecoder;
 
     #[test]
     fn encode_simple() {

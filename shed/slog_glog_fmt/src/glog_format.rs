@@ -232,9 +232,6 @@ impl OnelineMetadata {
 
 #[cfg(test)]
 mod tests {
-    use super::get_tid;
-    use super::GlogFormat;
-
     use std::io;
     use std::sync::Arc;
     use std::sync::Mutex;
@@ -252,6 +249,8 @@ mod tests {
     use slog_term::PlainSyncDecorator;
     use thiserror::Error;
 
+    use super::get_tid;
+    use super::GlogFormat;
     use crate::kv_categorizer::FacebookCategorizer;
     use crate::kv_categorizer::InlineCategorizer;
 

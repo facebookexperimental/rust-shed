@@ -7,14 +7,6 @@
  * of this source tree.
  */
 
-use anyhow::Result;
-use bytes::Bytes;
-use fbthrift::deserialize::Deserialize;
-use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
-use serde::de::DeserializeOwned;
-use slog::info;
-use slog::warn;
-use slog::Logger;
 use std::collections::HashMap;
 use std::fmt;
 use std::io::Cursor;
@@ -26,6 +18,15 @@ use std::sync::Mutex;
 use std::sync::Weak;
 use std::thread;
 use std::time::Duration;
+
+use anyhow::Result;
+use bytes::Bytes;
+use fbthrift::deserialize::Deserialize;
+use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
+use serde::de::DeserializeOwned;
+use slog::info;
+use slog::warn;
+use slog::Logger;
 
 use crate::file_source::FileSource;
 use crate::handle::ConfigHandle;
@@ -247,11 +248,13 @@ impl fmt::Debug for ConfigStore {
 
 #[cfg(test)]
 mod test {
+    use std::time::Instant;
+
+    use anyhow::Error;
+
     use super::*;
     use crate::ModificationTime;
     use crate::TestSource;
-    use anyhow::Error;
-    use std::time::Instant;
 
     #[test]
     fn test_contention() -> Result<(), Error> {

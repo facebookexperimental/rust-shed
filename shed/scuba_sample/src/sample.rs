@@ -9,17 +9,18 @@
 
 //! See the [ScubaSample] documentation
 
-use crate::value::NullScubaValue;
-use crate::value::ScubaValue;
+use std::collections::hash_map::Entry;
+use std::collections::hash_map::HashMap;
+use std::time::SystemTime;
+use std::time::UNIX_EPOCH;
 
 use serde_json::Error;
 use serde_json::Map;
 use serde_json::Number;
 use serde_json::Value;
-use std::collections::hash_map::Entry;
-use std::collections::hash_map::HashMap;
-use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
+
+use crate::value::NullScubaValue;
+use crate::value::ScubaValue;
 
 const TIME_COLUMN: &str = "time";
 const INT_KEY: &str = "int";
@@ -248,9 +249,11 @@ pub trait StructuredSample {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use serde_json::json;
     use std::collections::HashSet;
+
+    use serde_json::json;
+
+    use super::*;
 
     /// Test that JSON serialization of a ScubaSample matches the expected format.
     #[test]

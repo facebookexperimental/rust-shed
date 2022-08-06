@@ -7,12 +7,13 @@
  * of this source tree.
  */
 
-use anyhow::Context;
-use anyhow::Result;
-use bytes::Bytes;
 use std::fs;
 use std::path::PathBuf;
 use std::time::SystemTime;
+
+use anyhow::Context;
+use anyhow::Result;
+use bytes::Bytes;
 
 use crate::Entity;
 use crate::ModificationTime;

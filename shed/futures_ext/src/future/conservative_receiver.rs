@@ -7,13 +7,14 @@
  * of this source tree.
  */
 
+use std::pin::Pin;
+
 use futures::channel::oneshot::Canceled;
 use futures::channel::oneshot::Receiver;
 use futures::task::Context;
 use futures::task::Poll;
 use futures::Future;
 use pin_project::pin_project;
-use std::pin::Pin;
 use thiserror::Error;
 
 /// This is a wrapper around [Receiver] that will return error when the receiver was polled
@@ -57,10 +58,10 @@ pub enum ConservativeReceiverError {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use assert_matches::assert_matches;
     use futures::channel::oneshot::channel;
+
+    use super::*;
 
     #[tokio::test]
     async fn recv_after_send() {

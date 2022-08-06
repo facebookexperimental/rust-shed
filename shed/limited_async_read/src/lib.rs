@@ -10,6 +10,7 @@
 use std::io::BufRead;
 use std::io::Read;
 use std::io::Result;
+
 use tokio_io::AsyncRead;
 
 // This module provides an AsyncRead implementation that operates over a limited buffer size. This
@@ -105,9 +106,11 @@ impl<R: BufRead> BufRead for LimitedAsyncRead<R> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use futures::Async;
     use std::io::Cursor;
+
+    use futures::Async;
+
+    use super::*;
 
     #[test]
     fn test_read_limited() {

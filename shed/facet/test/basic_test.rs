@@ -32,9 +32,10 @@ pub mod facet_impls {
 
 pub mod factories {
     pub mod simple_factory {
+        use std::sync::Arc;
+
         use crate::facet_impls::simple_one::SimpleOne;
         use crate::facets::one::ArcOne;
-        use std::sync::Arc;
 
         pub struct SimpleFactory;
 

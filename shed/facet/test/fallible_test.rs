@@ -32,10 +32,12 @@ pub mod facet_impls {
 
 pub mod factories {
     pub mod simple_factory {
+        use std::sync::Arc;
+
+        use thiserror::Error;
+
         use crate::facet_impls::simple_one::SimpleOne;
         use crate::facets::one::ArcOne;
-        use std::sync::Arc;
-        use thiserror::Error;
 
         #[derive(Debug, Eq, PartialEq, Error)]
         #[error("value must be one")]

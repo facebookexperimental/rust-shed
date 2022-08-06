@@ -139,8 +139,9 @@ fn generate_arbitrary_fields(fields: syn::Fields) -> proc_macro2::TokenStream {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::str::FromStr;
+
+    use super::*;
 
     #[test]
     fn struct_named_fields() {

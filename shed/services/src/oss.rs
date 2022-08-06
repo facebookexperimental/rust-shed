@@ -7,10 +7,10 @@
  * of this source tree.
  */
 
-use fbinit::FacebookInit;
 use std::thread::sleep;
 use std::time::Duration;
 
+use fbinit::FacebookInit;
 pub use services_common::*;
 
 pub fn export_proc_stats_to_fb303(_: bool) {}

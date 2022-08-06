@@ -12,6 +12,9 @@
 
 //! Crate extending functionality of [`futures`] crate
 
+use std::fmt::Debug;
+use std::io as std_io;
+
 use bytes_old::Bytes;
 use futures::future;
 use futures::stream;
@@ -24,8 +27,6 @@ use futures::Future;
 use futures::Poll;
 use futures::Sink;
 use futures::Stream;
-use std::fmt::Debug;
-use std::io as std_io;
 use tokio_io::codec::Decoder;
 use tokio_io::codec::Encoder;
 use tokio_io::AsyncWrite;
@@ -40,6 +41,10 @@ mod split_err;
 mod stream_wrappers;
 mod streamfork;
 
+// Re-exports. Those are used by the macros in this crate in order to reference a stable version of
+// what "futures" means.
+pub use futures as futures_reexport;
+
 pub use crate::bytes_stream::BytesStream;
 pub use crate::bytes_stream::BytesStreamFuture;
 pub use crate::futures_ordered::futures_ordered;
@@ -49,10 +54,6 @@ pub use crate::select_all::SelectAll;
 pub use crate::split_err::split_err;
 pub use crate::stream_wrappers::CollectNoConsume;
 pub use crate::stream_wrappers::CollectTo;
-
-// Re-exports. Those are used by the macros in this crate in order to reference a stable version of
-// what "futures" means.
-pub use futures as futures_reexport;
 
 /// Map `Item` and `Error` to `()`
 ///
@@ -892,23 +893,23 @@ impl<S: Stream> Stream for BatchStream<S> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
+    use std::sync::Arc;
 
     use anyhow::Result;
     use assert_matches::assert_matches;
+    use cloned::cloned;
+    use futures::future::err;
+    use futures::future::ok;
     use futures::stream;
     use futures::sync::mpsc;
     use futures::IntoFuture;
     use futures::Stream;
     use futures03::compat::Future01CompatExt;
-
-    use cloned::cloned;
-    use futures::future::err;
-    use futures::future::ok;
-    use std::sync::atomic::AtomicUsize;
-    use std::sync::atomic::Ordering;
-    use std::sync::Arc;
     use tokio::runtime::Runtime;
+
+    use super::*;
     #[derive(Debug)]
     struct MyErr;
 
@@ -1090,8 +1091,9 @@ mod test {
 
     #[test]
     fn sink_to_async_write() {
-        use futures::sync::mpsc;
         use std::io::Write;
+
+        use futures::sync::mpsc;
         let rt = tokio::runtime::Runtime::new().unwrap();
 
         let (tx, rx) = mpsc::channel::<Bytes>(1);

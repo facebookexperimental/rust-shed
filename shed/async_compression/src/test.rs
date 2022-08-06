@@ -24,14 +24,13 @@ use quickcheck::TestResult;
 use tokio_io::io::read_to_end;
 use tokio_io::AsyncWrite;
 
-use crate::retry::retry_write;
-
 use crate::compressor::Compressor;
 use crate::compressor::CompressorType;
 use crate::decompressor::Decompressor;
 use crate::membuf::MemBuf;
 use crate::metered::MeteredRead;
 use crate::metered::MeteredWrite;
+use crate::retry::retry_write;
 
 quickcheck! {
     fn test_bzip2_roundtrip(cmprs: BzipCompression, input: Vec<u8>) -> TestResult {

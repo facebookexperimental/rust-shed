@@ -19,14 +19,11 @@
 #[cfg(not(fbcode_build))]
 mod oss;
 
-pub use macros::main;
-pub use macros::test;
-
-#[cfg(fbcode_build)]
-use quickcheck as _; // used in oss
-
 #[cfg(fbcode_build)]
 pub use fbinit::*;
-
+pub use macros::main;
+pub use macros::test;
 #[cfg(not(fbcode_build))]
 pub use oss::*;
+#[cfg(fbcode_build)]
+use quickcheck as _; // used in oss

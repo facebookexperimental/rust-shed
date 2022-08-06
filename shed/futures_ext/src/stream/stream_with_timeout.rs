@@ -7,13 +7,14 @@
  * of this source tree.
  */
 
+use std::pin::Pin;
+use std::time::Duration;
+
 use futures::future::Future;
 use futures::stream::Stream;
 use futures::task::Context;
 use futures::task::Poll;
 use pin_project::pin_project;
-use std::pin::Pin;
-use std::time::Duration;
 use thiserror::Error;
 use tokio_shim::time::Sleep;
 
@@ -86,11 +87,11 @@ impl<S: Stream> Stream for StreamWithTimeout<S> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use anyhow::Error;
     use futures::stream::StreamExt;
     use futures::stream::TryStreamExt;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_stream_timeout() -> Result<(), Error> {

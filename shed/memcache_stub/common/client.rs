@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
+use std::time::Duration;
+
 use anyhow::Result;
 use bytes::Bytes;
 use fbinit::FacebookInit;
-use std::time::Duration;
 
 /// Type of value returned from memcache
 pub type MemcacheGetType = Vec<u8>;

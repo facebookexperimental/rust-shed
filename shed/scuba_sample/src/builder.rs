@@ -9,9 +9,6 @@
 
 //! See the [ScubaSampleBuilder] documentation
 
-use fbinit::FacebookInit;
-use serde_json::Error;
-use serde_json::Value;
 use std::collections::hash_map::Entry;
 use std::fmt;
 use std::fs::File;
@@ -25,6 +22,10 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
+
+use fbinit::FacebookInit;
+use serde_json::Error;
+use serde_json::Value;
 
 use crate::sample::ScubaSample;
 use crate::value::ScubaValue;

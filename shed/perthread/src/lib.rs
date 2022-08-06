@@ -231,11 +231,12 @@ impl<T> Deref for PerThread<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
-    use lazy_static::lazy_static;
     use std::collections::HashSet;
     use std::hash::Hash;
+
+    use lazy_static::lazy_static;
+
+    use super::*;
 
     fn assert_map_content<T>(map: &ThreadMap<T>, expected: &HashSet<T>)
     where

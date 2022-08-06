@@ -7,13 +7,14 @@
  * of this source tree.
  */
 
-use anyhow::anyhow;
-use anyhow::Result;
-use bytes::Bytes;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::Mutex;
+
+use anyhow::anyhow;
+use anyhow::Result;
+use bytes::Bytes;
 
 use crate::Entity;
 use crate::ModificationTime;

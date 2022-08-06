@@ -13,6 +13,9 @@
 
 #[doc(hidden)]
 pub mod common_macro_prelude {
+    pub use std::sync::Arc;
+    pub use std::time::Duration;
+
     pub use lazy_static::lazy_static;
     pub use perthread::PerThread;
     pub use perthread::ThreadMap;
@@ -25,8 +28,6 @@ pub mod common_macro_prelude {
     pub use stats_traits::stats_manager::BoxStatsManager;
     pub use stats_traits::stats_manager::BucketConfig;
     pub use stats_traits::stats_manager::StatsManager;
-    pub use std::sync::Arc;
-    pub use std::time::Duration;
 
     pub use crate::create_singleton_counter;
     pub use crate::create_stats_manager;

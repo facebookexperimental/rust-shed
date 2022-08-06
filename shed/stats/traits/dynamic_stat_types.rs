@@ -12,10 +12,11 @@
 //! then the pattern that is used to format the key and the arguments used in that pattern are
 //! statically checked.
 
-use fbinit::FacebookInit;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::thread::LocalKey;
+
+use fbinit::FacebookInit;
 
 use crate::stat_types::BoxCounter;
 use crate::stat_types::BoxHistogram;

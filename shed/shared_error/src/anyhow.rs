@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
-use anyhow::Error;
 use std::error::Error as StdError;
 use std::ops::Deref;
 use std::sync::Arc;
+
+use anyhow::Error;
 use thiserror::Error;
 
 /// SharedError is a simple, cloneable anyhow::Error wrapper.

@@ -7,11 +7,12 @@
  * of this source tree.
  */
 
+use std::mem;
+
 use futures::Async;
 use futures::Future;
 use futures::Poll;
 use futures::Stream;
-use std::mem;
 
 /// Stream returned as a result of calling [crate::StreamExt::collect_to]
 #[must_use = "futures do nothing unless you `.await` or poll them"]

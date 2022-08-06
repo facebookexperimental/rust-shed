@@ -11,9 +11,8 @@
 //! is no-op for now.
 
 #[cfg(fbcode_build)]
-use memcache_common as _; // used in oss
-
-#[cfg(fbcode_build)]
 pub use memcache::*;
+#[cfg(fbcode_build)]
+use memcache_common as _; // used in oss
 #[cfg(not(fbcode_build))]
 pub use memcache_common::*;

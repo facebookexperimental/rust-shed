@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
+use std::sync::Arc;
+
 use anyhow::Result;
 use serde::de::DeserializeOwned;
 use serde_json::from_str;
-use std::sync::Arc;
 
 use crate::refreshable_entities::RegisteredConfigEntity;
 

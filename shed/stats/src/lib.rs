@@ -28,8 +28,6 @@ pub mod prelude {
     //! # #![allow(unused)]
     //! use stats::prelude::*;
     //! ```
-    pub use crate::define_stats;
-    pub use crate::define_stats_struct;
     pub use stats_traits::dynamic_stat_types::DynamicCounter;
     pub use stats_traits::dynamic_stat_types::DynamicHistogram;
     pub use stats_traits::dynamic_stat_types::DynamicSingletonCounter;
@@ -40,6 +38,9 @@ pub mod prelude {
     pub use stats_traits::stat_types::HistogramStatic;
     pub use stats_traits::stat_types::Timeseries;
     pub use stats_traits::stat_types::TimeseriesStatic;
+
+    pub use crate::define_stats;
+    pub use crate::define_stats_struct;
 }
 
 use std::sync::RwLock;

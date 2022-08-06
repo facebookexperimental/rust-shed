@@ -12,11 +12,12 @@
 
 //! Crate extending functionality of the [`anyhow`] crate
 
-use anyhow::Error;
 use std::error::Error as StdError;
 use std::fmt;
 use std::fmt::Debug;
 use std::fmt::Display;
+
+use anyhow::Error;
 
 mod slogkv;
 pub use crate::slogkv::cause_workaround as cause;

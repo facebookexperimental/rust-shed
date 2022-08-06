@@ -15,14 +15,14 @@ mod on_cancel;
 mod on_cancel_with_data;
 mod try_shared;
 
+use std::time::Duration;
+
 use anyhow::Error;
 use futures::future::Future;
 use futures::future::FutureExt;
 use futures::future::TryFuture;
-use std::time::Duration;
-use tokio_shim::time::Timeout;
-
 pub use shared_error::anyhow::SharedError;
+use tokio_shim::time::Timeout;
 
 pub use self::abort_handle_ref::spawn_controlled;
 pub use self::abort_handle_ref::ControlledHandle;

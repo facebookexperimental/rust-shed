@@ -10,12 +10,13 @@
 #[cfg(test)]
 mod tests;
 
+use std::io;
+use std::io::Cursor;
+
 use byteorder::BigEndian;
 use byteorder::ByteOrder;
 use bytes::BufMut as _;
 use bytes::Bytes;
-use std::io;
-use std::io::Cursor;
 use tokio_util::codec::Decoder;
 use tokio_util::codec::Encoder;
 

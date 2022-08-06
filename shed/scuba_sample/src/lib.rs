@@ -25,10 +25,11 @@ pub mod value;
 
 mod sampling;
 
+pub use scuba_sample_derive::*;
+
 pub use crate::builder::ScubaSampleBuilder;
 pub use crate::client::ScubaClient;
 pub use crate::sample::ScubaSample;
 pub use crate::sample::StructuredSample;
 pub use crate::sampling::Sampling;
 pub use crate::value::ScubaValue;
-pub use scuba_sample_derive::*;

@@ -11,7 +11,6 @@ use futures::future;
 use futures::stream;
 use futures::FutureExt;
 use futures::TryStreamExt;
-
 use futures_stats::TimedFutureExt;
 use futures_stats::TimedStreamExt;
 

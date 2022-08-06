@@ -10,6 +10,7 @@
 //! wraps underlying AsyncWrite providing retry logic
 
 use std::io;
+
 use tokio_io::AsyncWrite;
 
 #[inline]

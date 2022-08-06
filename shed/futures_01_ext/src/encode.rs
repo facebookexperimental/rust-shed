@@ -101,14 +101,16 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use std::io;
+    use std::vec;
+
     use bytes_old::BigEndian;
     use bytes_old::BufMut;
     use bytes_old::ByteOrder;
     use futures::Future;
     use quickcheck::quickcheck;
-    use std::io;
-    use std::vec;
+
+    use super::*;
 
     struct EncU16;
 

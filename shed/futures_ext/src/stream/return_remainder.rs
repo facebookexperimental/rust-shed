@@ -7,6 +7,8 @@
  * of this source tree.
  */
 
+use std::pin::Pin;
+
 use futures::channel::oneshot::channel;
 use futures::channel::oneshot::Sender;
 use futures::ready;
@@ -14,7 +16,6 @@ use futures::task::Context;
 use futures::task::Poll;
 use futures::Stream;
 use pin_project::pin_project;
-use std::pin::Pin;
 
 use crate::future::ConservativeReceiver;
 
@@ -67,12 +68,12 @@ impl<In: Stream + Unpin> Stream for ReturnRemainder<In> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use assert_matches::assert_matches;
     use futures::future;
     use futures::stream::iter;
     use futures::stream::StreamExt;
+
+    use super::*;
 
     #[tokio::test]
     async fn success_get_remainder() {

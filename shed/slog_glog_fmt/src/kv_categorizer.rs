@@ -96,8 +96,6 @@ impl KVCategorizer for FacebookCategorizer {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
@@ -106,6 +104,7 @@ mod tests {
     use slog::KV;
     use thiserror::Error;
 
+    use super::*;
     use crate::collector_serializer::CollectorSerializer;
 
     #[derive(Error, Debug)]

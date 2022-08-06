@@ -7,14 +7,15 @@
  * of this source tree.
  */
 
-use serde::ser;
-use serde::ser::Impossible;
-use serde::Serialize;
 use std::fmt;
 use std::fmt::Display;
 use std::io;
 use std::iter::once;
 use std::iter::repeat;
+
+use serde::ser;
+use serde::ser::Impossible;
+use serde::Serialize;
 
 #[derive(Debug)]
 pub enum Error {

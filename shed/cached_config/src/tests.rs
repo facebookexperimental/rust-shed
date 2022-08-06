@@ -7,11 +7,12 @@
  * of this source tree.
  */
 
-use anyhow::Result;
-use serde_derive::Deserialize;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+
+use anyhow::Result;
+use serde_derive::Deserialize;
 
 use crate::ConfigHandle;
 use crate::ConfigStore;

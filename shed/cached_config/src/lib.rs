@@ -25,14 +25,14 @@ mod test_source;
 #[cfg(test)]
 mod tests;
 
-pub use handle::ConfigHandle;
-pub use store::ConfigStore;
-pub use test_source::TestSource;
+use std::fmt::Debug;
 
 use anyhow::Result;
 use bytes::Bytes;
 use chrono::NaiveDateTime;
-use std::fmt::Debug;
+pub use handle::ConfigHandle;
+pub use store::ConfigStore;
+pub use test_source::TestSource;
 
 /// Trait to be implemented by sources of configuration that the `ConfigStore`
 /// will use

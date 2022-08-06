@@ -14,8 +14,9 @@
 
 #![deny(warnings)]
 
-use serde::Serialize;
 use std::mem;
+
+use serde::Serialize;
 
 mod ser;
 

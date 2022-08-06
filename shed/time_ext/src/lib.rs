@@ -130,8 +130,9 @@ impl InstantExt for Instant {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use quickcheck::quickcheck;
+
+    use super::*;
 
     quickcheck! {
         fn millis_checked(x: u64) -> bool {

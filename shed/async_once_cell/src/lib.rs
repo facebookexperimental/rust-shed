@@ -163,12 +163,14 @@ impl<T> AsyncOnceCell<T> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use rand::thread_rng;
-    use rand::Rng;
     use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::Ordering;
     use std::time::Duration;
+
+    use rand::thread_rng;
+    use rand::Rng;
+
+    use super::*;
 
     #[tokio::test]
     async fn set_get() {

@@ -72,9 +72,7 @@ async fn test_transaction_commit_with_sqlite() {
 #[cfg(fbcode_build)]
 #[cfg(test)]
 mod mysql {
-    use super::*;
-    use crate::sql_common::mysql::Connection as MysqlConnection;
-    use crate::sql_common::mysql::ConnectionStats;
+    use std::sync::Arc;
 
     use anyhow::Error;
     use anyhow::Result;
@@ -86,7 +84,10 @@ mod mysql {
     use mysql_client::MysqlCppClient;
     use sql_tests_lib::test_basic_query;
     use sql_tests_lib::test_basic_transaction;
-    use std::sync::Arc;
+
+    use super::*;
+    use crate::sql_common::mysql::Connection as MysqlConnection;
+    use crate::sql_common::mysql::ConnectionStats;
 
     async fn setup_connection(fb: FacebookInit) -> Result<Connection> {
         let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;

@@ -210,7 +210,6 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use futures::sink::Sink;
     use futures::stream::iter_ok;
     use futures::stream::once;
@@ -218,6 +217,8 @@ mod test {
     use futures::AsyncSink;
     use futures::Future;
     use futures::StartSend;
+
+    use super::*;
 
     #[test]
     fn simple() {

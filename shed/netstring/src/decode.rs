@@ -7,13 +7,14 @@
  * of this source tree.
  */
 
-use crate::ErrorKind;
 use anyhow::bail;
 use anyhow::ensure;
 use anyhow::Error;
 use anyhow::Result;
 use bytes::BytesMut;
 use tokio_util::codec::Decoder;
+
+use crate::ErrorKind;
 
 #[derive(Debug, Copy, Clone)]
 enum State {

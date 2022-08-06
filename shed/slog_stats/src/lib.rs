@@ -60,12 +60,12 @@ impl<D: Drain> Drain for StatsDrain<D> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use slog::info;
     use slog::o;
     use slog::Discard;
     use slog::Logger;
+
+    use super::*;
 
     #[test]
     fn test() {

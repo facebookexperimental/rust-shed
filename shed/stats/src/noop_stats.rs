@@ -7,9 +7,9 @@
  * of this source tree.
  */
 
-use fbinit::FacebookInit;
 use std::time::Duration;
 
+use fbinit::FacebookInit;
 use stats_traits::stat_types::BoxCounter;
 use stats_traits::stat_types::BoxHistogram;
 use stats_traits::stat_types::BoxTimeseries;

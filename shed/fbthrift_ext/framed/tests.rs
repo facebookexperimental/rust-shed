@@ -7,13 +7,15 @@
  * of this source tree.
  */
 
-use crate::FramedTransport;
+use std::io::Cursor;
+
 use bytes::Bytes;
 use futures::stream;
 use futures::stream::StreamExt;
 use futures::stream::TryStreamExt;
-use std::io::Cursor;
 use tokio_util::codec::Decoder;
+
+use crate::FramedTransport;
 
 #[tokio::test]
 async fn framed_transport_encode() {

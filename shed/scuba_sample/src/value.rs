@@ -9,6 +9,13 @@
 
 //! See the [ScubaValue] documentation
 
+use std::collections::HashMap;
+use std::collections::HashSet;
+use std::f32;
+use std::f64;
+use std::fmt;
+use std::fmt::Display;
+
 use serde::de;
 use serde::de::Deserialize;
 use serde::de::Deserializer;
@@ -19,12 +26,6 @@ use serde::ser::SerializeSeq;
 use serde::ser::Serializer;
 use serde_json::Number;
 use serde_json::Value;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::f32;
-use std::f64;
-use std::fmt;
-use std::fmt::Display;
 
 /// A typed version of the Null value - used in serialization to understand the
 /// type of the value that is not set in this sample.
@@ -410,11 +411,12 @@ impl<'a> From<HashSet<&'a str>> for ScubaValue {
 mod tests {
     #![allow(deprecated)]
 
-    use super::*;
     use assert_matches::assert_matches;
     use quickcheck::quickcheck;
     use serde_json::json;
     use serde_json::Value;
+
+    use super::*;
 
     macro_rules! test_from_int {
         ( $x:expr ) => {

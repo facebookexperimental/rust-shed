@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
+use std::time::Duration;
+
 use anyhow::Error;
 use anyhow::Result;
 use futures_ext::BoxFuture;
-use std::time::Duration;
 
 use super::lrucache::VolatileLruCachePool;
 

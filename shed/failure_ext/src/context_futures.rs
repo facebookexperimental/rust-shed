@@ -7,11 +7,12 @@
  * of this source tree.
  */
 
+use std::error::Error as StdError;
+use std::fmt::Display;
+
 use anyhow::Error;
 use futures::Future;
 use futures::Poll;
-use std::error::Error as StdError;
-use std::fmt::Display;
 
 /// "Context" support for futures where the error is anyhow::Error.
 pub trait FutureFailureErrorExt: Future + Sized {
@@ -252,9 +253,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use anyhow::format_err;
     use futures::future::err;
+
+    use super::*;
 
     #[test]
     #[should_panic]

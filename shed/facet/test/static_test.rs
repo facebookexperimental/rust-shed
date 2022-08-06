@@ -40,11 +40,12 @@ pub mod facets {
 
 pub mod factories {
     pub mod simple_factory {
+        use std::sync::Arc;
+
         use crate::facets::one::ArcOne;
         use crate::facets::one::One;
         use crate::facets::two::ArcTwo;
         use crate::facets::two::Two;
-        use std::sync::Arc;
 
         pub struct SimpleFactory;
 

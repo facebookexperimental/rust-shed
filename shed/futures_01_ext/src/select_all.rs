@@ -19,12 +19,11 @@
 use std::fmt;
 use std::fmt::Debug;
 
+use futures::stream::FuturesUnordered;
+use futures::stream::StreamFuture;
 use futures::Async;
 use futures::Poll;
 use futures::Stream;
-
-use futures::stream::FuturesUnordered;
-use futures::stream::StreamFuture;
 
 /// An unbounded set of streams
 ///
@@ -137,9 +136,10 @@ where
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use futures::stream::iter_ok;
     use futures03::compat::Future01CompatExt;
+
+    use super::*;
 
     #[test]
     fn select_all_many_streams() {

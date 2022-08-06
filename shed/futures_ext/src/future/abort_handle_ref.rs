@@ -58,9 +58,9 @@ impl Drop for Inner {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use tokio::sync::mpsc;
+
+    use super::*;
 
     fn handle_and_counting_receiver() -> (ControlledHandle, mpsc::Receiver<u64>) {
         let (mut tx, rx) = mpsc::channel(1);

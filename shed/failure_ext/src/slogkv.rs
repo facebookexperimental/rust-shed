@@ -7,11 +7,13 @@
  * of this source tree.
  */
 
-use super::Compat;
-use super::Error;
-use futures::future::SharedError;
 use std::error::Error as StdError;
 use std::ops::Deref;
+
+use futures::future::SharedError;
+
+use super::Compat;
+use super::Error;
 
 /// Wrapper around [Error] that implements [slog::KV] trait, so it might be used in [slog] logging
 pub struct SlogKVError(pub Error);

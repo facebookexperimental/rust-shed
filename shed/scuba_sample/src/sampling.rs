@@ -7,8 +7,9 @@
  * of this source tree.
  */
 
-use rand::Rng;
 use std::num::NonZeroU64;
+
+use rand::Rng;
 
 use crate::sample::ScubaSample;
 
@@ -74,12 +75,11 @@ impl Sampling {
 
 #[cfg(test)]
 mod test {
-    use super::*;
-
     use nonzero_ext::nonzero;
     use rand::SeedableRng;
     use rand_chacha::ChaCha8Rng; // Used for deterministic rng.
 
+    use super::*;
     use crate::value::ScubaValue;
 
     #[test]

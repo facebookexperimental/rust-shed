@@ -15,13 +15,12 @@ use std::io::Read;
 use std::io::Write;
 use std::result;
 
-use futures::Poll;
-use tokio_io::AsyncWrite;
-
 use bzip2::bufread::BzDecoder;
 use bzip2::write::BzEncoder;
 use flate2::bufread::GzDecoder;
 use flate2::write::GzEncoder;
+use futures::Poll;
+use tokio_io::AsyncWrite;
 use zstd::Decoder as ZstdDecoder;
 use zstd::Encoder as ZstdEncoder;
 

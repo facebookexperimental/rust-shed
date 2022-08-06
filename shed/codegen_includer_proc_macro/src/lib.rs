@@ -26,10 +26,11 @@
 //! ```
 
 extern crate proc_macro;
-use proc_macro::TokenStream;
-use quote::quote;
 use std::env;
 use std::path::Path;
+
+use proc_macro::TokenStream;
+use quote::quote;
 
 /// See crate's documentation
 #[proc_macro]

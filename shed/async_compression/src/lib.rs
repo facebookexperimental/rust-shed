@@ -24,10 +24,10 @@ mod retry;
 #[cfg(test)]
 mod test;
 
+pub use bzip2::Compression as Bzip2Compression;
+pub use flate2::Compression as FlateCompression;
+
 pub use crate::compressor::Compressor;
 pub use crate::compressor::CompressorType;
 pub use crate::decompressor::Decompressor;
 pub use crate::decompressor::DecompressorType;
-
-pub use bzip2::Compression as Bzip2Compression;
-pub use flate2::Compression as FlateCompression;

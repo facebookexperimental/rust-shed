@@ -9,6 +9,7 @@
 
 use std::error::Error;
 use std::sync::Arc;
+
 use thiserror::Error;
 
 /// SharedError is a simple, cloneable Error wrapper.
@@ -78,9 +79,9 @@ impl<T: Error + 'static> SharedError<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use thiserror::Error;
+
+    use super::*;
 
     #[derive(Debug, Error)]
     enum TestError {

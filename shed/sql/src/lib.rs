@@ -67,7 +67,15 @@ pub use futures;
 pub use futures_ext;
 pub use futures_util;
 pub use mysql_async;
+use mysql_async::Value;
 pub use rusqlite;
+use rusqlite::types::FromSql as FromSqliteValue;
+use rusqlite::types::FromSqlResult as FromSqliteValueResult;
+use rusqlite::types::ToSql as ToSqliteValue;
+use rusqlite::types::ToSqlOutput as ToSqliteOutput;
+use rusqlite::types::Value as SqliteValue;
+use rusqlite::types::ValueRef as SqliteValueRef;
+use rusqlite::Result as SqliteResult;
 pub use sql_common;
 pub use sql_common::error;
 pub use sql_common::mysql;
@@ -78,15 +86,6 @@ pub use sql_common::SqlConnections;
 pub use sql_common::SqlConnectionsWithSchema;
 pub use sql_common::SqlShardedConnections;
 pub use sql_common::WriteResult;
-
-use mysql_async::Value;
-use rusqlite::types::FromSql as FromSqliteValue;
-use rusqlite::types::FromSqlResult as FromSqliteValueResult;
-use rusqlite::types::ToSql as ToSqliteValue;
-use rusqlite::types::ToSqlOutput as ToSqliteOutput;
-use rusqlite::types::Value as SqliteValue;
-use rusqlite::types::ValueRef as SqliteValueRef;
-use rusqlite::Result as SqliteResult;
 
 /// Wrapper around MySql Value to implement Sqlite traits on it.
 /// This should never be used directly, it is made public so that internal macros can make use of it

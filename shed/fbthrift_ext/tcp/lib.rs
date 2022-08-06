@@ -7,6 +7,12 @@
  * of this source tree.
  */
 
+use std::ffi::CStr;
+use std::future::Future;
+use std::io::Cursor;
+use std::pin::Pin;
+use std::sync::Arc;
+
 use anyhow::Error;
 use anyhow::Result;
 use bytes::Bytes;
@@ -18,11 +24,6 @@ use fbthrift::Transport;
 use fbthrift_framed::FramedTransport;
 use fbthrift_util::poll_with_lock;
 use futures::future::FutureExt;
-use std::ffi::CStr;
-use std::future::Future;
-use std::io::Cursor;
-use std::pin::Pin;
-use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio_tower::pipeline::client::Client;

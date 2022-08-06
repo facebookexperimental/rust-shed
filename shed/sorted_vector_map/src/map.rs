@@ -974,9 +974,11 @@ macro_rules! sorted_vector_map {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use quickcheck::quickcheck;
     use std::collections::BTreeMap;
+
+    use quickcheck::quickcheck;
+
+    use super::*;
 
     #[test]
     fn insert_get_remove() {

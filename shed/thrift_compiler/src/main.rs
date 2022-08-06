@@ -12,7 +12,6 @@ use std::path::PathBuf;
 
 use anyhow::Result;
 use clap::clap_app;
-
 use thrift_compiler::Config;
 
 fn main() -> Result<()> {

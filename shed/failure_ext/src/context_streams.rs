@@ -7,11 +7,12 @@
  * of this source tree.
  */
 
+use std::error::Error as StdError;
+use std::fmt::Display;
+
 use anyhow::Error;
 use futures::Poll;
 use futures::Stream;
-use std::error::Error as StdError;
-use std::fmt::Display;
 
 /// "Context" support for streams where the error is an implementation of std::error::Error.
 pub trait StreamFailureExt: Stream + Sized {
@@ -214,9 +215,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use anyhow::format_err;
     use futures::stream::iter_result;
+
+    use super::*;
 
     #[test]
     fn stream_poll_after_completion_fail() {

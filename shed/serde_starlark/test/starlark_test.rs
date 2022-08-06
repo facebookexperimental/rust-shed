@@ -9,9 +9,8 @@
 
 use std::collections::BTreeMap;
 
-use serde::Serialize;
-
 use maplit::btreemap;
+use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 struct RuleBase<'a> {

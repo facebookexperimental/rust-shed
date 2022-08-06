@@ -7,10 +7,11 @@
  * of this source tree.
  */
 
-use anyhow::Result;
-use bytes::Bytes;
 use std::sync::Arc;
 use std::sync::RwLock;
+
+use anyhow::Result;
+use bytes::Bytes;
 
 use crate::Entity;
 use crate::ModificationTime;

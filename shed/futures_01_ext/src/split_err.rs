@@ -81,10 +81,11 @@ impl<E> Future for ErrFuture<E> {
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use futures::future;
     use futures::stream;
     use futures03::compat::Future01CompatExt;
+
+    use super::*;
 
     #[test]
     fn simple() {

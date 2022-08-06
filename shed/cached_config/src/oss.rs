@@ -7,12 +7,13 @@
  * of this source tree.
  */
 
-use anyhow::Result;
-use fbinit::FacebookInit;
-use slog::Logger;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Duration;
+
+use anyhow::Result;
+use fbinit::FacebookInit;
+use slog::Logger;
 
 use crate::ConfigStore;
 

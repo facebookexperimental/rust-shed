@@ -47,12 +47,11 @@ impl KV for FacebookKV {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     use slog::b;
     use slog::record;
     use slog::Level;
 
+    use super::*;
     use crate::collector_serializer::CollectorSerializer;
     use crate::kv_categorizer::InlineCategorizer;
 

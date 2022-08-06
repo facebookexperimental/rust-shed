@@ -51,11 +51,12 @@ pub mod facet_impls {
 
 pub mod factories {
     pub mod simple_factory {
+        use std::sync::Arc;
+
         use crate::facet_impls::simple_name::SimpleName;
         use crate::facet_impls::simple_value::SimpleValue;
         use crate::facets::name::ArcName;
         use crate::facets::value::ArcValue;
-        use std::sync::Arc;
 
         pub struct SimpleFactory;
 

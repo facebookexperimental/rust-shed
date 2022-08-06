@@ -73,9 +73,10 @@ where
 
 #[cfg(test)]
 mod test {
-    use super::*;
     use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::Ordering;
+
+    use super::*;
 
     #[tokio::test]
     async fn test_ready() {
