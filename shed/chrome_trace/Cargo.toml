@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.56"
 bytes = { version = "1.1", features = ["serde"] }
-flate2 = { version = "1.0", features = ["rust_backend", "tokio"], default-features = false }
+flate2 = { version = "1.0.22", features = ["rust_backend", "tokio"], default-features = false }
 libc = "0.2.121"
 serde = { version = "1.0.136", features = ["derive", "rc"] }
 serde_json = { version = "1.0.79", features = ["float_roundtrip", "unbounded_depth"] }

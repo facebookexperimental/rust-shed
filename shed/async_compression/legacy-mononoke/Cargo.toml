@@ -16,7 +16,7 @@ path = "../src/lib.rs"
 [dependencies]
 bytes = { version = "0.4", features = ["serde"] }
 bzip2 = { version = "0.3", features = ["tokio"] }
-flate2 = { version = "1.0", features = ["rust_backend", "tokio"], default-features = false }
+flate2 = { version = "1.0.22", features = ["rust_backend", "tokio"], default-features = false }
 futures = "0.1.31"
 tokio-io = "0.1"
 zstd = { package = "zstd-legacy-mononoke", git = "https://github.com/mitrandir77/zstd-rs", rev = "c29b8daa3ba3eeab9d2017234acb101ffc2459b3" }
