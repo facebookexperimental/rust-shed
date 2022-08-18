@@ -340,7 +340,7 @@ mod tests {
 
         // Send a log to the buffer. Remember the line the log was on.
         let line = line!() + 1;
-        info!(log, "Test log {}", 1; "tau" => 6.28);
+        info!(log, "Test log {}", 1; "answer" => 42.42);
 
         // Get the log string back out of the buffer.
         let log_string = test_buffer.get_string();
@@ -350,7 +350,7 @@ mod tests {
         let captures = LOG_REGEX.captures(log_string.as_str().trim_end()).unwrap();
         assert_eq!(
             TestLine::with_captures(captures),
-            TestLine::new("I", line, "Test log 1, mode: test, tau: 6.28",)
+            TestLine::new("I", line, "Test log 1, mode: test, answer: 42.42",)
         );
     }
 
@@ -368,7 +368,7 @@ mod tests {
 
         // Send a log to the buffer. Remember the line the log was on.
         let line = line!() + 1;
-        info!(log, "Test log {}", 1; "tau" => 6.28, SlogKVError(err));
+        info!(log, "Test log {}", 1; "answer" => 42.42, SlogKVError(err));
 
         // Get the log string back out of the buffer.
         let log_string = test_buffer.get_string();
@@ -383,7 +383,7 @@ mod tests {
         let expected = vec![
             (
                 "I",
-                "Test log 1, mode: test, Root cause: my error #0 displayed, tau: 6.28",
+                "Test log 1, mode: test, Root cause: my error #0 displayed, answer: 42.42",
             ),
             ("E", "Error: my error #2 displayed"),
             ("V",  "Debug context: Error {\n    context: \"my error #2 displayed\",\n    source: Error {\n        context: \"my error #1 displayed\",\n        source: MyError(\n            0,\n        ),\n    },\n}"),

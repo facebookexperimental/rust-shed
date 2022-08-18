@@ -29,7 +29,7 @@ use serde_json::Value;
 
 /// A typed version of the Null value - used in serialization to understand the
 /// type of the value that is not set in this sample.
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum NullScubaValue {
     /// Integer type
     Int,

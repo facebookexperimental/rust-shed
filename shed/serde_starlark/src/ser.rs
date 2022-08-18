@@ -9,6 +9,7 @@
 
 use std::fmt;
 use std::fmt::Display;
+use std::fmt::Write;
 use std::io;
 use std::iter::once;
 use std::iter::repeat;
@@ -161,7 +162,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
                 return Err(Error::InvalidIntLiteral(v.to_string()));
             }
         };
-        self.output += &format!("{}", v);
+        let _ = write!(&mut self.output, "{}", v);
         Ok(())
     }
 
@@ -185,7 +186,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
                 return Err(Error::InvalidIntLiteral(v.to_string()));
             }
         };
-        self.output += &format!("{}", v);
+        let _ = write!(&mut self.output, "{}", v);
         Ok(())
     }
 
@@ -226,7 +227,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
             if b.is_ascii_graphic() && needs_quoting(*b as char).is_none() {
                 self.output.push(*b as char);
             } else {
-                self.output += &format!("\\x{:02x}", b);
+                let _ = write!(&mut self.output, "\\x{:02x}", b);
             }
         }
         self.output.push('"');
@@ -333,7 +334,7 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_struct(self, name: &'static str, _len: usize) -> Result<Self::SerializeStruct> {
-        self.output += &format!("{}(", name);
+        let _ = write!(&mut self.output, "{}(", name);
         self.indent();
 
         Ok(self)

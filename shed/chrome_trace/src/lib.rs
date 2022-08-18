@@ -106,7 +106,7 @@ impl Default for Phase {
 ///
 /// Optional fields are annotated with attributes and will be excluded from
 /// the resulting JSON.
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(default)]
 pub struct Event {
     /// The name of the event, as displayed in Trace Viewer
@@ -285,7 +285,7 @@ impl Event {
 /// Struct representing a trace in the "JSON Object Format", as decribed
 /// in the Trace Event format specification. Field names correspond to
 /// those expected in the JSON output.
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Trace {
     /// A trace consists of multiple events.

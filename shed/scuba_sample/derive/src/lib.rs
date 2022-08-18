@@ -26,7 +26,7 @@ pub fn structured_sample_derive(input: TokenStream) -> TokenStream {
             Ok(v) => v,
             Err(error) => error.write_errors(),
         },
-        Err(error) => syn::Error::to_compile_error(&error).into(),
+        Err(error) => syn::Error::to_compile_error(&error),
     }
     .into()
 }

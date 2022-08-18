@@ -341,6 +341,7 @@ pub trait StreamExt: Stream {
     /// Whether this stream is empty.
     ///
     /// This will consume one element from the stream if returned.
+    #[allow(clippy::wrong_self_convention)]
     fn is_empty<'a>(self) -> Box<dyn Future<Item = bool, Error = Self::Error> + Send + 'a>
     where
         Self: 'a + Send + Sized,

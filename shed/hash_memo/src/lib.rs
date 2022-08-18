@@ -8,6 +8,7 @@
  */
 
 #![deny(missing_docs)]
+#![allow(clippy::derive_hash_xor_eq)]
 
 //! Memoize `Hasher::finish()` values to save recomputing them
 
@@ -317,7 +318,7 @@ mod tests {
         equality_eager(DefaultRandomState::default());
     }
 
-    #[allow(clippy::many_single_char_names)]
+    #[allow(clippy::many_single_char_names, clippy::mutable_key_type)]
     fn equality_lazy<I: BuildHasher + Clone>(factory: I) {
         let a = LazyHashMemoizer::new(TestStruct::new("foo", 42), &factory);
         let b = LazyHashMemoizer::new(TestStruct::new("bar", 21), &factory);

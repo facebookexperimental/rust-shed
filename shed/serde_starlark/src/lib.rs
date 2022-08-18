@@ -14,8 +14,6 @@
 
 #![deny(warnings)]
 
-use std::mem;
-
 use serde::Serialize;
 
 mod ser;
@@ -45,11 +43,11 @@ where
 /// Serialize structs, maps, sequences and tuples as function calls
 pub fn function_call<T: Serialize>(name: &str, args: &T) -> Result<String, ser::Error> {
     let mut ser = ser::Serializer::new_pretty();
-    let mut s = ser::CallSerializer::with(&mut ser, name);
+    {
+        let mut s = ser::CallSerializer::with(&mut ser, name);
 
-    args.serialize(&mut s)?;
-
-    mem::drop(s);
+        args.serialize(&mut s)?;
+    }
 
     Ok(ser.output())
 }

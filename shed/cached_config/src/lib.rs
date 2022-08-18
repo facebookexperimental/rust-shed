@@ -57,7 +57,7 @@ pub struct Entity {
 }
 
 /// Represents the last modification time of the given config.
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum ModificationTime {
     /// In some cases, the last modification time is not possible to determine.
     Unset,

@@ -60,7 +60,7 @@ impl NetstringDecoder {
     /// before. It will return as much output as it can on each call, or None if nothing can be
     /// returned. The second part of the tuple is the amount of the input buffer we have consumed;
     /// it is always at least as much as the output option.
-    fn decode_buf<'a>(&mut self, buf: &'a [u8]) -> Result<(usize, Option<(bool, Slice)>)> {
+    fn decode_buf(&mut self, buf: &[u8]) -> Result<(usize, Option<(bool, Slice)>)> {
         let mut consumed = 0;
         loop {
             let state = self

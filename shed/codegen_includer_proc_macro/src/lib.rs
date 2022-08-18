@@ -20,9 +20,7 @@
 //!
 //! ```
 //! ::codegen_includer_proc_macro::include!();
-//! fn main() {
-//!     helloWorld(); // This was included from $OUT_DIR/lib.rs
-//! }
+//! helloWorld(); // This was included from $OUT_DIR/lib.rs
 //! ```
 
 extern crate proc_macro;

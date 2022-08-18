@@ -35,9 +35,7 @@
 //!     static COUNTER: PerThread<usize> = COUNTERS.register(0);
 //! }
 //!
-//! fn main() {
-//!     COUNTER.with(|c| println!("COUNTER: {:?}", *c));
-//! }
+//! COUNTER.with(|c| println!("COUNTER: {:?}", *c));
 //! ```
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]

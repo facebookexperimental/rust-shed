@@ -59,8 +59,8 @@ pub use mysql_stub::WriteResult;
 
 use super::WriteResult as SqlWriteResult;
 
-impl Into<SqlWriteResult> for WriteResult {
-    fn into(self) -> SqlWriteResult {
-        SqlWriteResult::new(Some(self.last_insert_id()), self.rows_affected())
+impl From<WriteResult> for SqlWriteResult {
+    fn from(result: WriteResult) -> Self {
+        Self::new(Some(result.last_insert_id()), result.rows_affected())
     }
 }
