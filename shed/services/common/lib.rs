@@ -56,6 +56,7 @@ pub struct AliveService;
 
 impl AliveService {
     /// Create a new service that can be passed into `run_service_framework`.
+    #[allow(clippy::new_ret_no_self)]
     pub fn new() -> Box<dyn Fb303Service> {
         Box::new(AliveService)
     }
