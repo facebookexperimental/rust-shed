@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+#![deny(missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 //! Crate extending functionality of [`futures`] crate
 
