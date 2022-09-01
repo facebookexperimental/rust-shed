@@ -30,6 +30,10 @@ name = "facet_fallible_test"
 path = "test/fallible_test.rs"
 
 [[test]]
+name = "facet_from_container_test"
+path = "test/from_container_test.rs"
+
+[[test]]
 name = "facet_params_test"
 path = "test/params_test.rs"
 

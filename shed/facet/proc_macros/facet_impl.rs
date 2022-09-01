@@ -16,6 +16,7 @@ use syn::Error;
 use syn::Item;
 
 use crate::facet_crate_name;
+use crate::snakify_pascal_case;
 
 pub fn facet(
     attr: proc_macro::TokenStream,
@@ -95,21 +96,4 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
         /// Cloneable container for #name.
         #vis type #arc_trait_name = ::std::sync::Arc<#facet_ty>;
     })
-}
-
-/// Converts a Pascal case name like `SomeTraitName` to snake case like
-/// `some_trait_name`.
-fn snakify_pascal_case(pascal: impl AsRef<str>) -> String {
-    let mut snake = String::new();
-    for ch in pascal.as_ref().chars() {
-        if ch.is_uppercase() {
-            if !snake.is_empty() {
-                snake.push('_');
-            }
-            snake.extend(ch.to_lowercase());
-        } else {
-            snake.push(ch);
-        }
-    }
-    snake
 }

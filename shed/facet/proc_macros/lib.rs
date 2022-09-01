@@ -59,3 +59,20 @@ pub fn factory(
 ) -> proc_macro::TokenStream {
     factory_impl::factory(attr, item)
 }
+
+/// Converts a Pascal case name like `SomeTraitName` to snake case like
+/// `some_trait_name`.
+pub(crate) fn snakify_pascal_case(pascal: impl AsRef<str>) -> String {
+    let mut snake = String::new();
+    for ch in pascal.as_ref().chars() {
+        if ch.is_uppercase() {
+            if !snake.is_empty() {
+                snake.push('_');
+            }
+            snake.extend(ch.to_lowercase());
+        } else {
+            snake.push(ch);
+        }
+    }
+    snake
+}
