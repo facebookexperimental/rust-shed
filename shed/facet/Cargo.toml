@@ -45,7 +45,7 @@ path = "test/static_test.rs"
 anyhow = "1.0.56"
 async-trait = "0.1.56"
 facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
-futures = { version = "0.3.13", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 thiserror = "1.0.30"
 
 [dev-dependencies]

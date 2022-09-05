@@ -15,5 +15,5 @@ path = "lib.rs"
 doc = false
 
 [dependencies]
-futures = { version = "0.3.13", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 tokio = { version = "0.2.25", features = ["full", "test-util"] }

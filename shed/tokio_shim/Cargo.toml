@@ -10,7 +10,7 @@ repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-futures = { version = "0.3.13", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 pin-project = "0.4.29"
 thiserror = "1.0.30"
 tokio_02 = { package = "tokio", version = "0.2.25", features = ["full", "test-util"] }

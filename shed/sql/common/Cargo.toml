@@ -16,7 +16,7 @@ path = "lib.rs"
 [dependencies]
 anyhow = "1.0.56"
 cloned = { version = "0.1.0", path = "../../cloned" }
-futures = { version = "0.3.13", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 futures_stats = { version = "0.1.0", path = "../../futures_stats" }
 lazy_static = "1.4"
 mysql_async = "0.27.1"
