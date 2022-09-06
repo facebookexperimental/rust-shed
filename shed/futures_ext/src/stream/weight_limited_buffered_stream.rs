@@ -80,7 +80,7 @@ where
                 Poll::Ready(None) | Poll::Pending => break,
             };
 
-            this.queue.push(future);
+            this.queue.push_back(future);
         }
 
         // Try polling a new future
@@ -164,7 +164,7 @@ where
                 Poll::Ready(None) | Poll::Pending => break,
             };
 
-            this.queue.push(future);
+            this.queue.push_back(future);
         }
 
         // Try polling a new future
