@@ -16,4 +16,4 @@ path = "lib.rs"
 
 [dependencies]
 cxx = "1.0.64"
-thiserror = "=1.0.30"
+thiserror = "1.0.34"

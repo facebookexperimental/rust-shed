@@ -16,4 +16,4 @@ futures = "0.1.31"
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 
 [dev-dependencies]
-thiserror = "=1.0.30"
+thiserror = "1.0.34"
