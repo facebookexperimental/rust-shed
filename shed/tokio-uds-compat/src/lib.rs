@@ -8,10 +8,13 @@
  */
 
 #[cfg(unix)]
+pub use tokio::net::UnixListener;
+#[cfg(unix)]
 pub use tokio::net::UnixStream;
 
 #[cfg(windows)]
 mod windows {
+    use std::future::Future;
     use std::io;
     use std::path::Path;
     use std::pin::Pin;
@@ -22,11 +25,16 @@ mod windows {
     use tokio::io::AsyncWrite;
     use tokio::io::ReadBuf;
 
+    #[derive(Debug)]
     pub struct UnixStream(Async<uds_windows::UnixStream>);
 
     impl UnixStream {
         pub async fn connect<P: AsRef<Path>>(path: P) -> io::Result<Self> {
             let stream = uds_windows::UnixStream::connect(path)?;
+            Self::from_std(stream)
+        }
+
+        fn from_std(stream: uds_windows::UnixStream) -> io::Result<Self> {
             let stream = Async::new(stream)?;
 
             Ok(UnixStream(stream))
@@ -81,7 +89,45 @@ mod windows {
             futures::AsyncWrite::poll_close(self.inner_mut(), cx)
         }
     }
+
+    #[derive(Debug)]
+    pub struct UnixListener(Async<uds_windows::UnixListener>);
+
+    impl UnixListener {
+        pub fn bind<P: AsRef<Path>>(path: P) -> io::Result<Self> {
+            let listener = uds_windows::UnixListener::bind(path)?;
+            let listener = Async::new(listener)?;
+
+            Ok(UnixListener(listener))
+        }
+
+        pub async fn accept(&self) -> io::Result<(UnixStream, uds_windows::SocketAddr)> {
+            futures::future::poll_fn(|cx| self.poll_accept(cx)).await
+        }
+
+        pub fn poll_accept(
+            &self,
+            cx: &mut std::task::Context<'_>,
+        ) -> std::task::Poll<io::Result<(UnixStream, uds_windows::SocketAddr)>> {
+            match self.0.poll_readable(cx) {
+                std::task::Poll::Ready(Ok(())) => {
+                    let result = self.0.read_with(|io| io.accept());
+                    let mut result = Box::pin(result);
+                    result.as_mut().poll(cx).map(|x| {
+                        x.and_then(|(stream, addr)| {
+                            let stream = UnixStream::from_std(stream)?;
+                            Ok((stream, addr))
+                        })
+                    })
+                }
+                std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(e)),
+                std::task::Poll::Pending => std::task::Poll::Pending,
+            }
+        }
+    }
 }
 
+#[cfg(windows)]
+pub use self::windows::UnixListener;
 #[cfg(windows)]
 pub use self::windows::UnixStream;
