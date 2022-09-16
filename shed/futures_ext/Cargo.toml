@@ -15,7 +15,7 @@ anyhow = "1.0.56"
 futures = { version = "0.3.22", features = ["async-await", "compat"] }
 pin-project = "0.4.29"
 shared_error = { version = "0.1.0", path = "../shared_error" }
-thiserror = "1.0.34"
+thiserror = "=1.0.30"
 tokio_shim = { version = "0.1.0", path = "../tokio_shim" }
 
 [dev-dependencies]

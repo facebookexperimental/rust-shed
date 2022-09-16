@@ -13,4 +13,4 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.56"
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
-thiserror = "1.0.34"
+thiserror = "=1.0.30"

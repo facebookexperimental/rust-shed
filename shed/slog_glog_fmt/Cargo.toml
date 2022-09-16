@@ -28,4 +28,4 @@ slog-term = "2.8"
 lazy_static = "1.4"
 rand = { version = "0.8", features = ["small_rng"] }
 regex = "1.5.4"
-thiserror = "1.0.34"
+thiserror = "=1.0.30"
