@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.56"
 bytes = { version = "1.1", features = ["serde"] }
 flate2 = { version = "1.0.22", features = ["rust_backend", "tokio"], default-features = false }
-libc = "=0.2.125"
+libc = "0.2.132"
 serde = { version = "1.0.136", features = ["derive", "rc"] }
 serde_json = { version = "1.0.79", features = ["float_roundtrip", "unbounded_depth"] }
 zstd = "0.11.1+zstd.1.5.2"
