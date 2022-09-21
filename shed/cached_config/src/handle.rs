@@ -37,10 +37,23 @@ where
     T: Send + Sync + 'static,
 {
     /// Fetch the current version of the config referred to by this handle
-    /// Return is an `Arc` so that if the config is updated after you get it, you will simply own an outdated pointer
+    /// Return is an `Arc` so that if the config is updated after you get it,
+    /// you will simply own an outdated pointer
     pub fn get(&self) -> Arc<T> {
         match &self.inner {
             ConfigHandleImpl::Registered(handle) => handle.get(),
+            ConfigHandleImpl::Fixed(contents) => contents.clone(),
+        }
+    }
+
+    /// Wait for the next latest version of the config referred to by this handle
+    /// This method returns only when the current version of the config is updated. If the
+    /// updater is no longer alive, this method returns the last known value
+    /// Return is an `Arc` so that if the config is updated after you get it, you will simply
+    /// own an outdated pointer
+    pub async fn wait_for_next(&self) -> Arc<T> {
+        match &self.inner {
+            ConfigHandleImpl::Registered(handle) => handle.wait_for_next().await,
             ConfigHandleImpl::Fixed(contents) => contents.clone(),
         }
     }

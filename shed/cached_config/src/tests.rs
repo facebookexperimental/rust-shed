@@ -13,6 +13,7 @@ use std::time::Duration;
 
 use anyhow::Result;
 use serde_derive::Deserialize;
+use tokio::time::timeout;
 
 use crate::ConfigHandle;
 use crate::ConfigStore;
@@ -109,4 +110,46 @@ fn test_config_handle_from_json() {
         .expect("failed to deserialize json")
         .get();
     assert_eq!(*result, TestConfig { value: 44 });
+}
+
+#[tokio::test]
+async fn test_config_handle_wait_for_latest() {
+    let test_source = {
+        let test_source = TestSource::new();
+        test_source.insert_config(
+            "some1",
+            r#"{ "value": 1 }"#,
+            ModificationTime::UnixTimestamp(1),
+        );
+        Arc::new(test_source)
+    };
+
+    let store = ConfigStore::new(test_source.clone(), Duration::from_millis(2), None);
+
+    let handle1 = get_test_handle(&store, "some1").expect("Failed to get handle1");
+
+    // wait_for_next should not return and instead timeout since the config hasn't been updated.
+    assert!(
+        timeout(Duration::from_millis(200), handle1.wait_for_next())
+            .await
+            .is_err()
+    );
+    // Update the config
+    test_source.insert_config(
+        "some1",
+        r#"{ "value": 11 }"#,
+        ModificationTime::UnixTimestamp(2),
+    );
+    // Mark the config for refresh
+    test_source.insert_to_refresh("some1".to_owned());
+    // Ensure the updater thread has run
+    thread::yield_now();
+    thread::sleep(Duration::from_secs(1));
+
+    // Now that the config is updated, wait_for_next should return immediately.
+    let val = timeout(Duration::from_millis(200), handle1.wait_for_next()).await;
+    // Ensure that we did not timeout and the wait_for_next future terminated.
+    assert!(val.is_ok());
+    // Ensure that wait_for_next got the latest value
+    assert_eq!(*val.expect("Value wasn't ok"), TestConfig { value: 11 });
 }

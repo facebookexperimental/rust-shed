@@ -10,8 +10,12 @@
 use std::sync::Arc;
 use std::sync::RwLock;
 
+use anyhow::bail;
 use anyhow::Result;
 use bytes::Bytes;
+use tokio::sync::watch::channel;
+use tokio::sync::watch::Receiver;
+use tokio::sync::watch::Sender;
 
 use crate::Entity;
 use crate::ModificationTime;
@@ -25,15 +29,16 @@ pub(crate) trait Refreshable {
 
 /// The type contained in a `ConfigHandle` when it's obtained from a `ConfigStore`
 pub(crate) struct RegisteredConfigEntity<T> {
-    contents: RwLock<CachedConfigEntity<T>>,
+    contents: RwLock<CachedConfigEntity>,
     path: String,
     deserializer: fn(Bytes) -> Result<T>,
+    update_sender: RwLock<Sender<Arc<T>>>,
+    update_receiver: RwLock<Receiver<Arc<T>>>,
 }
 
-struct CachedConfigEntity<T> {
+struct CachedConfigEntity {
     mod_time: ModificationTime,
     version: String,
-    contents: Arc<T>,
 }
 
 impl<T> RegisteredConfigEntity<T>
@@ -50,24 +55,32 @@ where
             version,
             contents,
         } = entity;
+        let contents = Arc::new(deserializer(contents.unwrap_or_else(Bytes::new))?);
+        let (update_sender, update_receiver) = channel(contents);
 
         Ok(Self {
-            contents: RwLock::new(CachedConfigEntity {
-                mod_time,
-                version,
-                contents: Arc::new(deserializer(contents.unwrap_or_else(Bytes::new))?),
-            }),
+            contents: RwLock::new(CachedConfigEntity { mod_time, version }),
             path,
             deserializer,
+            update_sender: RwLock::new(update_sender),
+            update_receiver: RwLock::new(update_receiver),
         })
     }
 
     pub(crate) fn get(&self) -> Arc<T> {
-        self.contents
+        self.update_receiver
             .read()
             .expect("lock poisoned")
-            .contents
+            .borrow()
             .clone()
+    }
+
+    pub(crate) async fn wait_for_next(&self) -> Arc<T> {
+        let mut receiver = self.update_receiver.read().expect("lock poisoned").clone();
+        match receiver.changed().await {
+            Ok(_) => receiver.borrow().clone(),
+            _ => self.get(),
+        }
     }
 }
 
@@ -89,12 +102,18 @@ where
             let contents = Arc::new((self.deserializer)(
                 entity.contents.unwrap_or_else(Bytes::new),
             )?);
+            let update_sender = self.update_sender.write().expect("lock poisoned");
+            if update_sender.send(contents).is_err() {
+                bail!(
+                    "No subscriber for config updates at path {}",
+                    self.get_path()
+                )
+            }
             {
                 let mut locked = self.contents.write().expect("lock poisoned");
                 *locked = CachedConfigEntity {
                     mod_time: entity.mod_time,
                     version: entity.version,
-                    contents,
                 };
                 Ok(true)
             }
