@@ -10,9 +10,9 @@
 use std::time::Duration;
 
 use fbinit::FacebookInit;
-use stats_traits::stat_types::BoxCounter;
-use stats_traits::stat_types::BoxHistogram;
-use stats_traits::stat_types::BoxTimeseries;
+use stats_traits::stat_types::BoxLocalCounter;
+use stats_traits::stat_types::BoxLocalHistogram;
+use stats_traits::stat_types::BoxLocalTimeseries;
 use stats_traits::stat_types::Counter;
 use stats_traits::stat_types::Histogram;
 use stats_traits::stat_types::SingletonCounter;
@@ -36,7 +36,7 @@ pub struct Noop;
 impl StatsManager for Noop {
     fn aggregate(&self) {}
 
-    fn create_counter(&self, _name: &str) -> BoxCounter {
+    fn create_counter(&self, _name: &str) -> BoxLocalCounter {
         Box::new(Noop)
     }
 
@@ -45,7 +45,7 @@ impl StatsManager for Noop {
         _name: &str,
         _aggregation_types: &[AggregationType],
         _intervals: &[Duration],
-    ) -> BoxTimeseries {
+    ) -> BoxLocalTimeseries {
         Box::new(Noop)
     }
 
@@ -55,7 +55,7 @@ impl StatsManager for Noop {
         _aggregation_types: &[AggregationType],
         _conf: BucketConfig,
         _percentiles: &[u8],
-    ) -> BoxHistogram {
+    ) -> BoxLocalHistogram {
         Box::new(Noop)
     }
 }

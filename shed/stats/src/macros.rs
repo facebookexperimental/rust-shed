@@ -24,6 +24,9 @@ pub mod common_macro_prelude {
     pub use stats_traits::field_stat_types::FieldStatThreadLocal;
     pub use stats_traits::stat_types::BoxCounter;
     pub use stats_traits::stat_types::BoxHistogram;
+    pub use stats_traits::stat_types::BoxLocalCounter;
+    pub use stats_traits::stat_types::BoxLocalHistogram;
+    pub use stats_traits::stat_types::BoxLocalTimeseries;
     pub use stats_traits::stat_types::BoxSingletonCounter;
     pub use stats_traits::stat_types::BoxTimeseries;
     pub use stats_traits::stats_manager::AggregationType::*;
@@ -149,7 +152,7 @@ macro_rules! __define_stat {
 
     ($prefix:expr; $name:ident: counter($key:expr)) => (
         thread_local! {
-            pub static $name: BoxCounter = TL_STATS.with(|stats| {
+            pub static $name: BoxLocalCounter = TL_STATS.with(|stats| {
                 stats.create_counter(&$crate::__create_stat_key!($prefix, $key))
             });
         }
@@ -167,7 +170,7 @@ macro_rules! __define_stat {
     );
     ($prefix:expr; $name:ident: timeseries($key:expr; $( $aggregation_type:expr ),* ; $( $interval: expr ),*)) => (
         thread_local! {
-            pub static $name: BoxTimeseries = TL_STATS.with(|stats| {
+            pub static $name: BoxLocalTimeseries = TL_STATS.with(|stats| {
                 stats.create_timeseries(
                     &$crate::__create_stat_key!($prefix, $key),
                     &[$( $aggregation_type ),*],
@@ -200,7 +203,7 @@ macro_rules! __define_stat {
                             $(, $aggregation_type:expr )*
                             $(; P $percentile:expr )*)) => (
         thread_local! {
-            pub static $name: BoxHistogram = TL_STATS.with(|stats| {
+            pub static $name: BoxLocalHistogram = TL_STATS.with(|stats| {
                 stats.create_histogram(
                     &$crate::__create_stat_key!($prefix, $key),
                     &[$( $aggregation_type ),*],
@@ -234,12 +237,12 @@ macro_rules! __define_stat {
     ($prefix:expr;
      $name:ident: dynamic_counter($key:expr, ($( $placeholder:ident: $type:ty ),+))) => (
         thread_local! {
-            pub static $name: DynamicStat<($( $type, )+), BoxCounter> = {
+            pub static $name: DynamicStat<($( $type, )+), BoxLocalCounter> = {
                 $crate::__define_key_generator!(
                     __key_generator($prefix, $key; $( $placeholder: $type ),+)
                 );
 
-                fn __stat_generator(key: &str) -> BoxCounter {
+                fn __stat_generator(key: &str) -> BoxLocalCounter {
                     TL_STATS.with(|stats| {
                         stats.create_counter(key)
                     })
@@ -267,12 +270,12 @@ macro_rules! __define_stat {
      $name:ident: dynamic_timeseries($key:expr, ($( $placeholder:ident: $type:ty ),+);
                                      $( $aggregation_type:expr ),* ; $( $interval:expr ),*)) => (
         thread_local! {
-            pub static $name: DynamicStat<($( $type, )+), BoxTimeseries> = {
+            pub static $name: DynamicStat<($( $type, )+), BoxLocalTimeseries> = {
                 $crate::__define_key_generator!(
                     __key_generator($prefix, $key; $( $placeholder: $type ),+)
                 );
 
-                fn __stat_generator(key: &str) -> BoxTimeseries {
+                fn __stat_generator(key: &str) -> BoxLocalTimeseries {
                     TL_STATS.with(|stats| {
                         stats.create_timeseries(key, &[$( $aggregation_type ),*], &[$( $interval ),*])
                     })
@@ -291,12 +294,12 @@ macro_rules! __define_stat {
                                     $(, $aggregation_type:expr )*
                                     $(; P $percentile:expr )*)) => (
         thread_local! {
-            pub static $name: DynamicStat<($( $type, )+), BoxHistogram> = {
+            pub static $name: DynamicStat<($( $type, )+), BoxLocalHistogram> = {
                 $crate::__define_key_generator!(
                     __key_generator($prefix, $key; $( $placeholder: $type ),+)
                 );
 
-                fn __stat_generator(key: &str) -> BoxHistogram {
+                fn __stat_generator(key: &str) -> BoxLocalHistogram {
                     TL_STATS.with(|stats| {
                         stats.create_histogram(key,
                                                &[$( $aggregation_type ),*],
@@ -452,9 +455,9 @@ macro_rules! __struct_thread_local_init {
     };
     ($name:ident, counter, $key:expr ; ) => {
         thread_local! {
-            static $name: FieldStatThreadLocal<BoxCounter> = {
+            static $name: FieldStatThreadLocal<BoxLocalCounter> = {
 
-                fn __stat_generator(key: &str) -> BoxCounter {
+                fn __stat_generator(key: &str) -> BoxLocalCounter {
                     TL_STATS.with(|stats| {
                         stats.create_counter(key)
                     })
@@ -474,9 +477,9 @@ macro_rules! __struct_thread_local_init {
     ($name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ; $( $interval:expr ),* ) => {
         thread_local! {
 
-            static $name: FieldStatThreadLocal<BoxTimeseries> = {
+            static $name: FieldStatThreadLocal<BoxLocalTimeseries> = {
 
-                fn __stat_generator(key: &str) -> BoxTimeseries {
+                fn __stat_generator(key: &str) -> BoxLocalTimeseries {
                     TL_STATS.with(|stats| {
                         stats.create_timeseries(key, &[$( $aggregation_type ),*], &[$( $interval ),*])
                     })
@@ -499,9 +502,9 @@ macro_rules! __struct_thread_local_init {
         $(; P $percentile:expr )*) => {
 
         thread_local! {
-            static $name: FieldStatThreadLocal<BoxHistogram> = {
+            static $name: FieldStatThreadLocal<BoxLocalHistogram> = {
 
-                fn __stat_generator(key: &str) -> BoxHistogram {
+                fn __stat_generator(key: &str) -> BoxLocalHistogram {
                     TL_STATS.with(|stats| {
                         stats.create_histogram(key,
                                                &[$( $aggregation_type ),*],

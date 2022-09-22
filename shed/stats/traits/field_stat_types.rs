@@ -13,9 +13,9 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::thread::LocalKey;
 
-use crate::stat_types::BoxCounter;
-use crate::stat_types::BoxHistogram;
-use crate::stat_types::BoxTimeseries;
+use crate::stat_types::BoxLocalCounter;
+use crate::stat_types::BoxLocalHistogram;
+use crate::stat_types::BoxLocalTimeseries;
 use crate::stat_types::Counter;
 use crate::stat_types::Histogram;
 use crate::stat_types::Timeseries;
@@ -61,14 +61,14 @@ impl<TStatType> FieldStat<TStatType> {
     }
 }
 
-impl Counter for FieldStat<BoxCounter> {
+impl Counter for FieldStat<BoxLocalCounter> {
     fn increment_value(&self, value: i64) {
         self.tl
             .with(|tl| tl.get_or_default(&self.key, |s| s.increment_value(value)));
     }
 }
 
-impl Timeseries for FieldStat<BoxTimeseries> {
+impl Timeseries for FieldStat<BoxLocalTimeseries> {
     fn add_value(&self, value: i64) {
         self.tl
             .with(|tl| tl.get_or_default(&self.key, |s| s.add_value(value)));
@@ -80,7 +80,7 @@ impl Timeseries for FieldStat<BoxTimeseries> {
     }
 }
 
-impl Histogram for FieldStat<BoxHistogram> {
+impl Histogram for FieldStat<BoxLocalHistogram> {
     fn add_value(&self, value: i64) {
         self.tl
             .with(|tl| tl.get_or_default(&self.key, |s| s.add_value(value)));

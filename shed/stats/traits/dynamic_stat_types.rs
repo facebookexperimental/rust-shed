@@ -18,10 +18,10 @@ use std::thread::LocalKey;
 
 use fbinit::FacebookInit;
 
-use crate::stat_types::BoxCounter;
-use crate::stat_types::BoxHistogram;
+use crate::stat_types::BoxLocalCounter;
+use crate::stat_types::BoxLocalHistogram;
+use crate::stat_types::BoxLocalTimeseries;
 use crate::stat_types::BoxSingletonCounter;
-use crate::stat_types::BoxTimeseries;
 use crate::stat_types::Counter;
 use crate::stat_types::Histogram;
 use crate::stat_types::SingletonCounter;
@@ -64,13 +64,13 @@ pub trait DynamicCounter<'a, T> {
     fn increment_value(&'a self, value: i64, args: T);
 }
 
-impl<'a, T> DynamicCounter<'a, T> for DynamicStat<T, BoxCounter> {
+impl<'a, T> DynamicCounter<'a, T> for DynamicStat<T, BoxLocalCounter> {
     fn increment_value(&'a self, value: i64, args: T) {
         self.get_or_default(args, |s| s.increment_value(value));
     }
 }
 
-impl<T> DynamicCounter<'static, T> for LocalKey<DynamicStat<T, BoxCounter>> {
+impl<T> DynamicCounter<'static, T> for LocalKey<DynamicStat<T, BoxLocalCounter>> {
     fn increment_value(&'static self, value: i64, args: T) {
         self.with(|s| s.increment_value(value, args));
     }
@@ -86,7 +86,7 @@ pub trait DynamicTimeseries<'a, T> {
     fn add_value_aggregated(&'a self, value: i64, nsamples: u32, args: T);
 }
 
-impl<'a, T> DynamicTimeseries<'a, T> for DynamicStat<T, BoxTimeseries> {
+impl<'a, T> DynamicTimeseries<'a, T> for DynamicStat<T, BoxLocalTimeseries> {
     fn add_value(&'a self, value: i64, args: T) {
         self.get_or_default(args, |s| s.add_value(value));
     }
@@ -96,7 +96,7 @@ impl<'a, T> DynamicTimeseries<'a, T> for DynamicStat<T, BoxTimeseries> {
     }
 }
 
-impl<T> DynamicTimeseries<'static, T> for LocalKey<DynamicStat<T, BoxTimeseries>> {
+impl<T> DynamicTimeseries<'static, T> for LocalKey<DynamicStat<T, BoxLocalTimeseries>> {
     fn add_value(&'static self, value: i64, args: T) {
         self.with(|s| s.add_value(value, args));
     }
@@ -116,7 +116,7 @@ pub trait DynamicHistogram<'a, T> {
     fn add_repeated_value(&'a self, value: i64, nsamples: u32, args: T);
 }
 
-impl<'a, T> DynamicHistogram<'a, T> for DynamicStat<T, BoxHistogram> {
+impl<'a, T> DynamicHistogram<'a, T> for DynamicStat<T, BoxLocalHistogram> {
     fn add_value(&'a self, value: i64, args: T) {
         self.get_or_default(args, |s| s.add_value(value));
     }
@@ -126,7 +126,7 @@ impl<'a, T> DynamicHistogram<'a, T> for DynamicStat<T, BoxHistogram> {
     }
 }
 
-impl<T> DynamicHistogram<'static, T> for LocalKey<DynamicStat<T, BoxHistogram>> {
+impl<T> DynamicHistogram<'static, T> for LocalKey<DynamicStat<T, BoxLocalHistogram>> {
     fn add_value(&'static self, value: i64, args: T) {
         self.with(|s| s.add_value(value, args));
     }

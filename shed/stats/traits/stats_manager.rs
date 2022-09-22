@@ -11,9 +11,9 @@ use std::time::Duration;
 
 use auto_impl::auto_impl;
 
-use crate::stat_types::BoxCounter;
-use crate::stat_types::BoxHistogram;
-use crate::stat_types::BoxTimeseries;
+use crate::stat_types::BoxLocalCounter;
+use crate::stat_types::BoxLocalHistogram;
+use crate::stat_types::BoxLocalTimeseries;
 
 pub trait StatsManagerFactory {
     fn create(&self) -> BoxStatsManager;
@@ -42,12 +42,12 @@ pub trait StatsManager {
     /// this manager.
     fn aggregate(&self);
 
-    /// Create a new instance of [BoxCounter] and bind it to self for
+    /// Create a new instance of [BoxLocalCounter] and bind it to self for
     /// aggregation purposes.
     /// Provided name is the name of the counter.
-    fn create_counter(&self, name: &str) -> BoxCounter;
+    fn create_counter(&self, name: &str) -> BoxLocalCounter;
 
-    /// Create new instance of [BoxTimeseries] and bind it to self for
+    /// Create new instance of [BoxLocalTimeseries] and bind it to self for
     /// aggregation purposes.
     /// Provided name is the name of the timeseries.
     /// [AggregationType] decides which types of aggragation are exported by
@@ -61,9 +61,9 @@ pub trait StatsManager {
         name: &str,
         aggregation_types: &[AggregationType],
         intervals: &[Duration],
-    ) -> BoxTimeseries;
+    ) -> BoxLocalTimeseries;
 
-    /// Create new instance of [BoxHistogram] and bind it to self for
+    /// Create new instance of [BoxLocalHistogram] and bind it to self for
     /// aggregation purposes.
     /// Provided name is the name of the histogram.
     /// [BucketConfig] configures the aggregation bucket.
@@ -79,5 +79,5 @@ pub trait StatsManager {
         aggregation_types: &[AggregationType],
         conf: BucketConfig,
         percentiles: &[u8],
-    ) -> BoxHistogram;
+    ) -> BoxLocalHistogram;
 }

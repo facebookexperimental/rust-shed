@@ -14,6 +14,9 @@ pub type BoxSingletonCounter = Box<dyn SingletonCounter + Send + Sync>;
 pub type BoxCounter = Box<dyn Counter + Send + Sync>;
 pub type BoxTimeseries = Box<dyn Timeseries + Send + Sync>;
 pub type BoxHistogram = Box<dyn Histogram + Send + Sync>;
+pub type BoxLocalCounter = Box<dyn Counter>;
+pub type BoxLocalTimeseries = Box<dyn Timeseries>;
+pub type BoxLocalHistogram = Box<dyn Histogram>;
 
 /// SingletonCounter is a non-aggregated, global counter. Use this if you don't want any aggregation,
 /// and just want to expose a value through stats.
