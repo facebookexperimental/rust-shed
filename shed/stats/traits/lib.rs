@@ -10,5 +10,6 @@
 #![deny(warnings)]
 
 pub mod dynamic_stat_types;
+pub mod field_stat_types;
 pub mod stat_types;
 pub mod stats_manager;

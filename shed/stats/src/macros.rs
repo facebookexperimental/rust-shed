@@ -20,6 +20,8 @@ pub mod common_macro_prelude {
     pub use perthread::PerThread;
     pub use perthread::ThreadMap;
     pub use stats_traits::dynamic_stat_types::DynamicStat;
+    pub use stats_traits::field_stat_types::FieldStat;
+    pub use stats_traits::field_stat_types::FieldStatThreadLocal;
     pub use stats_traits::stat_types::BoxCounter;
     pub use stats_traits::stat_types::BoxHistogram;
     pub use stats_traits::stat_types::BoxSingletonCounter;
@@ -385,7 +387,7 @@ macro_rules! define_stats_struct {
             $(pub $stat_name: $crate::__struct_field_type!($stat_type), )*
         }
         impl $name {
-            #[allow(unused_imports, missing_docs)]
+            #[allow(unused_imports, missing_docs, non_upper_case_globals)]
             pub fn new($($pr_name: $pr_type),*) -> $name {
                 use $crate::macros::common_macro_prelude::*;
 
@@ -398,10 +400,14 @@ macro_rules! define_stats_struct {
                         STATS_MAP.register(create_stats_manager());
                 }
 
-                let prefix = format!($key, $($pr_name),*);
+                $(
+                    $crate::__struct_thread_local_init! { $stat_name, $stat_type, $($params)* }
+                )*
+
+                let __prefix = format!($key, $($pr_name),*);
 
                 $name {
-                    $($stat_name: $crate::__struct_field_init!(prefix, $stat_name, $stat_type, $($params)*)),*
+                    $($stat_name: $crate::__struct_field_init!(__prefix, $stat_name, $stat_type, $($params)*)),*
                 }
             }
         }
@@ -432,65 +438,123 @@ macro_rules! __struct_field_type {
 
 #[macro_export]
 #[doc(hidden)]
+macro_rules! __struct_thread_local_init {
+    ($name:ident, singleton_counter, ) => {
+        $crate::__struct_thread_local_init!($name, singleton_counter, stringify!($name))
+    };
+    ($name:ident, singleton_counter, $key:expr) => {};
+
+    ($name:ident, counter, ) => {
+        $crate::__struct_thread_local_init! { $name, counter, stringify!($name)}
+    };
+    ($name:ident, counter, $key:expr) => {
+        $crate::__struct_thread_local_init! { $name, counter, $key ; }
+    };
+    ($name:ident, counter, $key:expr ; ) => {
+        thread_local! {
+            static $name: FieldStatThreadLocal<BoxCounter> = {
+
+                fn __stat_generator(key: &str) -> BoxCounter {
+                    TL_STATS.with(|stats| {
+                        stats.create_counter(key)
+                    })
+                }
+
+                FieldStatThreadLocal::new(__stat_generator)
+            };
+        }
+    };
+
+    ($name:ident, timeseries, $( $aggregation_type:expr ),+) => {
+        $crate::__struct_thread_local_init! { $name, timeseries, stringify!($name) ; $($aggregation_type),*}
+    };
+    ($name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ) => {
+        $crate::__struct_thread_local_init! { $name, timeseries, $key ; $($aggregation_type),* ;}
+    };
+    ($name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ; $( $interval:expr ),* ) => {
+        thread_local! {
+
+            static $name: FieldStatThreadLocal<BoxTimeseries> = {
+
+                fn __stat_generator(key: &str) -> BoxTimeseries {
+                    TL_STATS.with(|stats| {
+                        stats.create_timeseries(key, &[$( $aggregation_type ),*], &[$( $interval ),*])
+                    })
+                }
+
+                FieldStatThreadLocal::new(__stat_generator)
+            };
+        }
+    };
+
+    ($name:ident, histogram,
+        $bucket_width:expr, $min:expr, $max:expr $(, $aggregation_type:expr)*
+        $(; P $percentile:expr )*) => {
+        $crate::__struct_thread_local_init! { $name, histogram,
+            stringify!($name) ; $bucket_width, $min, $max $(, $aggregation_type)*
+            $(; P $percentile)* }
+    };
+    ($name:ident, histogram, $key:expr ;
+        $bucket_width:expr, $min:expr, $max:expr $(, $aggregation_type:expr)*
+        $(; P $percentile:expr )*) => {
+
+        thread_local! {
+            static $name: FieldStatThreadLocal<BoxHistogram> = {
+
+                fn __stat_generator(key: &str) -> BoxHistogram {
+                    TL_STATS.with(|stats| {
+                        stats.create_histogram(key,
+                                               &[$( $aggregation_type ),*],
+                                               BucketConfig {
+                                                   width: $bucket_width,
+                                                   min: $min,
+                                                   max: $max,
+                                               },
+                                               &[$( $percentile ),*])
+                    })
+                }
+
+                FieldStatThreadLocal::new(__stat_generator)
+            };
+        }
+    };
+}
+
+#[macro_export]
+#[doc(hidden)]
 macro_rules! __struct_field_init {
     ($prefix:expr, $name:ident, singleton_counter, ) => {
-        $crate::__struct_field_init! ($prefix, $name, singleton_counter, stringify!($name))
+        $crate::__struct_field_init!($prefix, $name, singleton_counter, stringify!($name))
     };
-    ($prefix:expr, $name:ident, singleton_counter, $key:expr) => {
-        $crate::__struct_field_init! ($prefix, $name, singleton_counter, $key ; )
-    };
-    ($prefix:expr, $name:ident, singleton_counter, $key:expr ; ) => {{
-        let key = format!("{}.{}", $prefix, $key);
-        create_singleton_counter(key)
-    }};
+    ($prefix:expr, $name:ident, singleton_counter, $key:expr) => {{ create_singleton_counter(format!("{}.{}", $prefix, $key)) }};
 
     ($prefix:expr, $name:ident, counter, ) => {
-        $crate::__struct_field_init! ($prefix, $name, counter, stringify!($name))
+        $crate::__struct_field_init!($prefix, $name, counter, stringify!($name) ;)
     };
     ($prefix:expr, $name:ident, counter, $key:expr) => {
-        $crate::__struct_field_init! ($prefix, $name, counter, $key ; )
+        $crate::__struct_field_init!($prefix, $name, counter, $key ;)
     };
-    ($prefix:expr, $name:ident, counter, $key:expr ; ) => {{
-        let key = format!("{}.{}", $prefix, $key);
-        TL_STATS.with(|stats| {
-            stats.create_counter(&key)
-        })
-    }};
+    ($prefix:expr, $name:ident, counter, $key:expr ; $(params:tt)*) => {{ Box::new(FieldStat::new(&$name, format!("{}.{}", $prefix, $key))) }};
+
 
     ($prefix:expr, $name:ident, timeseries, $( $aggregation_type:expr ),+) => {
-        $crate::__struct_field_init! ($prefix, $name, timeseries, stringify!($name) ; $($aggregation_type),*)
+        $crate::__struct_field_init!($prefix, $name, timeseries, stringify!($name) ; $($aggregation_type),*)
     };
-    ($prefix:expr, $name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ) => {{
-        $crate::__struct_field_init! ($prefix, $name, timeseries, $key ; $($aggregation_type),* ;)
-    }};
+    ($prefix:expr, $name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ) => {
+        $crate::__struct_field_init!($prefix, $name, timeseries, $key ; $($aggregation_type),* ;)
+    };
     ($prefix:expr, $name:ident, timeseries, $key:expr ; $( $aggregation_type:expr ),* ; $( $interval:expr ),* ) => {{
-        let key = format!("{}.{}", $prefix, $key);
-        TL_STATS.with(|stats| {
-            stats.create_timeseries(&key, &[$( $aggregation_type ),*], &[$( $interval),*])
-        })
+        Box::new(FieldStat::new(&$name, format!("{}.{}", $prefix, $key)))
     }};
 
     ($prefix:expr, $name:ident, histogram,
         $bucket_width:expr, $min:expr, $max:expr $(, $aggregation_type:expr)*
         $(; P $percentile:expr )*) => {
-        $crate::__struct_field_init! ($prefix, $name, histogram,
+        $crate::__struct_field_init!($prefix, $name, histogram,
             stringify!($name) ; $bucket_width, $min, $max $(, $aggregation_type)*
-            $(; P $percentile)* )
+            $(; P $percentile)*)
     };
     ($prefix:expr, $name:ident, histogram, $key:expr ;
         $bucket_width:expr, $min:expr, $max:expr $(, $aggregation_type:expr)*
-        $(; P $percentile:expr )*) => {{
-        let key = format!("{}.{}", $prefix, $key);
-        TL_STATS.with(|stats| {
-            stats.create_histogram(
-                &key,
-                &[$( $aggregation_type ),*],
-                BucketConfig {
-                    width: $bucket_width,
-                    min: $min,
-                    max: $max,
-                },
-                &[$( $percentile ),*])
-        })
-    }};
+        $(; P $percentile:expr )*) => {{ Box::new(FieldStat::new(&$name, format!("{}.{}", $prefix, $key))) }};
 }
