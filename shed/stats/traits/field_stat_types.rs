@@ -33,6 +33,14 @@ impl<TStatType> FieldStatThreadLocal<TStatType> {
         }
     }
 
+    fn initialize(&self, key: &str) {
+        let mut map = self.map.borrow_mut();
+        if !map.contains_key(key) {
+            let stat = (self.stat_generator)(key);
+            map.insert(key.to_string(), stat);
+        }
+    }
+
     fn get_or_default<F, V>(&self, key: &str, cb: F) -> V
     where
         F: FnOnce(&TStatType) -> V,
@@ -57,6 +65,10 @@ pub struct FieldStat<TStatType: 'static> {
 
 impl<TStatType> FieldStat<TStatType> {
     pub fn new(tl: &'static LocalKey<FieldStatThreadLocal<TStatType>>, key: String) -> Self {
+        // Existence of a field stat for a key should ensure that the
+        // thread-local for the stat exists on at least one thread, so that
+        // the stat itself exists and can be logged, even if its value is 0.
+        tl.with(|tl| tl.initialize(&key));
         FieldStat { tl, key }
     }
 }
