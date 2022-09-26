@@ -95,10 +95,10 @@ fn impl_structured_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream
 
     error_collector.finish()?;
     let gen = quote! {
-        impl ::scuba_sample::StructuredSample for self::#name {}
+        impl ::scuba_sample::StructuredSample for #name {}
 
-        impl From<self::#name> for ::scuba_sample::ScubaSample {
-            fn from(thingy: self::#name) -> Self {
+        impl From<#name> for ::scuba_sample::ScubaSample {
+            fn from(thingy: #name) -> Self {
                 let mut sample = ::scuba_sample::ScubaSample::new();
                 #(
                     sample.add(#field_renames, thingy.#field_name);

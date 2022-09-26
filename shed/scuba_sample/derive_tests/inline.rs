@@ -7,6 +7,16 @@
  * of this source tree.
  */
 
-mod basic;
-mod customization;
-mod inline;
+use ::scuba_sample::ScubaSample;
+use ::scuba_sample::StructuredSample;
+
+/// Make sure that we can declare a sample inline within a function
+#[test]
+fn test_basic() {
+    #[derive(StructuredSample)]
+    struct Basic {
+        field: i32,
+    }
+
+    let _sample: ScubaSample = Basic { field: 5 }.into();
+}
