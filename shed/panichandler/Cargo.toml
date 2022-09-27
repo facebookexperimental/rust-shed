@@ -43,6 +43,6 @@ backtrace = "0.3"
 libc = "0.2.132"
 
 [dev-dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.65"
 assert_cmd = "0.12"
 predicates = "1"

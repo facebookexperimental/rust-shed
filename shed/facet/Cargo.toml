@@ -42,11 +42,11 @@ name = "facet_static_test"
 path = "test/static_test.rs"
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.65"
 async-trait = "0.1.56"
 facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
 futures = { version = "0.3.22", features = ["async-await", "compat"] }
-thiserror = "=1.0.30"
+thiserror = "1.0.36"
 
 [dev-dependencies]
 tokio = { version = "1.15", features = ["full", "test-util", "tracing"] }

@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-anyhow = "1.0.56"
+anyhow = "1.0.65"
 cloned = { version = "0.1.0", path = "../../cloned" }
 futures = { version = "0.3.22", features = ["async-await", "compat"] }
 futures_stats = { version = "0.1.0", path = "../../futures_stats" }
@@ -23,7 +23,7 @@ mysql_async = "0.27.1"
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.28.0", features = ["backup", "blob", "column_decltype"] }
 stats = { version = "0.1.0", path = "../../stats" }
-thiserror = "=1.0.30"
+thiserror = "1.0.36"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
 tokio_shim = { version = "0.1.0", path = "../../tokio_shim" }
 
