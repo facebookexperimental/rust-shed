@@ -1,6 +1,0 @@
----
-source: eden/scm/lib/edenapi/types/src/wire/anyid.rs
-expression: "WireLookupResponse::arbitrary(&mut g)"
-
----
-{"1":2}
