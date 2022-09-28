@@ -75,12 +75,8 @@ where
             .clone()
     }
 
-    pub(crate) async fn wait_for_next(&self) -> Arc<T> {
-        let mut receiver = self.update_receiver.read().expect("lock poisoned").clone();
-        match receiver.changed().await {
-            Ok(_) => receiver.borrow().clone(),
-            _ => self.get(),
-        }
+    pub(crate) fn update_receiver(&self) -> Receiver<Arc<T>> {
+        self.update_receiver.read().expect("lock poisoned").clone()
     }
 }
 
