@@ -30,6 +30,7 @@ use tokio::sync::Mutex as AsyncMutex;
 
 /// Cell that is initialized exactly once, and can be initialized
 /// asynchronously.
+#[derive(Debug)]
 pub struct AsyncOnceCell<T> {
     mutex: AsyncMutex<()>,
     is_initialized: AtomicBool,
@@ -41,11 +42,20 @@ unsafe impl<T: Send> Send for AsyncOnceCell<T> {}
 
 impl<T> AsyncOnceCell<T> {
     /// Construct a new, uninitialized `AsyncOnceCell`.
-    pub fn new() -> AsyncOnceCell<T> {
-        AsyncOnceCell {
-            mutex: AsyncMutex::new(()),
+    pub const fn new() -> Self {
+        Self {
+            mutex: AsyncMutex::const_new(()),
             is_initialized: AtomicBool::new(false),
             value: UnsafeCell::new(None),
+        }
+    }
+
+    /// Construct a new initialized `AsyncOnceCell`.
+    pub const fn new_with(value: T) -> Self {
+        Self {
+            mutex: AsyncMutex::const_new(()),
+            is_initialized: AtomicBool::new(true),
+            value: UnsafeCell::new(Some(value)),
         }
     }
 
@@ -171,6 +181,17 @@ mod test {
     use rand::Rng;
 
     use super::*;
+
+    #[tokio::test]
+    async fn new_with() {
+        assert_eq!(AsyncOnceCell::new_with(123).get(), Some(&123));
+        assert_eq!(
+            AsyncOnceCell::new_with(456)
+                .get_or_init(|| async { panic!("must not be called") })
+                .await,
+            &456
+        );
+    }
 
     #[tokio::test]
     async fn set_get() {
