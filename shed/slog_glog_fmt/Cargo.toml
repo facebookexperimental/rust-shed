@@ -20,7 +20,7 @@ chrono = { version = "0.4", features = ["clock", "serde", "std"], default-featur
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
 hostname = "0.3"
 itertools = "0.10.3"
-nix = "0.23"
+nix = "0.25"
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 slog-term = "2.8"
 
