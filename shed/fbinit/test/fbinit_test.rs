@@ -39,6 +39,12 @@ fn test_expect_init() {
     fbinit::expect_init();
 }
 
+#[test]
+#[should_panic]
+fn test_expect_init_panics() {
+    fbinit::expect_init();
+}
+
 /// This can work only on fbcode builds as only then the proof can be asserted
 #[cfg(fbcode_build)]
 #[fbinit::test]
@@ -99,6 +105,12 @@ fn test_main_with_proof() {
 mod submodule {
     #[fbinit::main]
     fn main() {}
+
+    #[test]
+    #[should_panic(expected = "fbinit must be performed in the crate root on the main function")]
+    fn test_in_submodule() {
+        main();
+    }
 }
 
 #[test]
