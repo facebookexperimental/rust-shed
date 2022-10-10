@@ -27,6 +27,7 @@ struct RustBinary<'a> {
     srcs: Vec<&'a str>,
     #[serde(flatten)]
     extras: BTreeMap<&'a str, &'a str>,
+    mapped_srcs: BTreeMap<&'a str, &'a str>,
 }
 
 #[derive(Serialize)]
@@ -38,12 +39,15 @@ fn main() {
         base: RuleBase {
             name: "buck",
             deps: vec![],
-            labels: vec!["foo\"'bar"],
+            labels: vec!["foo\"'bar", "baz"],
         },
         srcs: vec!["buck.rs"],
         extras: btreemap! {
             "other" => "thing",
             "this" => "that",
+        },
+        mapped_srcs: btreemap! {
+            "a.c" => "a.rs",
         },
     };
 
