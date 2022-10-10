@@ -294,9 +294,13 @@ impl<'a> ser::Serializer for &'a mut Serializer {
     }
 
     fn serialize_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq> {
+        let newlines = len.unwrap_or(1) > 1;
         self.output += "[";
+        if newlines {
+            self.indent();
+        }
         Ok(SeqSerializer {
-            newlines: len.unwrap_or(1) > 1,
+            newlines,
             serializer: self,
         })
     }
@@ -363,16 +367,21 @@ impl<'a> ser::SerializeSeq for SeqSerializer<&'a mut Serializer> {
     where
         T: ?Sized + Serialize,
     {
-        value.serialize(&mut *self.serializer)?;
-        self.serializer.output += ",";
         if self.newlines {
             self.serializer.newline();
+        }
+        value.serialize(&mut *self.serializer)?;
+        if self.newlines {
+            self.serializer.output += ",";
         }
         Ok(())
     }
 
     // Close the sequence.
     fn end(self) -> Result<()> {
+        if self.newlines {
+            self.serializer.outdent();
+        }
         self.serializer.output += "]";
         Ok(())
     }
