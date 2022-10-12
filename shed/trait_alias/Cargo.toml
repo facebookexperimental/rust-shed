@@ -19,6 +19,6 @@ name = "trait_alias_test"
 path = "test/trait_alias_test.rs"
 
 [dependencies]
-proc-macro2 = "1.0"
+proc-macro2 = "1.0.46"
 quote = "1.0"
 syn = { version = "1.0.96", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
