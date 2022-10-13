@@ -102,7 +102,7 @@ impl<T> AsyncOnceCell<T> {
         let slot = self.value.get();
         unsafe {
             // SAFETY: Access is protected by `_mutex`.
-            debug_assert!((&*slot).is_none());
+            debug_assert!((*slot).is_none());
             *slot = Some(value);
         }
         self.is_initialized.store(true, Ordering::Release);
@@ -131,7 +131,7 @@ impl<T> AsyncOnceCell<T> {
         let slot = self.value.get();
         unsafe {
             // SAFETY: Access is protected by `_mutex`.
-            debug_assert!((&*slot).is_none());
+            debug_assert!((*slot).is_none());
             *slot = Some(value);
         }
         self.is_initialized.store(true, Ordering::Release);
@@ -163,7 +163,7 @@ impl<T> AsyncOnceCell<T> {
         let slot = self.value.get();
         unsafe {
             // SAFETY: Access is protected by `_mutex`.
-            debug_assert!((&*slot).is_none());
+            debug_assert!((*slot).is_none());
             *slot = Some(value);
         }
         self.is_initialized.store(true, Ordering::Release);
