@@ -39,14 +39,14 @@ use tower_service::Service;
 /// ```
 pub struct SocketTransport<T>
 where
-    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+    T: AsyncRead + AsyncWrite + Sized + Send + Sync + 'static,
 {
     service: Arc<Mutex<Client<Framed<T, FramedTransport>, Error, Bytes>>>,
 }
 
 impl<T> SocketTransport<T>
 where
-    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+    T: AsyncRead + AsyncWrite + Sized + Send + Sync + 'static,
 {
     pub fn new(stream: T) -> Self {
         SocketTransport {
@@ -57,7 +57,7 @@ where
 
 impl<T> Framing for SocketTransport<T>
 where
-    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+    T: AsyncRead + AsyncWrite + Sized + Send + Sync + 'static,
 {
     type EncBuf = BytesMut;
     type DecBuf = Cursor<Bytes>;
@@ -69,7 +69,7 @@ where
 
 impl<T> Transport for SocketTransport<T>
 where
-    T: AsyncRead + AsyncWrite + Sized + Send + 'static,
+    T: AsyncRead + AsyncWrite + Sized + Send + Sync + 'static,
 {
     type RpcOptions = ();
 
