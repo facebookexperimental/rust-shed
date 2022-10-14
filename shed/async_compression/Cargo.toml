@@ -22,4 +22,4 @@ zstd = "0.11.1+zstd.1.5.2"
 assert_matches = "1.5"
 futures03 = { package = "futures", version = "0.3.22", features = ["async-await", "compat"] }
 quickcheck = "1.0"
-tokio = { version = "1.15", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.21.2", features = ["full", "test-util", "tracing"] }
