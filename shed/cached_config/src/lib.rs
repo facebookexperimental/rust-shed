@@ -31,6 +31,7 @@ use anyhow::Result;
 use bytes::Bytes;
 use chrono::NaiveDateTime;
 pub use handle::ConfigHandle;
+pub use handle::ConfigUpdateWatcher;
 pub use store::ConfigStore;
 pub use test_source::TestSource;
 

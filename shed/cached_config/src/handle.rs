@@ -30,6 +30,9 @@ pub struct ConfigHandle<T> {
 /// and provides a mechanism to get notified on the next config change via wait-on-update
 /// method. This type is defined only for configs that are backed by a config source and
 /// not for static configs (e.g. static JSON files)
+/// NOTE: The ConfigUpdateWatcher can only receive updates as long as its parent
+/// ConfigHandle remains in scope. Once the corresponding ConfigHandle is dropped,
+/// the ConfigUpdateWatcher can no longer receive updated configs.
 pub struct ConfigUpdateWatcher<T> {
     update_receiver: Receiver<Arc<T>>,
 }
@@ -79,6 +82,9 @@ where
     /// Method that returns a config update watcher that observes changes
     /// that are applied to the underlying config. Requesting a config watcher
     /// for static config (e.g. sourced via static JSON file) results in an error.
+    /// A single instance of ConfigHandle can produce multiple ConfigUpdateWatchers
+    /// but once the ConfigHandle gets dropped, the ConfigUpdateWatchers will no
+    /// longer receive updates.
     pub fn watcher(&self) -> Result<ConfigUpdateWatcher<T>> {
         match &self.inner {
             ConfigHandleImpl::Registered(handle) => {
