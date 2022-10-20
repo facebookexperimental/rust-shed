@@ -2,7 +2,7 @@
 
 [package]
 name = "fbinit-tokio-02"
-version = "0.1.0"
+version = "0.1.2"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2021"
 readme = "../../../README.md"

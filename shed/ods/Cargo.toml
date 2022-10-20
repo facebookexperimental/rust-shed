@@ -12,4 +12,4 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.65"
-fbinit = { version = "0.1.0", path = "../fbinit" }
+fbinit = { version = "0.1.2", path = "../fbinit" }
