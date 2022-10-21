@@ -132,14 +132,14 @@ macro_rules! queries {
     () => ();
 
     (
-        read $name:ident (
+        $vi:vis read $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) -> ($( $rtype:ty ),* $(,)*) { $q:expr }
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            read $name (
+            $vi read $name (
                 $( $pname: $ptype ),*
                 $( >list $lname: $ltype )*
             ) -> ($( $rtype ),*) { mysql($q) sqlite($q) }
@@ -148,21 +148,21 @@ macro_rules! queries {
     );
 
     (
-        read $name:ident (
+        $vi:vis read $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) -> ($( $rtype:ty ),* $(,)*) { mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        mod $name {
+        $vi mod $name {
             $crate::_read_query_impl!((
                 $( $pname: $ptype, )*
                 $( >list $lname: $ltype )*
             ) -> ($( $rtype ),*) { mysql($mysql_q) sqlite($sqlite_q) });
 
             #[allow(dead_code)]
-            pub(super) async fn query(
+            pub async fn query(
                 connection: & Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
@@ -173,7 +173,7 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub(super) async fn query_with_transaction(
+            pub async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
@@ -187,62 +187,7 @@ macro_rules! queries {
     );
 
     (
-        pub $( ( $( $mods:tt )* ) )? read $name:ident (
-            $( $pname:ident: $ptype:ty ),* $(,)*
-            $( >list $lname:ident: $ltype:ty )*
-        ) -> ($( $rtype:ty ),* $(,)*) { $q:expr }
-        $( $tt:tt )*
-    ) => (
-        $crate::queries! {
-            pub $( ( $( $mods )* ) )? read $name (
-                $( $pname: $ptype ),*
-                $( >list $lname: $ltype )*
-            ) -> ($( $rtype ),*) { mysql($q) sqlite($q) }
-            $( $tt )*
-        }
-    );
-
-    (
-        pub $( ( $( $mods:tt )* ) )? read $name:ident (
-            $( $pname:ident: $ptype:ty ),* $(,)*
-            $( >list $lname:ident: $ltype:ty )*
-        ) -> ($( $rtype:ty ),* $(,)*) { mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
-        $( $tt:tt )*
-    ) => (
-        #[allow(non_snake_case)]
-        pub $( ( $( $mods )* ) )? mod $name {
-            $crate::_read_query_impl!((
-                $( $pname: $ptype, )*
-                $( >list $lname: $ltype )*
-            ) -> ($( $rtype ),*) { mysql($mysql_q) sqlite($sqlite_q) });
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query(
-                connection: &Connection,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<Vec<($( $rtype, )*)>, Error> {
-                query_internal(connection $( , $pname )* $( , $lname )*)
-                    .await
-                    .context(stringify!(While executing $name query))
-            }
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
-                transaction: Transaction,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
-                query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
-                    .await
-                    .context(stringify!(While executing $name query in transaction))
-            }
-        }
-        $crate::queries!($( $tt )*);
-    );
-
-    (
-        write $name:ident (
+        $vi:vis write $name:ident (
             values: ($( $vname:ident: $vtype:ty ),* $(,)*)
             $( , $pname:ident: $ptype:ty )* $(,)*
         ) { $qtype:ident, $q:expr }
@@ -258,14 +203,14 @@ macro_rules! queries {
     );
 
     (
-        write $name:ident (
+        $vi:vis write $name:ident (
             values: ($( $vname:ident: $vtype:ty ),* $(,)*)
             $( , $pname:ident: $ptype:ty )* $(,)*
         ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        mod $name {
+        $vi mod $name {
             $crate::_write_query_impl!(values: ($( $vname: $vtype ),*), ($( $pname: $ptype ),* ) {
                 $qtype,
                 mysql($mysql_q)
@@ -273,7 +218,7 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub(super) async fn query(
+            pub async fn query(
                 connection: &Connection,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
@@ -284,7 +229,7 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub(super) async fn query_with_transaction(
+            pub async fn query_with_transaction(
                 transaction: Transaction,
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
@@ -298,63 +243,7 @@ macro_rules! queries {
     );
 
     (
-        pub $( ( $( $mods:tt )* ) )? write $name:ident (
-            values: ($( $vname:ident: $vtype:ty ),* $(,)*)
-            $( , $pname:ident: $ptype:ty )* $(,)*
-        ) { $qtype:ident, $q:expr }
-        $( $tt:tt )*
-    ) => (
-        $crate::queries! {
-            pub $( ( $( $mods )* ) )? write $name (
-                values: ($( $vname: $vtype ),*)
-                $( , $pname: $ptype )*
-            ) { $qtype, mysql($q) sqlite($q) }
-            $( $tt )*
-        }
-    );
-
-    (
-        pub $( ( $( $mods:tt )* ) )? write $name:ident (
-            values: ($( $vname:ident: $vtype:ty ),* $(,)*)
-            $( , $pname:ident: $ptype:ty )* $(,)*
-        ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
-        $( $tt:tt )*
-    ) => (
-        #[allow(non_snake_case)]
-        pub $( ( $( $mods )* ) )? mod $name {
-            $crate::_write_query_impl!(values: ($( $vname: $vtype ),*), ($( $pname: $ptype ),* ) {
-                $qtype,
-                mysql($mysql_q)
-                sqlite($sqlite_q)
-            });
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query(
-                connection: &Connection,
-                values: &[($( & $vtype, )*)],
-                $( $pname: & $ptype ),*
-            ) -> Result<WriteResult, Error> {
-                query_internal(connection, values $( , $pname )*)
-                    .await
-                    .context(stringify!(While executing $name query))
-            }
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
-                transaction: Transaction,
-                values: &[($( & $vtype, )*)],
-                $( $pname: & $ptype ),*
-            ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction, values $( , $pname )*)
-                    .await
-                    .context(stringify!(While executing $name query))
-            }
-        }
-        $crate::queries!($( $tt )*);
-    );
-
-    (
-        write $name:ident (
+        $vi:vis write $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) { $qtype:ident, $q:expr }
@@ -370,14 +259,14 @@ macro_rules! queries {
     );
 
     (
-        write $name:ident (
+        $vi:vis write $name:ident (
             $( $pname:ident: $ptype:ty ),* $(,)*
             $( >list $lname:ident: $ltype:ty )*
         ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
         $( $tt:tt )*
     ) => (
         #[allow(non_snake_case)]
-        mod $name {
+        $vi mod $name {
             $crate::_write_query_impl!((
                 $( $pname: $ptype, )*
                 $( >list $lname: $ltype )*
@@ -388,7 +277,7 @@ macro_rules! queries {
             });
 
             #[allow(dead_code)]
-            pub(super) async fn query(
+            pub async fn query(
                 connection: &Connection,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
@@ -399,71 +288,12 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub(super) async fn query_with_transaction(
+            pub async fn query_with_transaction(
                 transaction: Transaction,
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
             ) -> Result<(Transaction, WriteResult), Error> {
                 query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
-                    .await
-                    .context(stringify!(While executing $name query))
-            }
-        }
-        $crate::queries!($( $tt )*);
-    );
-
-    (
-        pub $( ( $( $mods:tt )* ) )? write $name:ident (
-            $( $pname:ident: $ptype:ty ),* $(,)*
-            $( >list $lname:ident: $ltype:ty )*
-        ) { $qtype:ident, $q:expr }
-        $( $tt:tt )*
-    ) => (
-        $crate::queries! {
-            pub $( ( $( $mods )* ) )? write $name (
-                $( $pname: $ptype ),*
-                $( >list $lname: $ltype )*
-            ) { $qtype, mysql($q) sqlite($q) }
-            $( $tt )*
-        }
-    );
-
-    (
-        pub $( ( $( $mods:tt )* ) )? write $name:ident (
-            $( $pname:ident: $ptype:ty ),* $(,)*
-            $( >list $lname:ident: $ltype:ty )*
-        ) { $qtype:ident, mysql($mysql_q:expr) sqlite($sqlite_q:expr) }
-        $( $tt:tt )*
-    ) => (
-        #[allow(non_snake_case)]
-        pub $( ( $( $mods )* ) )? mod $name {
-            $crate::_write_query_impl!((
-                $( $pname: $ptype, )*
-                $( >list $lname: $ltype )*
-            ) {
-                $qtype,
-                mysql($mysql_q)
-                sqlite($sqlite_q)
-            });
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query(
-                connection: &Connection,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<WriteResult, Error> {
-                query_internal(connection $( , $pname )* $( , $lname )* )
-                    .await
-                    .context(stringify!(While executing $name query))
-            }
-
-            #[allow(dead_code)]
-            pub $( ( $( $mods )* ) )? async fn query_with_transaction(
-                transaction: Transaction,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction $( , $pname )* $( , $lname )* )
                     .await
                     .context(stringify!(While executing $name query))
             }
