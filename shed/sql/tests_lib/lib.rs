@@ -60,10 +60,10 @@ queries! {
     read TestQuery(param_a: A, param_uint: u64) -> (u64, B, B, i64) {
         "SELECT 44, NULL, {param_a}, {param_uint}"
     }
-    read TestQuery2() -> (u64, B) {
+    pub(crate) read TestQuery2() -> (u64, B) {
         "SELECT 44, NULL"
     }
-    write TestQuery3(values: (x: i64)) {
+    pub(crate) write TestQuery3(values: (x: i64)) {
         none,
         "INSERT INTO foo (x) VALUES {values}"
     }
@@ -77,7 +77,7 @@ queries! {
         mysql("SELECT 6")
         sqlite("SELECT 7")
     }
-    write TestQuery7(x: i64) {
+    pub(crate) write TestQuery7(x: i64) {
         none,
         "REPLACE INTO foo (ID, x) VALUES (1, {x})"
     }

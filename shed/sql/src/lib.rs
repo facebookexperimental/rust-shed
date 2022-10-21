@@ -437,7 +437,10 @@ macro_rules! queries {
     ) => (
         #[allow(non_snake_case)]
         pub $( ( $( $mods )* ) )? mod $name {
-            $crate::_write_query_impl!(($( $pname: $ptype ),* ) {
+            $crate::_write_query_impl!((
+                $( $pname: $ptype, )*
+                $( >list $lname: $ltype )*
+            ) {
                 $qtype,
                 mysql($mysql_q)
                 sqlite($sqlite_q)
@@ -446,9 +449,10 @@ macro_rules! queries {
             #[allow(dead_code)]
             pub $( ( $( $mods )* ) )? async fn query(
                 connection: &Connection,
-                $( $pname: & $ptype ),*
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
             ) -> Result<WriteResult, Error> {
-                query_internal(connection, $( , $pname )*)
+                query_internal(connection $( , $pname )* $( , $lname )* )
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -456,9 +460,10 @@ macro_rules! queries {
             #[allow(dead_code)]
             pub $( ( $( $mods )* ) )? async fn query_with_transaction(
                 transaction: Transaction,
-                $( $pname: & $ptype ),*
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
             ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction $( , $pname )*)
+                query_internal_with_transaction(transaction $( , $pname )* $( , $lname )* )
                     .await
                     .context(stringify!(While executing $name query))
             }
