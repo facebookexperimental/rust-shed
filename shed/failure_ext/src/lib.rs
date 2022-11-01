@@ -39,20 +39,16 @@ pub mod prelude {
     //! use failure_ext::prelude::*;
     //! ```
 
-    pub use crate::FutureFailureErrorExt;
-    pub use crate::FutureFailureExt;
-    pub use crate::StreamFailureErrorExt;
-    pub use crate::StreamFailureExt;
+    pub use crate::FutureErrorContext;
+    pub use crate::StreamErrorContext;
 }
 
 #[macro_use]
 mod macros;
 mod context_futures;
 mod context_streams;
-pub use crate::context_futures::FutureFailureErrorExt;
-pub use crate::context_futures::FutureFailureExt;
-pub use crate::context_streams::StreamFailureErrorExt;
-pub use crate::context_streams::StreamFailureExt;
+pub use crate::context_futures::FutureErrorContext;
+pub use crate::context_streams::StreamErrorContext;
 
 /// Shallow wrapper struct around [anyhow::Error] with [std::fmt::Display]
 /// implementation that shows the entire chain of errors

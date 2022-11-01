@@ -7,15 +7,13 @@
  * of this source tree.
  */
 
-use std::error::Error as StdError;
 use std::fmt::Display;
 
-use anyhow::Error;
 use futures::Poll;
 use futures::Stream;
 
-/// "Context" support for streams where the error is an implementation of std::error::Error.
-pub trait StreamFailureExt: Stream + Sized {
+/// "Context" support for streams.
+pub trait StreamErrorContext: Stream + Sized {
     /// Add context to the error returned by this stream
     fn context<D>(self, context: D) -> ContextStream<Self, D>
     where
@@ -28,10 +26,10 @@ pub trait StreamFailureExt: Stream + Sized {
         F: FnMut() -> D;
 }
 
-impl<S> StreamFailureExt for S
+impl<S, E> StreamErrorContext for S
 where
-    S: Stream + Sized,
-    S::Error: StdError + Send + Sync + 'static,
+    S: Stream<Error = E> + Sized,
+    E: Into<anyhow::Error>,
 {
     fn context<D>(self, displayable: D) -> ContextStream<Self, D>
     where
@@ -63,18 +61,18 @@ impl<A, D> ContextStream<A, D> {
     }
 }
 
-impl<A, D> Stream for ContextStream<A, D>
+impl<A, E, D> Stream for ContextStream<A, D>
 where
-    A: Stream,
-    A::Error: StdError + Send + Sync + 'static,
+    A: Stream<Error = E>,
+    E: Into<anyhow::Error>,
     D: Display + Clone + Send + Sync + 'static,
 {
     type Item = A::Item;
-    type Error = Error;
+    type Error = anyhow::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.inner.poll() {
-            Err(err) => Err(Error::new(err).context(self.displayable.clone())),
+            Err(err) => Err(err.into().context(self.displayable.clone())),
             Ok(item) => Ok(item),
         }
     }
@@ -94,119 +92,21 @@ impl<A, F> WithContextStream<A, F> {
     }
 }
 
-impl<A, F, D> Stream for WithContextStream<A, F>
+impl<A, E, F, D> Stream for WithContextStream<A, F>
 where
-    A: Stream,
-    A::Error: StdError + Send + Sync + 'static,
+    A: Stream<Error = E>,
+    E: Into<anyhow::Error>,
     D: Display + Clone + Send + Sync + 'static,
     F: FnMut() -> D,
 {
     type Item = A::Item;
-    type Error = Error;
+    type Error = anyhow::Error;
 
     fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
         match self.inner.poll() {
             Err(err) => {
                 let context = (self.displayable)();
-                Err(Error::new(err).context(context))
-            }
-            Ok(item) => Ok(item),
-        }
-    }
-}
-
-/// "Context" support for streams where the error is an implementation of anyhow::Error.
-pub trait StreamFailureErrorExt: Stream + Sized {
-    /// Add context to the error returned by this stream
-    fn context<D>(self, context: D) -> ContextErrorStream<Self, D>
-    where
-        D: Display + Clone + Send + Sync + 'static;
-
-    /// Add context created by provided function to the error returned by this stream
-    fn with_context<D, F>(self, f: F) -> WithContextErrorStream<Self, F>
-    where
-        D: Display + Clone + Send + Sync + 'static,
-        F: FnMut() -> D;
-}
-
-impl<S> StreamFailureErrorExt for S
-where
-    S: Stream<Error = Error> + Sized,
-{
-    fn context<D>(self, displayable: D) -> ContextErrorStream<Self, D>
-    where
-        D: Display + Clone + Send + Sync + 'static,
-    {
-        ContextErrorStream::new(self, displayable)
-    }
-
-    fn with_context<D, F>(self, f: F) -> WithContextErrorStream<Self, F>
-    where
-        D: Display + Clone + Send + Sync + 'static,
-        F: FnMut() -> D,
-    {
-        WithContextErrorStream::new(self, f)
-    }
-}
-
-pub struct ContextErrorStream<A, D> {
-    inner: A,
-    displayable: D,
-}
-
-impl<A, D> ContextErrorStream<A, D> {
-    fn new(stream: A, displayable: D) -> Self {
-        Self {
-            inner: stream,
-            displayable,
-        }
-    }
-}
-
-impl<A, D> Stream for ContextErrorStream<A, D>
-where
-    A: Stream<Error = Error>,
-    D: Display + Clone + Send + Sync + 'static,
-{
-    type Item = A::Item;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.inner.poll() {
-            Err(err) => Err(err.context(self.displayable.clone())),
-            Ok(item) => Ok(item),
-        }
-    }
-}
-
-pub struct WithContextErrorStream<A, F> {
-    inner: A,
-    displayable: F,
-}
-
-impl<A, F> WithContextErrorStream<A, F> {
-    fn new(stream: A, displayable: F) -> Self {
-        Self {
-            inner: stream,
-            displayable,
-        }
-    }
-}
-
-impl<A, F, D> Stream for WithContextErrorStream<A, F>
-where
-    A: Stream<Error = Error>,
-    D: Display + Clone + Send + Sync + 'static,
-    F: FnMut() -> D,
-{
-    type Item = A::Item;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Option<Self::Item>, Self::Error> {
-        match self.inner.poll() {
-            Err(err) => {
-                let context = (self.displayable)();
-                Err(err.context(context))
+                Err(err.into().context(context))
             }
             Ok(item) => Ok(item),
         }

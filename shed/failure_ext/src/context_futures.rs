@@ -7,131 +7,13 @@
  * of this source tree.
  */
 
-use std::error::Error as StdError;
 use std::fmt::Display;
 
-use anyhow::Error;
 use futures::Future;
 use futures::Poll;
 
-/// "Context" support for futures where the error is anyhow::Error.
-pub trait FutureFailureErrorExt: Future + Sized {
-    /// Add context to the error returned by this future
-    fn context<D>(self, context: D) -> ContextErrorFut<Self, D>
-    where
-        D: Display + Send + Sync + 'static;
-
-    /// Add context created by provided function to the error returned by this future
-    fn with_context<D, F>(self, f: F) -> WithContextErrorFut<Self, F>
-    where
-        D: Display + Send + Sync + 'static,
-        F: FnOnce() -> D;
-}
-
-impl<F> FutureFailureErrorExt for F
-where
-    F: Future<Error = Error> + Sized,
-{
-    fn context<D>(self, displayable: D) -> ContextErrorFut<Self, D>
-    where
-        D: Display + Send + Sync + 'static,
-    {
-        ContextErrorFut::new(self, displayable)
-    }
-
-    fn with_context<D, O>(self, f: O) -> WithContextErrorFut<Self, O>
-    where
-        D: Display + Send + Sync + 'static,
-        O: FnOnce() -> D,
-    {
-        WithContextErrorFut::new(self, f)
-    }
-}
-
-pub struct WithContextErrorFut<A, F> {
-    inner: A,
-    displayable: Option<F>,
-}
-
-impl<A, F, D> WithContextErrorFut<A, F>
-where
-    A: Future<Error = Error>,
-    D: Display + Send + Sync + 'static,
-    F: FnOnce() -> D,
-{
-    pub fn new(future: A, displayable: F) -> Self {
-        Self {
-            inner: future,
-            displayable: Some(displayable),
-        }
-    }
-}
-
-impl<A, F, D> Future for WithContextErrorFut<A, F>
-where
-    A: Future<Error = Error>,
-    D: Display + Send + Sync + 'static,
-    F: FnOnce() -> D,
-{
-    type Item = A::Item;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        match self.inner.poll() {
-            Err(err) => {
-                let f = self
-                    .displayable
-                    .take()
-                    .expect("poll called after future completion");
-
-                let context = f();
-                Err(err.context(context))
-            }
-            Ok(item) => Ok(item),
-        }
-    }
-}
-
-pub struct ContextErrorFut<A, D> {
-    inner: A,
-    displayable: Option<D>,
-}
-
-impl<A, D> ContextErrorFut<A, D>
-where
-    A: Future<Error = Error>,
-    D: Display + Send + Sync + 'static,
-{
-    pub fn new(future: A, displayable: D) -> Self {
-        Self {
-            inner: future,
-            displayable: Some(displayable),
-        }
-    }
-}
-
-impl<A, D> Future for ContextErrorFut<A, D>
-where
-    A: Future<Error = Error>,
-    D: Display + Send + Sync + 'static,
-{
-    type Item = A::Item;
-    type Error = Error;
-
-    fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
-        match self.inner.poll() {
-            Err(err) => Err(err.context(
-                self.displayable
-                    .take()
-                    .expect("poll called after future completion"),
-            )),
-            Ok(item) => Ok(item),
-        }
-    }
-}
-
-/// "Context" support for futures where the error is an implementation of std::error::Error.
-pub trait FutureFailureExt: Future + Sized {
+/// "Context" support for futures.
+pub trait FutureErrorContext: Future + Sized {
     /// Add context to the error returned by this future
     fn context<D>(self, context: D) -> ContextFut<Self, D>
     where
@@ -144,10 +26,10 @@ pub trait FutureFailureExt: Future + Sized {
         F: FnOnce() -> D;
 }
 
-impl<F> FutureFailureExt for F
+impl<F, E> FutureErrorContext for F
 where
-    F: Future + Sized,
-    F::Error: StdError + Send + Sync + 'static,
+    F: Future<Error = E> + Sized,
+    E: Into<anyhow::Error>,
 {
     fn context<D>(self, displayable: D) -> ContextFut<Self, D>
     where
@@ -170,12 +52,7 @@ pub struct ContextFut<A, D> {
     displayable: Option<D>,
 }
 
-impl<A, D> ContextFut<A, D>
-where
-    A: Future,
-    A::Error: StdError + Send + Sync + 'static,
-    D: Display + Send + Sync + 'static,
-{
+impl<A, D> ContextFut<A, D> {
     pub fn new(future: A, displayable: D) -> Self {
         Self {
             inner: future,
@@ -184,18 +61,18 @@ where
     }
 }
 
-impl<A, D> Future for ContextFut<A, D>
+impl<A, E, D> Future for ContextFut<A, D>
 where
-    A: Future,
-    A::Error: StdError + Send + Sync + 'static,
+    A: Future<Error = E>,
+    E: Into<anyhow::Error>,
     D: Display + Send + Sync + 'static,
 {
     type Item = A::Item;
-    type Error = Error;
+    type Error = anyhow::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.inner.poll() {
-            Err(err) => Err(Error::new(err).context(
+            Err(err) => Err(err.into().context(
                 self.displayable
                     .take()
                     .expect("poll called after future completion"),
@@ -210,13 +87,7 @@ pub struct WithContextFut<A, F> {
     displayable: Option<F>,
 }
 
-impl<A, D, F> WithContextFut<A, F>
-where
-    A: Future,
-    A::Error: StdError + Send + Sync + 'static,
-    D: Display + Send + Sync + 'static,
-    F: FnOnce() -> D,
-{
+impl<A, F> WithContextFut<A, F> {
     pub fn new(future: A, displayable: F) -> Self {
         Self {
             inner: future,
@@ -225,15 +96,15 @@ where
     }
 }
 
-impl<A, D, F> Future for WithContextFut<A, F>
+impl<A, E, F, D> Future for WithContextFut<A, F>
 where
-    A: Future,
-    A::Error: StdError + Send + Sync + 'static,
+    A: Future<Error = E>,
+    E: Into<anyhow::Error>,
     D: Display + Send + Sync + 'static,
     F: FnOnce() -> D,
 {
     type Item = A::Item;
-    type Error = Error;
+    type Error = anyhow::Error;
 
     fn poll(&mut self) -> Poll<Self::Item, Self::Error> {
         match self.inner.poll() {
@@ -244,7 +115,7 @@ where
                     .expect("poll called after future completion");
 
                 let context = f();
-                Err(Error::new(err).context(context))
+                Err(err.into().context(context))
             }
             Ok(item) => Ok(item),
         }
