@@ -26,6 +26,7 @@ stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "1.0.36"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
 tokio_shim = { version = "0.1.0", path = "../../tokio_shim" }
+vec1 = { version = "1", features = ["serde"] }
 
 [dev-dependencies]
 sql = { version = "0.1.0", path = ".." }

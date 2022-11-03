@@ -26,6 +26,7 @@ use anyhow::bail;
 use anyhow::format_err;
 use anyhow::Context;
 use anyhow::Error;
+use vec1::Vec1;
 
 // Used in docs
 #[cfg(test)]
@@ -114,35 +115,32 @@ impl From<SqlConnectionsWithSchema> for SqlConnections {
 #[derive(Clone)]
 pub struct SqlShardedConnections {
     /// Write connections to the master for each shard
-    pub write_connections: Vec<Connection>,
+    pub write_connections: Vec1<Connection>,
     /// Read connections for each shard
-    pub read_connections: Vec<Connection>,
+    pub read_connections: Vec1<Connection>,
     /// Read master connections for each shard
-    pub read_master_connections: Vec<Connection>,
+    pub read_master_connections: Vec1<Connection>,
 }
 
-impl SqlShardedConnections {
-    /// Check if the struct is empty.
-    pub fn is_empty(&self) -> bool {
-        self.write_connections.is_empty()
-    }
-}
-
-impl From<Vec<SqlConnections>> for SqlShardedConnections {
-    fn from(shard_connections: Vec<SqlConnections>) -> Self {
-        let mut write_connections = Vec::with_capacity(shard_connections.len());
-        let mut read_connections = Vec::with_capacity(shard_connections.len());
-        let mut read_master_connections = Vec::with_capacity(shard_connections.len());
-        for connections in shard_connections.into_iter() {
+impl From<Vec1<SqlConnections>> for SqlShardedConnections {
+    fn from(shard_connections: Vec1<SqlConnections>) -> Self {
+        let (head, last) = shard_connections.split_off_last();
+        let mut write_connections = Vec::with_capacity(head.len());
+        let mut read_connections = Vec::with_capacity(head.len());
+        let mut read_master_connections = Vec::with_capacity(head.len());
+        for connections in head {
             write_connections.push(connections.write_connection);
             read_connections.push(connections.read_connection);
             read_master_connections.push(connections.read_master_connection);
         }
 
         Self {
-            read_connections,
-            read_master_connections,
-            write_connections,
+            read_connections: Vec1::from_vec_push(read_connections, last.read_connection),
+            read_master_connections: Vec1::from_vec_push(
+                read_master_connections,
+                last.read_master_connection,
+            ),
+            write_connections: Vec1::from_vec_push(write_connections, last.write_connection),
         }
     }
 }
