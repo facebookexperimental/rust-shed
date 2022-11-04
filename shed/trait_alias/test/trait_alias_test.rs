@@ -32,12 +32,24 @@ impl Two for Impl {
     }
 }
 
-fn test(both: &impl Both) {
+#[trait_alias::trait_alias]
+trait GenericFn<T: Both> = Fn() -> T;
+
+fn test_both(both: &impl Both) {
     assert_eq!(both.one(), 1);
     assert_eq!(both.two(), 2);
 }
 
+fn test_generic_fn<B>(generic_fn: impl GenericFn<B>)
+where
+    B: Both,
+{
+    assert_eq!((generic_fn)().one(), 1);
+    assert_eq!((generic_fn)().two(), 2);
+}
+
 #[test]
 fn main() {
-    test(&Impl);
+    test_both(&Impl);
+    test_generic_fn(|| Impl);
 }

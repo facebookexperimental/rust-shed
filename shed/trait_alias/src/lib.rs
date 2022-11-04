@@ -11,11 +11,15 @@
 
 extern crate proc_macro;
 
+use proc_macro2::Ident;
+use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 use syn::Error;
+use syn::GenericParam;
 use syn::ItemTraitAlias;
+use syn::TypeParam;
 
 /// Implement a trait alias using a subtrait and blanket definition.
 ///
@@ -66,9 +70,26 @@ fn gen_trait_alias(trait_alias: ItemTraitAlias) -> Result<TokenStream, Error> {
     let vis = trait_alias.vis;
     let ident = trait_alias.ident;
     let bounds = trait_alias.bounds;
+    let generics = trait_alias.generics;
+
+    // Pick a unique name. Ideally this would use `Span::def_site`, but it isn't stable.
+    let blanket_type_ident = Ident::new("_TraitAliasImplBlanketType", Span::mixed_site());
+    let mut blanket_type_param = TypeParam::from(blanket_type_ident.clone());
+    blanket_type_param.bounds = bounds.clone();
+
+    // Append the blanket type to the end of the generic params of our `impl` block.
+    // We'll implement our alias over that blanket type.
+    let mut generics_with_blanket_type = generics.clone();
+    generics_with_blanket_type
+        .params
+        .push(GenericParam::Type(blanket_type_param));
+
+    // declare all the bits needed by quote
+    let (trait_generics, ty_generics, where_clause) = generics.split_for_impl();
+    let (impl_generics, _, _) = generics_with_blanket_type.split_for_impl();
 
     Ok(quote! {
-        #vis trait #ident : #bounds {}
-        impl<T> #ident for T where T: #bounds {}
+        #vis trait #ident #trait_generics : #bounds #where_clause {}
+        impl #impl_generics #ident #ty_generics for #blanket_type_ident #where_clause {}
     })
 }
