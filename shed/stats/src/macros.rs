@@ -39,9 +39,10 @@ pub mod common_macro_prelude {
     pub use crate::thread_local_aggregator::create_map;
 }
 
-/// The macro to define STATS module that contains static variables, one per counter you want to
-/// export. This is the main and recomended way to interact with statistics provided by this crate.
-/// If non empty prefix is passed then the exported counter name will be "{prefix}.{name}"
+/// The macro to define STATS module that contains static variables, one per
+/// counter you want to export. This is the main and recommended way to interact
+/// with statistics provided by this crate. If non empty prefix is passed then
+/// the exported counter name will be "{prefix}.{name}"
 ///
 /// Examples:
 /// ```
@@ -91,6 +92,70 @@ pub mod common_macro_prelude {
 ///     ALT_STATS::test_t2.add_value(1);
 /// }
 /// ```
+///
+/// # Reference
+///
+/// ## `singleton_counter`, `counter`
+/// Raw counter types. These take an optional key parameter - if it is not
+/// specified, then it's derived from the stat field name.
+///
+/// These are deprecated in favor of `timeseries`.
+///
+/// # `timeseries`
+/// The general syntax for `timeseries` is:
+/// ```text
+/// timeseries(<optional key>; <list of aggregations>; [optional intervals])
+/// ```
+///
+/// If "optional key" is omitted then key is derived from the stat key name;
+/// otherwise it's a string literal.
+///
+/// "List of aggregations" is a slice of
+/// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
+/// values.
+///
+/// "Optional intervals" is a slice of [`Duration`s](std::time::Duration). It
+/// specifies over what time periods the aggregations aggregate. If not
+/// specified, it typically defaults to 60 seconds.
+///
+/// This maps to a call to
+/// [`StatsManager::create_timeseries`](stats_traits::stats_manager::StatsManager::create_histogram).
+///
+/// # `histogram`
+/// The general syntax for `histogram` is:
+/// ```text
+/// histogram(<optional key>; bucket-width, min, max, <list of aggregations>; <P XX percentiles>)
+/// ```
+/// If "optional key" is omitted then key is derived from the stat key name;
+/// otherwise it's a string literal.
+///
+/// `bucket-width` specifies what range of values are accumulated into each
+/// bucket; the larger it is the fewer buckets there are.
+///
+/// `min` and `max` specify the min and max of the expected range of samples.
+/// Samples outside this range will be aggregated into out-of-range buckets,
+/// which means they're not lost entirely but they lead to inaccurate stats.
+///
+/// Together the min, max and bucket width parameters determine how many buckets
+/// are created.
+///
+/// "List of aggregations" is a slice of
+/// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
+/// values.
+///
+/// Percentiles are specified as `P NN` in a `;`-separated list, such as `P 20;
+/// P 50; P 90; P 99`...
+///
+/// This maps to a call to
+/// [`StatsManager::create_histogram`](stats_traits::stats_manager::StatsManager::create_histogram).
+///
+/// # `dynamic_counter`, `dynamic_timeseries`, `dynamic_histogram`
+///
+/// These are equivalent to the corresponding `counter`/`timeseries`/`histogram`
+/// above, except that they allow the key to have a dynamic component. The key
+/// is no longer optional, but is instead specified with `<format-string>,
+/// (variable:type, ...)`. The format string is standard
+/// [`format!`](std::format).
 #[macro_export]
 macro_rules! define_stats {
     // Fill the optional prefix with empty string, all matching is repeated here to avoid the
