@@ -125,14 +125,14 @@ pub struct SqlShardedConnections {
 impl From<Vec1<SqlConnections>> for SqlShardedConnections {
     fn from(shard_connections: Vec1<SqlConnections>) -> Self {
         let (head, last) = shard_connections.split_off_last();
-        let mut write_connections = Vec::with_capacity(head.len());
-        let mut read_connections = Vec::with_capacity(head.len());
-        let mut read_master_connections = Vec::with_capacity(head.len());
-        for connections in head {
-            write_connections.push(connections.write_connection);
-            read_connections.push(connections.read_connection);
-            read_master_connections.push(connections.read_master_connection);
-        }
+        let (write_connections, read_connections, read_master_connections) =
+            itertools::multiunzip(head.into_iter().map(|conn| {
+                (
+                    conn.write_connection,
+                    conn.read_connection,
+                    conn.read_master_connection,
+                )
+            }));
 
         Self {
             read_connections: Vec1::from_vec_push(read_connections, last.read_connection),
