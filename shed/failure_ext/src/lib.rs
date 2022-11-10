@@ -7,7 +7,6 @@
  * of this source tree.
  */
 
-#![cfg_attr(fbcode_build, feature(backtrace))]
 #![cfg_attr(fbcode_build, feature(error_generic_member_access))]
 #![cfg_attr(fbcode_build, feature(provide_any))]
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
