@@ -142,7 +142,7 @@ impl Config {
             create_dir_all(&partial_dir)?;
 
             for (name, file) in &input {
-                let out = partial_dir.join(&name);
+                let out = partial_dir.join(name);
                 create_dir_all(&out)?;
                 self.run_compiler(thrift_bin.as_os_str(), &out, file)?;
                 rename(out.join("lib.rs"), out.join("mod.rs"))?;

@@ -95,7 +95,7 @@ macro_rules! err_downcast {
     }};
 }
 
-#[allow(clippy::blacklisted_name)]
+#[allow(clippy::disallowed_names)]
 #[cfg(test)]
 mod test {
     use anyhow::Error;
