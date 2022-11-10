@@ -7,6 +7,8 @@
  * of this source tree.
  */
 
+#![feature(trait_alias)]
+
 trait One {
     fn one(&self) -> u32;
 }
