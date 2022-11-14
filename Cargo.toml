@@ -84,5 +84,4 @@ members = [
   "shed/time_ext",
   "shed/tokio-uds-compat",
   "shed/tokio_shim",
-  "shed/trait_alias",
 ]
