@@ -7,7 +7,7 @@
  * of this source tree.
  */
 
-#![deny(warnings, clippy::all)]
+#![cfg_attr(fbcode_build, deny(warnings, clippy::all))]
 
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
