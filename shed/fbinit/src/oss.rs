@@ -117,6 +117,11 @@ pub const unsafe fn perform_init() -> FacebookInit {
     assume_init()
 }
 
+/// Returns if facebookInit has been performed.
+pub fn was_performed() -> bool {
+    false
+}
+
 // Not public API. These are used by the attribute macros.
 // The non fbcode_build version is not performing any Facebook
 // initializations.

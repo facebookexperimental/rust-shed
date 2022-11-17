@@ -9,6 +9,30 @@
 
 use fbinit::FacebookInit;
 
+#[cfg(fbcode_build)]
+#[fbinit::test]
+fn test_was_performed_success() {
+    assert!(fbinit::was_performed())
+}
+
+#[cfg(fbcode_build)]
+#[test]
+fn test_was_performed_false() {
+    assert!(!fbinit::was_performed())
+}
+
+#[cfg(not(fbcode_build))]
+#[fbinit::test]
+fn test_was_performed_oss_false_with_proof() {
+    assert!(!fbinit::was_performed())
+}
+
+#[cfg(not(fbcode_build))]
+#[test]
+fn test_was_performed_false_regardless() {
+    assert!(!fbinit::was_performed())
+}
+
 #[fbinit::test]
 fn test_without_proof() {}
 
