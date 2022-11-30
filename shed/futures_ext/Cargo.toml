@@ -21,4 +21,4 @@ tokio_shim = { version = "0.1.0", path = "../tokio_shim" }
 [dev-dependencies]
 assert_matches = "1.5"
 async-stream = "0.3"
-tokio = { version = "0.2.25", features = ["full", "test-util"] }
+tokio = { version = "1.21.2", features = ["full", "test-util", "tracing"] }

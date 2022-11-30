@@ -23,4 +23,4 @@ fbinit_macros = { version = "0.1.2", path = "fbinit_macros" }
 quickcheck = "1.0"
 
 [dev-dependencies]
-fbinit-tokio-02 = { version = "0.1.2", path = "fbinit-tokio-02" }
+fbinit-tokio = { version = "0.1.2", path = "fbinit-tokio" }

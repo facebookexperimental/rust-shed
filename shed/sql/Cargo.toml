@@ -22,6 +22,6 @@ sql_common = { version = "0.1.0", path = "common" }
 
 [dev-dependencies]
 fbinit = { version = "0.1.2", path = "../fbinit" }
-fbinit-tokio-02 = { version = "0.1.2", path = "../fbinit/fbinit-tokio-02" }
+fbinit-tokio = { version = "0.1.2", path = "../fbinit/fbinit-tokio" }
 sql_tests_lib = { version = "0.1.0", path = "tests_lib" }
-tokio = { version = "0.2.25", features = ["full", "test-util"] }
+tokio = { version = "1.21.2", features = ["full", "test-util", "tracing"] }
