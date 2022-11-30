@@ -40,7 +40,6 @@ members = [
   "shed/failure_ext",
   "shed/fbinit",
   "shed/fbinit/fbinit-tokio",
-  "shed/fbinit/fbinit-tokio-02",
   "shed/fbinit/fbinit_macros",
   "shed/fbthrift_ext/framed",
   "shed/fbthrift_ext/socket",
