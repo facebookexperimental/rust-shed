@@ -76,6 +76,10 @@ pub trait Histogram {
             self.add_value(value);
         }
     }
+
+    /// Flush any buffered data so that it is observable externally. Should only
+    /// be used for testing.
+    fn flush(&self) {}
 }
 
 mod localkey_impls {
