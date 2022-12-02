@@ -11,6 +11,7 @@ use std::time::Duration;
 
 use auto_impl::auto_impl;
 
+use crate::stat_types::BoxHistogram;
 use crate::stat_types::BoxLocalCounter;
 use crate::stat_types::BoxLocalHistogram;
 use crate::stat_types::BoxLocalTimeseries;
@@ -80,4 +81,24 @@ pub trait StatsManager {
         conf: BucketConfig,
         percentiles: &[u8],
     ) -> BoxLocalHistogram;
+
+    /// Create new instance of `QuantileStat` and bind it to self for
+    /// aggregation purposes.
+    /// Provided name is the name of the QuantileStat.
+    /// [AggregationType] decides which types of aggregation are exported by
+    /// the returned timeseries. The actual implementation is free to assume
+    /// some defaults if `aggregation_type` is empty.
+    /// The `percentiles` provides a list of percentiles for the aggregation
+    /// aggregated, the actual implementation is free (and encouraged to) assume
+    /// some defaults if `intervals` is empty.
+    /// The `intervals` provides a list of intervals at which data should be
+    /// aggregated, the actual implementation is free (and encouraged) to assume
+    /// some defaults if `intervals` is empty.
+    fn create_quantile_stat(
+        &self,
+        name: &str,
+        aggregation_types: &[AggregationType],
+        percentiles: &[u8],
+        intervals: &[Duration],
+    ) -> BoxHistogram;
 }

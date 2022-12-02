@@ -171,6 +171,7 @@ macro_rules! define_stats {
 
             lazy_static! {
                 static ref STATS_MAP: Arc<ThreadMap<BoxStatsManager>> = create_map();
+                static ref STATS_MANAGER: BoxStatsManager = create_stats_manager();
             }
 
             thread_local! {
@@ -281,6 +282,35 @@ macro_rules! __define_stat {
             });
         }
     );
+
+    ($prefix:expr;
+        $name:ident: quantile_stat(
+            $( $aggregation_type:expr ),*
+            ; $( P $percentile:expr ),*
+            ; $( $interval:expr ),*
+        )) => (
+            $crate::__define_stat!($prefix;
+                 $name: quantile_stat(stringify!($name)
+                                     ; $( $aggregation_type ),*
+                                     ; $( P $percentile ),*
+                                     ; $( $interval ),*));
+       );
+
+    ($prefix:expr;
+        $name:ident: quantile_stat($key:expr
+            ; $( $aggregation_type:expr ),*
+            ; $( P $percentile:expr ),*
+            ; $( $interval:expr ),*
+        )) => (
+               lazy_static! {
+                   pub static ref $name: BoxHistogram = STATS_MANAGER.create_quantile_stat(
+                           &$crate::__create_stat_key!($prefix, $key),
+                           &[$( $aggregation_type ),*],
+                           &[$( $percentile ),*],
+                           &[$( $interval ),*],
+                   );
+               }
+       );
 
     ($prefix:expr;
      $name:ident: dynamic_singleton_counter($key:expr, ($( $placeholder:ident: $type:ty ),+))) => (

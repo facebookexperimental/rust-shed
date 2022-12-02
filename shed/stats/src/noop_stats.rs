@@ -10,6 +10,7 @@
 use std::time::Duration;
 
 use fbinit::FacebookInit;
+use stats_traits::stat_types::BoxHistogram;
 use stats_traits::stat_types::BoxLocalCounter;
 use stats_traits::stat_types::BoxLocalHistogram;
 use stats_traits::stat_types::BoxLocalTimeseries;
@@ -56,6 +57,16 @@ impl StatsManager for Noop {
         _conf: BucketConfig,
         _percentiles: &[u8],
     ) -> BoxLocalHistogram {
+        Box::new(Noop)
+    }
+
+    fn create_quantile_stat(
+        &self,
+        _name: &str,
+        _aggregation_types: &[AggregationType],
+        _percentiles: &[u8],
+        _intervals: &[Duration],
+    ) -> BoxHistogram {
         Box::new(Noop)
     }
 }
