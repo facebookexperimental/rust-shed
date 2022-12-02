@@ -65,11 +65,17 @@ pub trait Histogram {
     fn add_value(&self, value: i64);
 
     /// You might want to call this method when you have a very hot counter to avoid some
-    /// congestions on it.
+    /// congestions on it. The default implementation simply calls add_value O(nsamples) times.
+    /// If you have a performance-sensitive use case, check whether your Stats type has an O(1)
+    /// implementation.
     /// Value is the value of a single samples and nsamples is the number of samples.
     /// Please notice that difference in the value semantic compared to
     /// `Timeseries::add_value_aggregated`.
-    fn add_repeated_value(&self, value: i64, nsamples: u32);
+    fn add_repeated_value(&self, value: i64, nsamples: u32) {
+        for _ in 0..nsamples {
+            self.add_value(value);
+        }
+    }
 }
 
 mod localkey_impls {
@@ -118,3 +124,31 @@ mod localkey_impls {
     }
 }
 pub use localkey_impls::*;
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_add_repeated_value() {
+        // Arrange
+        struct DummyHistogram {
+            n_added: std::sync::atomic::AtomicU32,
+        }
+
+        impl Histogram for DummyHistogram {
+            fn add_value(&self, _value: i64) {
+                self.n_added
+                    .fetch_add(1, std::sync::atomic::Ordering::AcqRel);
+            }
+        }
+        let dummy_histogram = DummyHistogram {
+            n_added: std::sync::atomic::AtomicU32::new(0),
+        };
+        let n_to_add: u32 = 3;
+        // Act
+        dummy_histogram.add_repeated_value(0, n_to_add);
+        // Assert
+        assert_eq!(dummy_histogram.n_added.into_inner(), n_to_add);
+    }
+}
