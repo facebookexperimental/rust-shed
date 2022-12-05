@@ -20,6 +20,7 @@ pub mod common_macro_prelude {
     pub use perthread::PerThread;
     pub use perthread::ThreadMap;
     pub use stats_traits::dynamic_stat_types::DynamicStat;
+    pub use stats_traits::dynamic_stat_types::DynamicStatSync;
     pub use stats_traits::field_stat_types::FieldStat;
     pub use stats_traits::field_stat_types::FieldStatThreadLocal;
     pub use stats_traits::stat_types::BoxCounter;
@@ -408,6 +409,28 @@ macro_rules! __define_stat {
             };
         }
     );
+
+    ($prefix:expr;
+     $name:ident: dynamic_quantile_stat($key:expr, ($( $placeholder:ident: $type:ty ),+) ;
+                                        $( $aggregation_type:expr ),* ;
+                                        $( P $percentile:expr ),* ;
+                                        $( $interval:expr ),*)) => (
+                pub static $name: Lazy<DynamicStatSync<($( $type, )+), BoxHistogram>> = Lazy::new(|| {
+                    $crate::__define_key_generator!(
+                        __key_generator($prefix, $key; $( $placeholder: $type ),+)
+                    );
+
+                    fn __stat_generator(key: &str) -> BoxHistogram {
+                        STATS_MANAGER.create_quantile_stat(
+                            key,
+                            &[$( $aggregation_type ),*],
+                            &[$( $percentile ),*],
+                            &[$( $interval ),*],
+                        )
+                    }
+                    DynamicStatSync::new(__key_generator, __stat_generator)
+                });
+       );
 }
 
 #[doc(hidden)]

@@ -17,8 +17,11 @@ use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::thread::LocalKey;
 
+use dashmap::mapref::entry::Entry as DashEntry;
+use dashmap::DashMap;
 use fbinit::FacebookInit;
 
+use crate::stat_types::BoxHistogram;
 use crate::stat_types::BoxLocalCounter;
 use crate::stat_types::BoxLocalHistogram;
 use crate::stat_types::BoxLocalTimeseries;
@@ -56,6 +59,38 @@ impl<T, TStatType> DynamicStat<T, TStatType> {
             Entry::Vacant(vac) => {
                 let stat = (self.stat_generator)(vac.key());
                 cb(vac.insert(stat))
+            }
+        }
+    }
+}
+
+/// The struct to hold key and stat generators that are later being used in runtime to create new
+/// stats that are being held in a map to avoid reconstruction of the same counter.
+pub struct DynamicStatSync<T, TStatType> {
+    map: DashMap<String, TStatType>,
+    key_generator: fn(&T) -> String,
+    stat_generator: fn(&str) -> TStatType,
+}
+
+impl<T, TStatType> DynamicStatSync<T, TStatType> {
+    pub fn new(key_generator: fn(&T) -> String, stat_generator: fn(&str) -> TStatType) -> Self {
+        Self {
+            map: DashMap::new(),
+            key_generator,
+            stat_generator,
+        }
+    }
+
+    fn get_or_default<F, V>(&self, args: T, cb: F) -> V
+    where
+        F: FnOnce(&TStatType) -> V,
+    {
+        let key = (self.key_generator)(&args);
+        match self.map.entry(key) {
+            DashEntry::Occupied(occ) => cb(occ.get()),
+            DashEntry::Vacant(vac) => {
+                let stat = (self.stat_generator)(vac.key());
+                cb(&vac.insert(stat))
             }
         }
     }
@@ -118,6 +153,9 @@ pub trait DynamicHistogram<'a, T> {
 
     /// Dynamic version of `Histogram::add_repeated_value`
     fn add_repeated_value(&'a self, value: i64, nsamples: u32, args: T);
+
+    /// Flush values for testing
+    fn flush(&self) {}
 }
 
 impl<'a, T> DynamicHistogram<'a, T> for DynamicStat<T, BoxLocalHistogram> {
@@ -127,6 +165,22 @@ impl<'a, T> DynamicHistogram<'a, T> for DynamicStat<T, BoxLocalHistogram> {
 
     fn add_repeated_value(&'a self, value: i64, nsamples: u32, args: T) {
         self.get_or_default(args, |s| s.add_repeated_value(value, nsamples));
+    }
+}
+
+impl<'a, T> DynamicHistogram<'a, T> for DynamicStatSync<T, BoxHistogram> {
+    fn add_value(&'a self, value: i64, args: T) {
+        self.get_or_default(args, |s| s.add_value(value));
+    }
+
+    fn add_repeated_value(&'a self, value: i64, nsamples: u32, args: T) {
+        self.get_or_default(args, |s| s.add_repeated_value(value, nsamples));
+    }
+
+    fn flush(&self) {
+        for item in self.map.iter() {
+            item.value().flush();
+        }
     }
 }
 
