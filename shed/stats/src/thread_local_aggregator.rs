@@ -32,15 +32,14 @@ use futures::future::ready;
 use futures::FutureExt as _;
 use futures::Stream as NewStream;
 use futures::StreamExt as _;
-use lazy_static::lazy_static;
+use once_cell::sync::Lazy;
 use perthread::ThreadMap;
 use stats_traits::stats_manager::BoxStatsManager;
 use stats_traits::stats_manager::StatsManager;
 
-lazy_static! {
-    static ref STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);
-    static ref STATS_AGGREGATOR: StatsAggregator = StatsAggregator(Mutex::new(Vec::new()));
-}
+static STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);
+static STATS_AGGREGATOR: Lazy<StatsAggregator> =
+    Lazy::new(|| StatsAggregator(Mutex::new(Vec::new())));
 
 type SchedulerPreview = std::pin::Pin<Box<dyn NewFuture<Output = ()> + Send>>;
 
@@ -129,10 +128,8 @@ where
 mod tests {
     use super::*;
 
-    lazy_static! {
-        // Those tests work on global state so they cannot be run in parallel
-        static ref TEST_MUTEX: Mutex<()> = Mutex::new(());
-    }
+    // Those tests work on global state so they cannot be run in parallel
+    static TEST_MUTEX: Mutex<()> = Mutex::new(());
 
     #[tokio::test]
     async fn test_schedule_stats_aggregation_preview() {

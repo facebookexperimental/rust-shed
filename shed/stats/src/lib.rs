@@ -45,17 +45,14 @@ pub mod prelude {
 
 use std::sync::RwLock;
 
-use lazy_static::lazy_static;
 use stats_traits::stat_types::BoxSingletonCounter;
 use stats_traits::stats_manager::BoxStatsManager;
 use stats_traits::stats_manager::StatsManagerFactory;
 
 pub use self::thread_local_aggregator::schedule_stats_aggregation_preview;
 
-lazy_static! {
-    static ref STATS_MANAGER_FACTORY: RwLock<Option<Box<dyn StatsManagerFactory + Send + Sync>>> =
-        RwLock::new(None);
-}
+static STATS_MANAGER_FACTORY: RwLock<Option<Box<dyn StatsManagerFactory + Send + Sync>>> =
+    RwLock::new(None);
 
 /// This function must be called exactly once before accessing any of the stats,
 /// otherwise it will panic.

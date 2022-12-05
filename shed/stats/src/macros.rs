@@ -16,7 +16,7 @@ pub mod common_macro_prelude {
     pub use std::sync::Arc;
     pub use std::time::Duration;
 
-    pub use lazy_static::lazy_static;
+    pub use once_cell::sync::Lazy;
     pub use perthread::PerThread;
     pub use perthread::ThreadMap;
     pub use stats_traits::dynamic_stat_types::DynamicStat;
@@ -169,10 +169,8 @@ macro_rules! define_stats {
         pub(crate) mod STATS {
             use $crate::macros::common_macro_prelude::*;
 
-            lazy_static! {
-                static ref STATS_MAP: Arc<ThreadMap<BoxStatsManager>> = create_map();
-                static ref STATS_MANAGER: BoxStatsManager = create_stats_manager();
-            }
+            static STATS_MAP: Lazy<Arc<ThreadMap<BoxStatsManager>>> = Lazy::new(|| create_map());
+            static STATS_MANAGER: Lazy<BoxStatsManager> = Lazy::new(|| create_stats_manager());
 
             thread_local! {
                 static TL_STATS: PerThread<BoxStatsManager> =
@@ -207,9 +205,7 @@ macro_rules! __define_stat {
     );
 
     ($prefix:expr; $name:ident: singleton_counter($key:expr)) => (
-        lazy_static! {
-            pub static ref $name: BoxSingletonCounter = create_singleton_counter($crate::__create_stat_key!($prefix, $key).to_string());
-        }
+        pub static $name: Lazy<BoxSingletonCounter> = Lazy::new(|| create_singleton_counter($crate::__create_stat_key!($prefix, $key).to_string()));
     );
 
     ($prefix:expr; $name:ident: counter()) => (
@@ -302,14 +298,15 @@ macro_rules! __define_stat {
             ; $( P $percentile:expr ),*
             ; $( $interval:expr ),*
         )) => (
-               lazy_static! {
-                   pub static ref $name: BoxHistogram = STATS_MANAGER.create_quantile_stat(
-                           &$crate::__create_stat_key!($prefix, $key),
-                           &[$( $aggregation_type ),*],
-                           &[$( $percentile ),*],
-                           &[$( $interval ),*],
-                   );
-               }
+                pub static $name: Lazy<BoxHistogram> = Lazy::new(|| {
+                    STATS_MANAGER.create_quantile_stat(
+                        &$crate::__create_stat_key!($prefix, $key),
+                        &[$( $aggregation_type ),*],
+                        &[$( $percentile ),*],
+                        &[$( $interval ),*],
+                    )
+                });
+
        );
 
     ($prefix:expr;
@@ -489,9 +486,8 @@ macro_rules! define_stats_struct {
             pub fn new($($pr_name: $pr_type),*) -> $name {
                 use $crate::macros::common_macro_prelude::*;
 
-                lazy_static! {
-                    static ref STATS_MAP: Arc<ThreadMap<BoxStatsManager>> = create_map();
-                }
+
+                static STATS_MAP: Lazy<Arc<ThreadMap<BoxStatsManager>>> = Lazy::new(|| create_map());
 
                 thread_local! {
                     static TL_STATS: PerThread<BoxStatsManager> =
