@@ -13,6 +13,7 @@
 //! statically checked.
 
 use std::cell::RefCell;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::thread::LocalKey;
 
@@ -48,12 +49,15 @@ impl<T, TStatType> DynamicStat<T, TStatType> {
     where
         F: FnOnce(&TStatType) -> V,
     {
-        // The HashMap::entry requires to pass the key by value, so we can't create the string
-        // once and pass it to entry and later to the closure. That is why we are creating the
-        // key twice if there is no entry for it already.
+        let key = (self.key_generator)(&args);
         let mut map = self.map.borrow_mut();
-        let entry = map.entry((self.key_generator)(&args));
-        cb(entry.or_insert_with(|| (self.stat_generator)(&(self.key_generator)(&args))))
+        match map.entry(key) {
+            Entry::Occupied(occ) => cb(occ.get()),
+            Entry::Vacant(vac) => {
+                let stat = (self.stat_generator)(vac.key());
+                cb(vac.insert(stat))
+            }
+        }
     }
 }
 
