@@ -62,6 +62,9 @@ pub mod common_macro_prelude {
 ///     dtest_t: dynamic_timeseries("test_t.{}", (region: &'static str); Rate, Sum),
 ///     dtest_t2: dynamic_timeseries("test_t.two.{}.{}", (job: u64, region: &'static str); Count),
 ///     dtest_h: dynamic_histogram("test_h.{}", (region: &'static str); 1, 0, 1000, Sum; P 99),
+///     test_qs: quantile_stat("test_qs"; Count, Sum, Average; P 95, P 99; Duration::from_secs(60)),
+///     test_qs_two: quantile_stat(Count, Sum, Average; P 95; Duration::from_secs(60)),
+///     test_dynqs: dynamic_quantile_stat("test_dynqs_{}", (num: i32); Count, Sum, Average; P 95, P 99; Duration::from_secs(60)),
 /// }
 ///
 /// #[allow(non_snake_case)]
@@ -111,11 +114,11 @@ pub mod common_macro_prelude {
 /// If "optional key" is omitted then key is derived from the stat key name;
 /// otherwise it's a string literal.
 ///
-/// "List of aggregations" is a slice of
+/// "List of aggregations" is a `,`-separated list of
 /// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
 /// values.
 ///
-/// "Optional intervals" is a slice of [`Duration`s](std::time::Duration). It
+/// "Optional intervals" is a `,`-separated list of [`Duration`s](std::time::Duration). It
 /// specifies over what time periods the aggregations aggregate. If not
 /// specified, it typically defaults to 60 seconds.
 ///
@@ -140,7 +143,7 @@ pub mod common_macro_prelude {
 /// Together the min, max and bucket width parameters determine how many buckets
 /// are created.
 ///
-/// "List of aggregations" is a slice of
+/// "List of aggregations" is a `,`-separated list of
 /// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
 /// values.
 ///
@@ -150,9 +153,32 @@ pub mod common_macro_prelude {
 /// This maps to a call to
 /// [`StatsManager::create_histogram`](stats_traits::stats_manager::StatsManager::create_histogram).
 ///
-/// # `dynamic_counter`, `dynamic_timeseries`, `dynamic_histogram`
+///  # `quantile_stat`
+/// The general syntax for `quantile_stat` is:
+/// ```text
+/// quantile_stat(<optional key>; <list of aggregations>; <P XX percentiles>; <list of intervals>)
+/// ```
 ///
-/// These are equivalent to the corresponding `counter`/`timeseries`/`histogram`
+/// "List of aggregations" is a `,`-separated list of
+/// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
+/// values.
+///
+/// Percentiles are specified as `P NN` in a `,`-separated list, such as `P 20,
+/// P 50, P 90, P 99`...
+///
+/// "List of intervals" is a `,`-separated list of [`Duration`s](std::time::Duration). It
+/// specifies over what time periods the aggregations aggregate.
+///
+/// `quantile_stat` measures the same statistics as `histogram`, but it
+/// doesn't require buckets to be defined ahead of time. See [this workplace post](https://fb.workplace.com/notes/marc-celani/a-new-approach-to-quantile-estimation-in-c-services/212892662822481)
+/// for more.
+///
+///  This maps to a call to
+/// [`StatsManager::create_quantile_stat`](stats_traits::stats_manager::StatsManager::create_quantile_stat).
+///
+/// # `dynamic_counter`, `dynamic_timeseries`, `dynamic_histogram`, `dynamic_quantile_stat`
+///
+/// These are equivalent to the corresponding `counter`/`timeseries`/`histogram`/`quantile_stat`
 /// above, except that they allow the key to have a dynamic component. The key
 /// is no longer optional, but is instead specified with `<format-string>,
 /// (variable:type, ...)`. The format string is standard
