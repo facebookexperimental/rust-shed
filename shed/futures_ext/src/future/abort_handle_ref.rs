@@ -63,7 +63,7 @@ mod tests {
     use super::*;
 
     fn handle_and_counting_receiver() -> (ControlledHandle, mpsc::Receiver<u64>) {
-        let (mut tx, rx) = mpsc::channel(1);
+        let (tx, rx) = mpsc::channel(1);
         let handle = spawn_controlled(async move {
             let mut x: u64 = 0;
             loop {
