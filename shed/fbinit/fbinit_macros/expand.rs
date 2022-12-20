@@ -136,19 +136,19 @@ pub fn expand(
         DisableFatalSignals::Default(_) => {
             // 8002 is 1 << 15 (SIGTERM) | 1 << 2 (SIGINT)
             quote! {
-                fbinit::r#impl::perform_init_with_disable_signals(0x8002)
+                fbinit::internal::perform_init_with_disable_signals(0x8002)
             }
         }
         DisableFatalSignals::All(_) => {
             // ffff is a mask of all 1's
             quote! {
-                fbinit::r#impl::perform_init_with_disable_signals(0xffff)
+                fbinit::internal::perform_init_with_disable_signals(0xffff)
             }
         }
         DisableFatalSignals::SigtermOnly(_) => {
             // 8000 is 1 << 15 (SIGTERM)
             quote! {
-                fbinit::r#impl::perform_init_with_disable_signals(0x8000)
+                fbinit::internal::perform_init_with_disable_signals(0x8000)
             }
         }
         DisableFatalSignals::None(_) => {
@@ -163,7 +163,7 @@ pub fn expand(
         #assignment unsafe {
             #perform_init
         };
-        let destroy_guard = unsafe { fbinit::r#impl::DestroyGuard::new() };
+        let destroy_guard = unsafe { fbinit::internal::DestroyGuard::new() };
         #body
     });
 

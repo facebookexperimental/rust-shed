@@ -126,7 +126,7 @@ pub fn was_performed() -> bool {
 // The non fbcode_build version is not performing any Facebook
 // initializations.
 #[doc(hidden)]
-pub mod r#impl {
+pub mod internal {
     use crate::FacebookInit;
 
     pub const unsafe fn perform_init_with_disable_signals(_: u64) -> FacebookInit {
