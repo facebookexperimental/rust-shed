@@ -16,5 +16,5 @@ path = "lib.rs"
 
 [dependencies]
 auto_impl = "0.4"
-dashmap = { version = "5.4", features = ["rayon", "serde"] }
+dashmap = { version = "5.4", features = ["raw-api", "rayon", "serde"] }
 fbinit = { version = "0.1.2", path = "../../fbinit" }
