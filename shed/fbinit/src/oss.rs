@@ -84,7 +84,7 @@ pub const unsafe fn assume_init() -> FacebookInit {
 /// This call always panics for non fbcode builds. For fbcode builds it panics
 /// if `perform_init` was not called before.
 pub fn expect_init() -> FacebookInit {
-    panic!("fbinit::expect_init was called, but this is not an fbcode build!");
+    crate::hacks::expect()
 }
 
 impl Debug for FacebookInit {
@@ -120,6 +120,47 @@ pub const unsafe fn perform_init() -> FacebookInit {
 /// Returns if facebookInit has been performed.
 pub fn was_performed() -> bool {
     false
+}
+
+#[doc(hidden)]
+pub mod hacks {
+    use crate::FacebookInit;
+
+    /// FacebookInitError represent an error returned by faillible ways to get fbinit
+    #[derive(Debug)]
+    pub struct FacebookInitError(String);
+    impl std::fmt::Display for FacebookInitError {
+        fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(f)
+        }
+    }
+
+    /// Produces proof that initFacebook has been called, or panics otherwise.
+    /// This should NOT be preferred to compile time checks when you need fbinit. Please use the
+    /// `fbinit::main` | `fbinit::test` macros instead.
+    /// <https://fburl.com/wiki/xnx9qlcm>
+    pub fn expect() -> FacebookInit {
+        try_get().expect("fbinit::hacks::expect needs initFacebook to be performed")
+    }
+
+    /// Produces proof that initFacebook has been called if it has been, or returns an Err
+    /// This should NOT be preferred to compile time checks when you need fbinit. Please use the
+    /// `fbinit::main` | `fbinit::test` macros instead.
+    /// <https://fburl.com/wiki/xnx9qlcm>
+    pub fn try_get() -> Result<FacebookInit, FacebookInitError> {
+        Err(FacebookInitError(
+            "this is not an fbcode build !".to_owned(),
+        ))
+    }
+
+    /// Produces proof that initFacebook has been called if it has been, or returns None
+    /// Always returns None is OSS builds.
+    /// This should NOT be preferred to compile time checks when you need fbinit. Please use the
+    /// `fbinit::main` | `fbinit::test` macros instead.
+    /// <https://fburl.com/wiki/xnx9qlcm>
+    pub fn get() -> Option<FacebookInit> {
+        None
+    }
 }
 
 // Not public API. These are used by the attribute macros.

@@ -44,38 +44,38 @@ fn test_with_proof(fb: FacebookInit) {
 /// This can work only on fbcode builds as only then the proof can be asserted
 #[cfg(fbcode_build)]
 #[fbinit::test]
-fn test_expect_init() {
-    fbinit::expect_init();
+fn test_hacks_expect() {
+    fbinit::hacks::expect();
 }
 
 /// Also works with disable_fatal_signals set
 #[cfg(fbcode_build)]
 #[fbinit::test(disable_fatal_signals = sigterm_only)]
-fn test_expect_init_with_disable_signals() {
-    fbinit::expect_init();
+fn test_hacks_expect_with_disable_signals() {
+    fbinit::hacks::expect();
 }
 
 /// On non-fbcode builds asserting the proof will always panic, even in fbinit::test
 #[cfg(not(fbcode_build))]
 #[fbinit::test]
 #[should_panic]
-fn test_expect_init() {
-    fbinit::expect_init();
+fn test_hacks_expect() {
+    fbinit::hacks::expect();
 }
 
 #[test]
 #[should_panic]
-fn test_expect_init_panics() {
-    fbinit::expect_init();
+fn test_hacks_expect_panics() {
+    fbinit::hacks::expect();
 }
 
 /// This can work only on fbcode builds as only then the proof can be asserted
 #[cfg(fbcode_build)]
 #[fbinit::test]
-fn test_main_expect_init() {
+fn test_main_hacks_expect() {
     #[fbinit::main]
     fn main() {
-        fbinit::expect_init();
+        fbinit::hacks::expect();
     }
 
     main();
@@ -85,10 +85,10 @@ fn test_main_expect_init() {
 #[cfg(not(fbcode_build))]
 #[fbinit::test]
 #[should_panic]
-fn test_main_expect_init() {
+fn test_main_hacks_expect() {
     #[fbinit::main]
     fn main() {
-        fbinit::expect_init();
+        fbinit::hacks::expect();
     }
 
     main();
@@ -114,6 +114,23 @@ fn test_main_without_proof() {
     fn main() {}
 
     main();
+}
+
+#[cfg(fbcode_build)]
+#[fbinit::test]
+fn test_get_success() {
+    assert!(fbinit::hacks::get().is_some())
+}
+
+#[cfg(not(fbcode_build))]
+#[fbinit::test]
+fn test_get_none_without_fbcode() {
+    assert!(fbinit::hacks::get().is_none())
+}
+
+#[test]
+fn test_get_none_without_fbinit() {
+    assert!(fbinit::hacks::get().is_none())
 }
 
 #[test]
