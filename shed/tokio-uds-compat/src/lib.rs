@@ -8,6 +8,10 @@
  */
 
 #[cfg(unix)]
+pub use tokio::net::unix::OwnedReadHalf;
+#[cfg(unix)]
+pub use tokio::net::unix::OwnedWriteHalf;
+#[cfg(unix)]
 pub use tokio::net::UnixListener;
 #[cfg(unix)]
 pub use tokio::net::UnixStream;
@@ -16,14 +20,82 @@ pub use tokio::net::UnixStream;
 mod windows {
     use std::future::Future;
     use std::io;
+    use std::net::Shutdown;
     use std::path::Path;
     use std::pin::Pin;
+    use std::sync::Arc;
+    use std::task::Context;
+    use std::task::Poll;
 
     /// Compat layer for providing UNIX domain socket on Windows
     use async_io::Async;
     use tokio::io::AsyncRead;
     use tokio::io::AsyncWrite;
     use tokio::io::ReadBuf;
+    use tokio::sync::Mutex;
+
+    pub struct OwnedReadHalf {
+        inner: Arc<UnixStream>,
+    }
+
+    impl OwnedReadHalf {
+        fn new(inner: Arc<UnixStream>) -> Self {
+            Self { inner }
+        }
+    }
+
+    impl AsyncRead for OwnedReadHalf {
+        fn poll_read(
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+            buf: &mut ReadBuf<'_>,
+        ) -> Poll<io::Result<()>> {
+            self.inner.poll_read_priv(cx, buf)
+        }
+    }
+
+    pub struct OwnedWriteHalf {
+        inner: Arc<UnixStream>,
+        shutdown_on_drop: bool,
+    }
+
+    impl OwnedWriteHalf {
+        fn new(inner: Arc<UnixStream>) -> Self {
+            Self {
+                inner,
+                shutdown_on_drop: true,
+            }
+        }
+    }
+
+    impl Drop for OwnedWriteHalf {
+        fn drop(&mut self) {
+            if self.shutdown_on_drop {
+                let _ = self.inner.async_ref().as_ref().shutdown(Shutdown::Write);
+            }
+        }
+    }
+
+    impl AsyncWrite for OwnedWriteHalf {
+        fn poll_write(
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+            buf: &[u8],
+        ) -> Poll<Result<usize, io::Error>> {
+            futures::AsyncWrite::poll_write(Pin::new(&mut self.inner.async_ref()), cx, buf)
+        }
+
+        fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
+            futures::AsyncWrite::poll_flush(Pin::new(&mut self.inner.async_ref()), cx)
+        }
+
+        fn poll_shutdown(
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), io::Error>> {
+            futures::AsyncWrite::poll_close(Pin::new(&mut self.inner.async_ref()), cx)
+        }
+    }
 
     #[derive(Debug)]
     pub struct UnixStream(Async<uds_windows::UnixStream>);
@@ -40,52 +112,69 @@ mod windows {
             Ok(UnixStream(stream))
         }
 
+        fn async_ref(&self) -> &Async<uds_windows::UnixStream> {
+            &self.0
+        }
+
         fn inner_mut(self: Pin<&mut Self>) -> Pin<&mut Async<uds_windows::UnixStream>> {
             Pin::new(&mut self.get_mut().0)
+        }
+
+        pub fn into_split(self) -> (OwnedReadHalf, OwnedWriteHalf) {
+            let this = Arc::new(self);
+            (OwnedReadHalf::new(this.clone()), OwnedWriteHalf::new(this))
+        }
+
+        fn poll_read_priv(
+            &self,
+            cx: &mut Context<'_>,
+            buf: &mut ReadBuf<'_>,
+        ) -> Poll<Result<(), io::Error>> {
+            let result = futures::AsyncRead::poll_read(
+                Pin::new(&mut self.async_ref()),
+                cx,
+                buf.initialize_unfilled(),
+            );
+
+            match result {
+                Poll::Ready(Ok(written)) => {
+                    tracing::trace!(?written, "UnixStream::poll_read");
+                    buf.set_filled(written);
+                    Poll::Ready(Ok(()))
+                }
+                Poll::Ready(Err(e)) => Poll::Ready(Err(e)),
+                Poll::Pending => Poll::Pending,
+            }
         }
     }
 
     impl AsyncRead for UnixStream {
         fn poll_read(
-            self: std::pin::Pin<&mut Self>,
-            cx: &mut std::task::Context<'_>,
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
             buf: &mut ReadBuf<'_>,
-        ) -> std::task::Poll<Result<(), io::Error>> {
-            let result =
-                futures::AsyncRead::poll_read(self.inner_mut(), cx, buf.initialize_unfilled());
-
-            match result {
-                std::task::Poll::Ready(Ok(written)) => {
-                    tracing::trace!(?written, "UnixStream::poll_read");
-                    buf.set_filled(written);
-                    std::task::Poll::Ready(Ok(()))
-                }
-                std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(e)),
-                std::task::Poll::Pending => std::task::Poll::Pending,
-            }
+        ) -> Poll<Result<(), io::Error>> {
+            self.poll_read_priv(cx, buf)
         }
     }
 
     impl AsyncWrite for UnixStream {
         fn poll_write(
-            self: std::pin::Pin<&mut Self>,
-            cx: &mut std::task::Context<'_>,
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
             buf: &[u8],
-        ) -> std::task::Poll<Result<usize, io::Error>> {
+        ) -> Poll<Result<usize, io::Error>> {
             futures::AsyncWrite::poll_write(self.inner_mut(), cx, buf)
         }
 
-        fn poll_flush(
-            self: std::pin::Pin<&mut Self>,
-            cx: &mut std::task::Context<'_>,
-        ) -> std::task::Poll<Result<(), io::Error>> {
+        fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
             futures::AsyncWrite::poll_flush(self.inner_mut(), cx)
         }
 
         fn poll_shutdown(
-            self: std::pin::Pin<&mut Self>,
-            cx: &mut std::task::Context<'_>,
-        ) -> std::task::Poll<Result<(), io::Error>> {
+            self: Pin<&mut Self>,
+            cx: &mut Context<'_>,
+        ) -> Poll<Result<(), io::Error>> {
             futures::AsyncWrite::poll_close(self.inner_mut(), cx)
         }
     }
@@ -107,10 +196,10 @@ mod windows {
 
         pub fn poll_accept(
             &self,
-            cx: &mut std::task::Context<'_>,
-        ) -> std::task::Poll<io::Result<(UnixStream, uds_windows::SocketAddr)>> {
+            cx: &mut Context<'_>,
+        ) -> Poll<io::Result<(UnixStream, uds_windows::SocketAddr)>> {
             match self.0.poll_readable(cx) {
-                std::task::Poll::Ready(Ok(())) => {
+                Poll::Ready(Ok(())) => {
                     let result = self.0.read_with(|io| io.accept());
                     let mut result = Box::pin(result);
                     result.as_mut().poll(cx).map(|x| {
@@ -120,13 +209,17 @@ mod windows {
                         })
                     })
                 }
-                std::task::Poll::Ready(Err(e)) => std::task::Poll::Ready(Err(e)),
-                std::task::Poll::Pending => std::task::Poll::Pending,
+                Poll::Ready(Err(e)) => Poll::Ready(Err(e)),
+                Poll::Pending => Poll::Pending,
             }
         }
     }
 }
 
+#[cfg(windows)]
+pub use self::windows::OwnedReadHalf;
+#[cfg(windows)]
+pub use self::windows::OwnedWriteHalf;
 #[cfg(windows)]
 pub use self::windows::UnixListener;
 #[cfg(windows)]
