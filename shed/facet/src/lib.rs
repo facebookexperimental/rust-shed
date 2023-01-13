@@ -8,6 +8,7 @@
  */
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+#![cfg_attr(feature = "impl_never_type", feature(never_type))]
 
 //! # Overview
 //!
@@ -458,6 +459,14 @@ pub trait FacetRef<T: ?Sized + Send + Sync + 'static> {
     fn facet_ref(&self) -> &T;
 }
 
+#[cfg(feature = "impl_never_type")]
+#[allow(clippy::explicit_auto_deref)]
+impl<T: ?Sized + Send + Sync + 'static> FacetRef<T> for ! {
+    fn facet_ref(&self) -> &T {
+        *self
+    }
+}
+
 impl<T, C> FacetRef<T> for Arc<C>
 where
     T: ?Sized + Send + Sync + 'static,
@@ -485,6 +494,14 @@ where
 #[doc(hidden)]
 pub trait FacetArc<T: ?Sized + Send + Sync + 'static> {
     fn facet_arc(&self) -> Arc<T>;
+}
+
+#[cfg(feature = "impl_never_type")]
+#[allow(clippy::explicit_auto_deref)]
+impl<T: ?Sized + Send + Sync + 'static> FacetArc<T> for ! {
+    fn facet_arc(&self) -> Arc<T> {
+        *self
+    }
 }
 
 impl<T, C> FacetArc<T> for Arc<C>

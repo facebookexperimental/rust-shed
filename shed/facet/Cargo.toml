@@ -50,3 +50,7 @@ thiserror = "1.0.36"
 
 [dev-dependencies]
 tokio = { version = "1.21.2", features = ["full", "test-util", "tracing"] }
+
+[features]
+default = ["impl_never_type"]
+impl_never_type = []
