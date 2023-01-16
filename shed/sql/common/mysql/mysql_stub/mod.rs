@@ -14,6 +14,8 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
+use crate::mysql::IsolationLevel;
+
 /// Error for Mysql client
 #[derive(Error, Debug)]
 pub struct MysqlError;
@@ -64,6 +66,11 @@ pub struct Connection;
 unsafe impl Send for Connection {}
 
 impl Connection {
+    /// Set isolation level for connection
+    pub fn set_isolation_level(&mut self, _isolation_level: Option<IsolationLevel>) {
+        unimplemented!("This is a stub")
+    }
+
     /// Performs a given query and returns the result as a vector of rows.
     pub async fn read_query<T>(&self, _query: String) -> Result<T, MysqlError> {
         unimplemented!("This is a stub");
