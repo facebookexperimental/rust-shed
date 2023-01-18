@@ -537,6 +537,7 @@ macro_rules! define_stats_struct {
 
 
                 static STATS_MAP: Lazy<Arc<ThreadMap<BoxStatsManager>>> = Lazy::new(|| create_map());
+                static STATS_MANAGER: Lazy<BoxStatsManager> = Lazy::new(|| create_stats_manager());
 
                 thread_local! {
                     static TL_STATS: PerThread<BoxStatsManager> =
@@ -575,6 +576,9 @@ macro_rules! __struct_field_type {
         $crate::macros::common_macro_prelude::BoxTimeseries
     };
     (histogram) => {
+        $crate::macros::common_macro_prelude::BoxHistogram
+    };
+    (quantile_stat) => {
         $crate::macros::common_macro_prelude::BoxHistogram
     };
 }
@@ -661,6 +665,14 @@ macro_rules! __struct_thread_local_init {
             };
         }
     };
+    ($name:ident, quantile_stat,
+        $( $aggregation_type:expr ),*
+        ; $( P $percentile:expr ),*
+        ; $( $interval:expr ),*) => ();
+    ($name:ident, quantile_stat, $key:expr
+        ; $( $aggregation_type:expr ),*
+        ; $( P $percentile:expr ),*
+        ; $( $interval:expr ),*) => ();
 }
 
 #[macro_export]
@@ -700,4 +712,27 @@ macro_rules! __struct_field_init {
     ($prefix:expr, $name:ident, histogram, $key:expr ;
         $bucket_width:expr, $min:expr, $max:expr $(, $aggregation_type:expr)*
         $(; P $percentile:expr )*) => {{ Box::new(FieldStat::new(&$name, format!("{}.{}", $prefix, $key))) }};
+    ($prefix:expr, $name:ident, quantile_stat,
+        $( $aggregation_type:expr ),*
+        ; $( P $percentile:expr ),*
+        ; $( $interval:expr ),*) => {
+            $crate::__struct_field_init!($prefix, $name, quantile_stat,
+                stringify!($name)
+                ; $( $aggregation_type ),*
+                ; $( P $percentile ),*
+                ; $( $interval ),*)
+    };
+    ($prefix:expr, $name:ident, quantile_stat,
+        $key:expr
+        ; $( $aggregation_type:expr ),*
+        ; $( P $percentile:expr ),*
+        ; $( $interval:expr ),*) => {{
+            STATS_MANAGER.create_quantile_stat(
+                &$crate::__create_stat_key!($prefix, $key),
+                &[$( $aggregation_type ),*],
+                &[$( $percentile ),*],
+                &[$( $interval ),*],
+            )
+
+    }};
 }
