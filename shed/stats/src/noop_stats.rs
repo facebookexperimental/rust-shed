@@ -64,7 +64,7 @@ impl StatsManager for Noop {
         &self,
         _name: &str,
         _aggregation_types: &[AggregationType],
-        _percentiles: &[u8],
+        _percentiles: &[f32],
         _intervals: &[Duration],
     ) -> BoxHistogram {
         Box::new(Noop)

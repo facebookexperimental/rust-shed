@@ -98,7 +98,7 @@ pub trait StatsManager {
         &self,
         name: &str,
         aggregation_types: &[AggregationType],
-        percentiles: &[u8],
+        percentiles: &[f32],
         intervals: &[Duration],
     ) -> BoxHistogram;
 }

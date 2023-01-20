@@ -163,8 +163,10 @@ pub mod common_macro_prelude {
 /// [`AggregationType`](stats_traits::stats_manager::AggregationType) enum
 /// values.
 ///
-/// Percentiles are specified as `P NN` in a `,`-separated list, such as `P 20,
+/// Percentiles are specified as `P NN` or `P NN.N` in a `,`-separated list, such as `P 20,
 /// P 50, P 90, P 99`...
+/// You can also use floating point values as well such as `P 95.0, P 99.0, P 99.99`...
+/// Please note that you provide "percentiles" instead of rates such as 0.95 like C++ API
 ///
 /// "List of intervals" is a `,`-separated list of [`Duration`s](std::time::Duration). It
 /// specifies over what time periods the aggregations aggregate.
@@ -329,7 +331,7 @@ macro_rules! __define_stat {
                     STATS_MANAGER.create_quantile_stat(
                         &$crate::__create_stat_key!($prefix, $key),
                         &[$( $aggregation_type ),*],
-                        &[$( $percentile ),*],
+                        &[$( $percentile as f32 ),*],
                         &[$( $interval ),*],
                     )
                 });
@@ -450,7 +452,7 @@ macro_rules! __define_stat {
                         STATS_MANAGER.create_quantile_stat(
                             key,
                             &[$( $aggregation_type ),*],
-                            &[$( $percentile ),*],
+                            &[$( $percentile as f32 ),*],
                             &[$( $interval ),*],
                         )
                     }
@@ -730,7 +732,7 @@ macro_rules! __struct_field_init {
             STATS_MANAGER.create_quantile_stat(
                 &$crate::__create_stat_key!($prefix, $key),
                 &[$( $aggregation_type ),*],
-                &[$( $percentile ),*],
+                &[$( $percentile as f32 ),*],
                 &[$( $interval ),*],
             )
 
