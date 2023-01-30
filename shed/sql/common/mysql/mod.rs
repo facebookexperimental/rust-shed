@@ -59,7 +59,7 @@ pub use mysql_stub::WriteResult;
 
 use super::WriteResult as SqlWriteResult;
 
-/// Changes which locks are used. See https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html
+/// Changes which locks are used. See <https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html>
 #[derive(Debug, Clone, Copy)]
 pub enum IsolationLevel {
     /// Each consistent read, even within the same transaction, sets and reads its own fresh snapshot.
