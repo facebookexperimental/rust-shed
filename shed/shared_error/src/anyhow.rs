@@ -102,11 +102,11 @@ impl slog::KV for SharedError {
         _record: &slog::Record<'_>,
         serializer: &mut dyn slog::Serializer,
     ) -> slog::Result {
-        serializer.emit_str("error", &format!("{}", self))?;
-        serializer.emit_str("error_debug", &format!("{:#?}", self))?;
+        serializer.emit_str("error", &format!("{self}"))?;
+        serializer.emit_str("error_debug", &format!("{self:#?}"))?;
 
         let err = self.deref() as &dyn StdError;
-        serializer.emit_str("root_cause", &format!("{}", err))?;
+        serializer.emit_str("root_cause", &format!("{err}"))?;
 
         Ok(())
     }

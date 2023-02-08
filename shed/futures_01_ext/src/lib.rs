@@ -785,7 +785,7 @@ impl<S> SinkToAsyncWrite<S> {
 }
 
 fn create_std_error<E: Debug>(err: E) -> std_io::Error {
-    std_io::Error::new(std_io::ErrorKind::Other, format!("{:?}", err))
+    std_io::Error::new(std_io::ErrorKind::Other, format!("{err:?}"))
 }
 
 impl<E, S> std_io::Write for SinkToAsyncWrite<S>
@@ -934,7 +934,7 @@ mod test {
 
         match runtime.block_on(rx.collect().compat()) {
             Ok(v) => assert_eq!(v, vec![123]),
-            bad => panic!("bad {:?}", bad),
+            bad => panic!("bad {bad:?}"),
         }
     }
 
@@ -1046,7 +1046,7 @@ mod test {
                 assert_eq!(s.poll(), Ok(Async::Ready(None)));
                 match remainder.poll() {
                     Ok(Async::Ready(s)) => assert!(s.is_done()),
-                    bad => panic!("unexpected result: {:?}", bad),
+                    bad => panic!("unexpected result: {bad:?}"),
                 }
 
                 Ok(Async::Ready(()))
@@ -1108,7 +1108,7 @@ mod test {
                     let mut async_write = SinkToAsyncWrite::new(tx);
                     for i in 0..messages_num {
                         loop {
-                            let res = async_write.write(format!("{}", i).as_bytes());
+                            let res = async_write.write(format!("{i}").as_bytes());
                             if let Err(ref e) = res {
                                 assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
                                 assert_flush(&mut async_write);

@@ -128,7 +128,7 @@ mod tests {
         let err = Error::from(TestError::MyError(0))
             .context(TestError::MyError(1))
             .context(TestError::MyError(2));
-        let debug = format!("{:#?}", err);
+        let debug = format!("{err:#?}");
 
         let categorizer = ErrorCategorizer;
         let mut serializer = CollectorSerializer::new(&categorizer);

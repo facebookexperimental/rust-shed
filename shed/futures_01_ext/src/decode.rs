@@ -169,7 +169,7 @@ mod test {
 
         let xfer = dec
             .map_err::<(), _>(|err| {
-                panic!("bad = {}", err);
+                panic!("bad = {err}");
             })
             .forward(out);
 
@@ -195,7 +195,7 @@ mod test {
 
         let xfer = dec
             .map_err::<(), _>(|err| {
-                panic!("bad = {}", err);
+                panic!("bad = {err}");
             })
             .forward(out);
 
@@ -224,7 +224,7 @@ mod test {
 
         let xfer = dec
             .map_err::<(), _>(|err| {
-                panic!("bad = {}", err);
+                panic!("bad = {err}");
             })
             .forward(out);
 

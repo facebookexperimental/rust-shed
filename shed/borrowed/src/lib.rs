@@ -235,10 +235,7 @@ mod tests {
         {
             borrowed!(a.x: &str, y: &str, mut z: &str);
             let _ = a.foo();
-            assert_eq!(
-                &format!("{} {} {}", x, y, z),
-                "I am a struct that can talk a lot"
-            );
+            assert_eq!(&format!("{x} {y} {z}"), "I am a struct that can talk a lot");
             z = "";
             assert_eq!(z, "");
         }

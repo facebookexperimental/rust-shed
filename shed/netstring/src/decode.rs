@@ -155,9 +155,7 @@ impl Decoder for NetstringDecoder {
                 );
                 debug_assert!(
                     slice.end() <= consumed,
-                    "slice {:?} consumed {}",
-                    slice,
-                    consumed
+                    "slice {slice:?} consumed {consumed}"
                 );
 
                 let mut ret = buf.split_to(slice.end());
@@ -365,7 +363,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Err(e) => println!("got expected error {:?}", e),
+            Err(e) => println!("got expected error {e:?}"),
             bad => panic!(
                 "decode succeeded: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))
@@ -381,7 +379,7 @@ mod test {
         let mut codec = NetstringDecoder::default();
 
         match codec.decode(&mut buf) {
-            Err(e) => println!("got expected error {:?}", e),
+            Err(e) => println!("got expected error {e:?}"),
             bad => panic!(
                 "decode succeeded: {:?}",
                 bad.as_ref().map(|x| x.as_ref().map(BytesMut::as_ref))

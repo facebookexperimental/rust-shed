@@ -314,12 +314,12 @@ where
 
     /// Returns the first key-value pair in the map.
     pub fn first_key_value(&self) -> Option<(&K, &V)> {
-        self.0.first().map(|&(ref k, ref v)| (k, v))
+        self.0.first().map(|(k, v)| (k, v))
     }
 
     /// Returns the last key-value pair in the map.
     pub fn last_key_value(&self) -> Option<(&K, &V)> {
-        self.0.last().map(|&(ref k, ref v)| (k, v))
+        self.0.last().map(|(k, v)| (k, v))
     }
 
     /// Removes and returns the last key-value pair in the map.
@@ -475,7 +475,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|&(ref k, ref v)| (k, v))
+        self.0.next().map(|(k, v)| (k, v))
     }
 
     #[inline]
@@ -493,7 +493,7 @@ impl<'a, K: 'a, V: 'a> ExactSizeIterator for Iter<'a, K, V> {
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|&(ref k, ref v)| (k, v))
+        self.0.next_back().map(|(k, v)| (k, v))
     }
 }
 
@@ -529,7 +529,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Keys<'a, K, V> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|&(ref k, ref _v)| k)
+        self.0.next().map(|(k, _v)| k)
     }
 
     #[inline]
@@ -541,7 +541,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Keys<'a, K, V> {
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Keys<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|&(ref k, ref _v)| k)
+        self.0.next_back().map(|(k, _v)| k)
     }
 }
 
@@ -550,7 +550,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Values<'a, K, V> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.next().map(|&(ref _k, ref v)| v)
+        self.0.next().map(|(_k, v)| v)
     }
 
     #[inline]
@@ -562,7 +562,7 @@ impl<'a, K: 'a, V: 'a> Iterator for Values<'a, K, V> {
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Values<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
-        self.0.next_back().map(|&(ref _k, ref v)| v)
+        self.0.next_back().map(|(_k, v)| v)
     }
 }
 
@@ -856,9 +856,7 @@ where
 
     fn next(&mut self) -> Option<(K, V)> {
         let mut next = self.iter.next();
-        while let (Some(&(ref next_key, _)), Some(&(ref after_key, _))) =
-            (next.as_ref(), self.iter.peek())
-        {
+        while let (Some((next_key, _)), Some((after_key, _))) = (next.as_ref(), self.iter.peek()) {
             if after_key > next_key {
                 break;
             }
@@ -900,7 +898,7 @@ where
 
     fn next(&mut self) -> Option<(K, V)> {
         let res = match (self.left.peek(), self.right.peek()) {
-            (Some(&(ref left_key, _)), Some(&(ref right_key, _))) => left_key.cmp(right_key),
+            (Some((left_key, _)), Some((right_key, _))) => left_key.cmp(right_key),
             (Some(_), None) => Ordering::Less,
             (None, Some(_)) => Ordering::Greater,
             (None, None) => return None,

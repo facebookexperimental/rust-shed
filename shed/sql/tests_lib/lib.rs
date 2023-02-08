@@ -274,7 +274,7 @@ pub async fn test_transaction_rollback(conn: Connection, semantics: TestSemantic
 pub async fn test_transaction_rollback_on_drop(conn: Connection, semantics: TestSemantics) {
     let transaction = conn.start_transaction().await.unwrap();
     // dropping transaction here should trigger rollback
-    let _ = in_transaction(transaction, semantics);
+    drop(in_transaction(transaction, semantics));
 
     assert_eq!(TestQuery4::query(&conn, &1, &3).await.unwrap(), vec![]);
 }

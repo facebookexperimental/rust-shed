@@ -62,9 +62,9 @@ impl<'a> From<&'a Error> for DisplayChain<'a> {
 impl Display for DisplayChain<'_> {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let e = self.0;
-        writeln!(fmt, "Error: {}", e)?;
+        writeln!(fmt, "Error: {e}")?;
         for c in e.chain().skip(1) {
-            writeln!(fmt, "Caused by: {}", c)?;
+            writeln!(fmt, "Caused by: {c}")?;
         }
         Ok(())
     }

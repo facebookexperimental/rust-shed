@@ -26,8 +26,8 @@ impl slog::KV for SlogKVError {
     ) -> slog::Result {
         let err = &self.0;
 
-        serializer.emit_str(Error.into_str(), &format!("{}", err))?;
-        serializer.emit_str(ErrorDebug.into_str(), &format!("{:#?}", err))?;
+        serializer.emit_str(Error.into_str(), &format!("{err}"))?;
+        serializer.emit_str(ErrorDebug.into_str(), &format!("{err:#?}"))?;
 
         #[cfg(fbcode_build)]
         {
@@ -39,10 +39,10 @@ impl slog::KV for SlogKVError {
 
         let mut err = err.deref() as &dyn StdError;
         while let Some(cause) = cause_workaround(err) {
-            serializer.emit_str(Cause.into_str(), &format!("{}", cause))?;
+            serializer.emit_str(Cause.into_str(), &format!("{cause}"))?;
             err = cause;
         }
-        serializer.emit_str(RootCause.into_str(), &format!("{}", err))?;
+        serializer.emit_str(RootCause.into_str(), &format!("{err}"))?;
 
         Ok(())
     }
@@ -55,15 +55,15 @@ impl slog::KV for SlogKVErrorWithoutBackTrace {
         serializer: &mut dyn slog::Serializer,
     ) -> slog::Result {
         let error = &self.0;
-        serializer.emit_str(Error.into_str(), &format!("{}", error))?;
-        serializer.emit_str(ErrorDebug.into_str(), &format!("{:#?}", error))?;
+        serializer.emit_str(Error.into_str(), &format!("{error}"))?;
+        serializer.emit_str(ErrorDebug.into_str(), &format!("{error:#?}"))?;
 
         let mut error = error.deref() as &dyn StdError;
         while let Some(cause) = cause_workaround(error) {
-            serializer.emit_str(Cause.into_str(), &format!("{}", cause))?;
+            serializer.emit_str(Cause.into_str(), &format!("{cause}"))?;
             error = cause;
         }
-        serializer.emit_str(RootCause.into_str(), &format!("{}", error))?;
+        serializer.emit_str(RootCause.into_str(), &format!("{error}"))?;
 
         Ok(())
     }

@@ -103,8 +103,7 @@ impl ToSqliteValue for ValueWrapper {
             Value::Double(f) => ToSqliteOutput::Owned(SqliteValue::Real(*f)),
             Value::Date(year, month, day, hour, min, sec, micro) => {
                 ToSqliteOutput::Owned(SqliteValue::Text(format!(
-                    "{:04}-{:02}-{:02} {:02}:{:02}:{:02}.{:06}",
-                    year, month, day, hour, min, sec, micro
+                    "{year:04}-{month:02}-{day:02} {hour:02}:{min:02}:{sec:02}.{micro:06}"
                 )))
             }
             Value::Time(..) => {

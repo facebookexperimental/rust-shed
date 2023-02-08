@@ -131,10 +131,7 @@ mod tests {
         {
             cloned!(a.x, y, mut z);
             let _ = a.foo();
-            assert_eq!(
-                &format!("{} {} {}", x, y, z),
-                "I am a struct that can talk a lot"
-            );
+            assert_eq!(&format!("{x} {y} {z}"), "I am a struct that can talk a lot");
             z = String::new();
             assert_eq!(z, "");
         }

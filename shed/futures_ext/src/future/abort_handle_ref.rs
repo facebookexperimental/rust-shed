@@ -30,7 +30,7 @@ where
     T::Output: Send + 'static,
 {
     let (abortable_future, abort_handle) = abortable(t);
-    let _ = tokio_shim::task::spawn(abortable_future);
+    tokio_shim::task::spawn(abortable_future);
     ControlledHandle::new(abort_handle)
 }
 

@@ -674,10 +674,7 @@ fn check_no_cycles(
         };
         return Err(Error::new(
             top_ident.span(),
-            format!(
-                "cyclic facet dependency: {} depends on itself {}",
-                top_ident, via
-            ),
+            format!("cyclic facet dependency: {top_ident} depends on itself {via}"),
         ));
     }
     Ok(())

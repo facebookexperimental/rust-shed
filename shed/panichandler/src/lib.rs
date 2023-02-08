@@ -56,9 +56,9 @@ fn handler(panic: &PanicInfo<'_>, fate: Fate) {
         .or_else(|| payload.downcast_ref::<String>().map(|s| s.as_str()))
         .unwrap_or("(about something)");
 
-    let _ = writeln!(w, "PANIC: {}", msg);
+    let _ = writeln!(w, "PANIC: {msg}");
     if let Some(loc) = panic.location() {
-        let _ = writeln!(w, "from {}", loc);
+        let _ = writeln!(w, "from {loc}");
     }
 
     let bt = Backtrace::new();

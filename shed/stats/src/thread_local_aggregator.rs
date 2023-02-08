@@ -136,7 +136,7 @@ mod tests {
         let _lock = TEST_MUTEX.lock().expect("poisoned lock");
 
         if let Err(err) = schedule_stats_aggregation_preview() {
-            panic!("Scheduler is not Ok. Reason: {:?}", err);
+            panic!("Scheduler is not Ok. Reason: {err:?}");
         }
 
         if schedule_stats_aggregation_preview().is_ok() {

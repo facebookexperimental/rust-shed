@@ -44,8 +44,8 @@ impl KeyGen {
         let is_ascii = id.is_ascii();
         let no_space = !id.chars().any(|c| c == ' ');
 
-        assert!(is_ascii, "id \"{}\" is not pure ascii", id);
-        assert!(no_space, "id \"{}\" contains spaces", id);
+        assert!(is_ascii, "id \"{id}\" is not pure ascii");
+        assert!(no_space, "id \"{id}\" contains spaces");
 
         format!(
             "{}:{}:c{}:s{}",

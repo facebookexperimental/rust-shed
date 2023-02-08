@@ -95,14 +95,14 @@ impl Serialize for ScubaValue {
             &ScubaValue::Double(v) => serializer.serialize_f64(v),
             #[allow(deprecated)]
             &ScubaValue::Normal(ref v) | &ScubaValue::Denorm(ref v) => serializer.collect_str(&v),
-            &ScubaValue::NormVector(ref v) => {
+            ScubaValue::NormVector(v) => {
                 let mut seq = serializer.serialize_seq(Some(v.len()))?;
                 for element in v {
                     seq.serialize_element(&element)?;
                 }
                 seq.end()
             }
-            &ScubaValue::TagSet(ref v) => {
+            ScubaValue::TagSet(v) => {
                 // Need to sort HashSet values to ensure deterministic JSON output.
                 let mut vec = v.iter().collect::<Vec<_>>();
                 vec.sort();
@@ -236,7 +236,7 @@ impl TryFrom<Value> for ScubaValue {
                     Err(Value::Number(i))
                 }
             }
-            Value::Bool(b) => Ok(ScubaValue::Normal(format!("{}", b))),
+            Value::Bool(b) => Ok(ScubaValue::Normal(format!("{b}"))),
             Value::Array(a) => {
                 if let Ok(strings) = a
                     .iter()

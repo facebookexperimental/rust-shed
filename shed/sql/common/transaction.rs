@@ -139,10 +139,7 @@ impl Drop for Transaction {
                 };
 
                 if let Err(err) = con.execute_batch("ROLLBACK") {
-                    panic!(
-                        "Rollback on drop of Sqlite connection has failed: {:#?}",
-                        err
-                    );
+                    panic!("Rollback on drop of Sqlite connection has failed: {err:#?}");
                 }
             }
             Transaction::Mysql(_) => {}

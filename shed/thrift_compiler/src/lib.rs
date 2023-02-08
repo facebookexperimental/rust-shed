@@ -124,7 +124,7 @@ impl Config {
         }
 
         for include_src in &self.include_srcs {
-            println!("cargo:rerun-if-changed={}", include_src);
+            println!("cargo:rerun-if-changed={include_src}");
             let from = PathBuf::from(include_src);
             let mut to = self.out_dir.clone();
             to.push(&from);
@@ -162,7 +162,7 @@ impl Config {
                 .join("\n");
             write(
                 self.out_dir.join("lib.rs"),
-                format!("pub mod partial;\n\n{}", lib_modules),
+                format!("pub mod partial;\n\n{lib_modules}"),
             )?;
         }
 
@@ -238,7 +238,7 @@ impl Config {
         };
 
         cmd.arg("--gen")
-            .arg(format!("mstch_rust{}", args))
+            .arg(format!("mstch_rust{args}"))
             .arg("--out")
             .arg(out.as_ref())
             .arg(input.as_ref());

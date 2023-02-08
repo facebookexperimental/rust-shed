@@ -221,7 +221,7 @@ fn check_overreading(c_type: CompressorType, data: &[u8], extra: &[u8]) -> TestR
         expected.extend_from_slice(vec![0u8; extra.len() + EXTRA_SPACE].as_slice());
 
         if !(decompressor.read(buf.as_mut_slice()).unwrap() == data.len() && buf == expected) {
-            return TestResult::error(format!("decoding failed, buf: {:?}", buf));
+            return TestResult::error(format!("decoding failed, buf: {buf:?}"));
         }
     }
 
@@ -229,7 +229,7 @@ fn check_overreading(c_type: CompressorType, data: &[u8], extra: &[u8]) -> TestR
         let mut buf = vec![0u8; data.len() + extra.len() + EXTRA_SPACE];
 
         if !(decompressor.read(buf.as_mut_slice()).unwrap() == 0 && buf == vec![0u8; buf.len()]) {
-            return TestResult::error(format!("detecting eof failed, buf: {:?}", buf));
+            return TestResult::error(format!("detecting eof failed, buf: {buf:?}"));
         }
     }
 
@@ -238,7 +238,7 @@ fn check_overreading(c_type: CompressorType, data: &[u8], extra: &[u8]) -> TestR
 
         let mut remainder = decompressor.into_inner();
         if !(remainder.read_to_end(&mut buf).unwrap() == extra.len() && buf.as_slice() == extra) {
-            return TestResult::error(format!("leaving remainder failed, buf: {:?}", buf));
+            return TestResult::error(format!("leaving remainder failed, buf: {buf:?}"));
         }
     }
 

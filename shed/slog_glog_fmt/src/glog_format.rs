@@ -121,7 +121,7 @@ fn write_logline(
     };
 
     decorator.start_level()?;
-    write!(decorator, "{}", level)?;
+    write!(decorator, "{level}")?;
 
     decorator.start_timestamp()?;
     write!(decorator, "{}", metadata.now.format("%m%d %H:%M:%S%.6f"))?;
@@ -154,7 +154,7 @@ fn print_inline_kv<C: KVCategorizer>(
         decorator.start_separator()?;
         write!(decorator, ": ")?;
         decorator.start_value()?;
-        write!(decorator, "{}", v)?;
+        write!(decorator, "{v}")?;
     }
     Ok(())
 }
@@ -224,7 +224,7 @@ impl OnelineMetadata {
             line: record.line(),
             tname: thread::current()
                 .name()
-                .map(|s| format!("[{}]", s))
+                .map(|s| format!("[{s}]"))
                 .unwrap_or_default(),
         }
     }
@@ -376,7 +376,7 @@ mod tests {
             let log_line = log_line.as_str();
             let captures = LOG_REGEX
                 .captures(log_line)
-                .unwrap_or_else(|| panic!("failed parsing log line: '{}'", log_line));
+                .unwrap_or_else(|| panic!("failed parsing log line: '{log_line}'"));
             Some(TestLine::with_captures(captures))
         });
 
