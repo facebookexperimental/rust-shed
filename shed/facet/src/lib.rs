@@ -252,6 +252,24 @@
 //! if none of the factory methods are fallible.  If no methods are fallible
 //! then the result will always be `Ok`.
 //!
+//! Alongside your container, the macro will also generate a "container-like"
+//! trait, named the same as your container with `Like` appended, that will
+//! match any container that contains at least the same set of traits.  This
+//! allows you to specify a minimal container but also accept other containers
+//! in your methods.
+//!
+//! For example:
+//!
+//! ```
+//! # #[facet::container] struct MyContainer {}
+//!
+//! fn needs_container(container: &impl MyContainerLike) {
+//!     // This function accepts either `&MyContainer` or a reference to any
+//!     // container that contains the same traits.
+//! #   let _ = container;
+//! }
+//! ```
+//!
 //! ## Async
 //!
 //! Async dynamic facets can be supported by using the `async-trait` crate.
@@ -340,6 +358,9 @@ pub extern crate async_trait;
 
 #[doc(hidden)]
 pub extern crate futures;
+
+#[doc(hidden)]
+pub extern crate trait_set;
 
 /// An error during construction by a facet factory.
 #[derive(Debug, Error)]

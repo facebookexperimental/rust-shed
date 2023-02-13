@@ -208,6 +208,7 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
     let buildable_impl = gen_buildable_impl(&facet_crate, container_name, &members);
     let async_buildable_impl = gen_async_buildable_impl(&facet_crate, container_name, &members);
     let from_impl = gen_from_impl(container_name, &members);
+    let like_trait = gen_like_trait(&facet_crate, container_name, &members);
 
     Ok(quote! {
         #container
@@ -219,6 +220,8 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
         #async_buildable_impl
 
         #from_impl
+
+        #like_trait
     })
 }
 
@@ -522,6 +525,31 @@ fn gen_from_impl(container_name: &Ident, members: &ContainerMembers) -> Option<T
         })
     } else {
         None
+    }
+}
+
+fn gen_like_trait(
+    facet_crate: &Ident,
+    container_name: &Ident,
+    members: &ContainerMembers,
+) -> TokenStream {
+    let like_trait_name = format_ident!("{}Like", container_name);
+    let mut member_traits = Vec::new();
+
+    for facet_types in Some(&members.facet_types)
+        .into_iter()
+        .chain(members.delegate_facets.iter())
+    {
+        for facet_type in facet_types.iter() {
+            member_traits.push(quote!(::#facet_crate::FacetRef<#facet_type>));
+            member_traits.push(quote!(::#facet_crate::FacetArc<#facet_type>));
+        }
+    }
+
+    quote! {
+        #facet_crate::trait_set::trait_set! {
+            pub trait #like_trait_name = #( #member_traits + )* Send + Sync;
+        }
     }
 }
 
