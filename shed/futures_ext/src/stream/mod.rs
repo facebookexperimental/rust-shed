@@ -94,8 +94,8 @@ pub trait FbTryStreamExt: TryStream {
         WeightLimitedBufferedTryStream::new(params, self)
     }
 
-    /// Convert a Stream of Result<Result<I, E1>, E2> into a Stream of Result<I, E1>, assuming E2
-    /// can convert into E1.
+    /// Convert a `Stream` of `Result<Result<I, E1>, E2>` into a `Stream` of
+    /// `Result<I, E1>`, assuming `E2` can convert into `E1`.
     #[allow(clippy::type_complexity)]
     fn flatten_err<I, E1, E2>(
         self,

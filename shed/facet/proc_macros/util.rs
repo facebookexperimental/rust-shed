@@ -55,7 +55,7 @@ pub(crate) enum Fallibility {
     /// Method returns the Facet infallibly
     Infallible,
 
-    /// Method returns Result<Facet, _>
+    /// Method returns `Result<Facet, _>`
     Fallible,
 }
 

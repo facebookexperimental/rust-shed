@@ -153,9 +153,9 @@ impl<T> ThreadMap<T> {
 /// The caller will hold on to this wrapper as long as they like, then when they
 /// drop it the corresponding entry is removed from the map.
 ///
-/// The map data structure holds a pointer NonNull<T> to the content of the
+/// The map data structure holds a pointer `NonNull<T>` to the content of the
 /// storage box. We must not expose an API through which the owner of a
-/// PerThread<T> could invalidate that pointer, for example by moving the content
+/// `PerThread<T>` could invalidate that pointer, for example by moving the content
 /// or dropping the content outside of PerThread's Drop impl.
 pub struct PerThread<T> {
     storage: Box<StableStorage<T>>,

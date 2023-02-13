@@ -70,7 +70,7 @@ impl Display for DisplayChain<'_> {
     }
 }
 
-/// Temporary immitation of failure::Compat<T> to ease migration.
+/// Temporary immitation of `failure::Compat<T>` to ease migration.
 pub struct Compat<T>(pub T);
 
 impl StdError for Compat<Error> {

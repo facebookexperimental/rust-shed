@@ -83,8 +83,8 @@ pub trait FbTryFutureExt: Future {
         self::try_shared::try_shared(self)
     }
 
-    /// Convert a Future of Result<Result<I, E1>, E2> into a Future of Result<I, E1>, assuming E2
-    /// can convert into E1.
+    /// Convert a `Future` of `Result<Result<I, E1>, E2>` into a `Future` of
+    /// `Result<I, E1>`, assuming `E2` can convert into `E1`.
     #[allow(clippy::type_complexity)]
     fn flatten_err<I, E1, E2>(
         self,

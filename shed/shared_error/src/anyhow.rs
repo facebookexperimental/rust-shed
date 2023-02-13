@@ -14,8 +14,8 @@ use std::sync::Arc;
 use anyhow::Error;
 use thiserror::Error;
 
-/// SharedError is a simple, cloneable anyhow::Error wrapper.
-/// It holds the inner error in an Arc<anyhow::Error> to support Clone.
+/// SharedError is a simple, cloneable `anyhow::Error` wrapper.
+/// It holds the inner error in an `Arc<anyhow::Error>` to support Clone.
 ///
 /// Propagation of errors via `?` converts automatically
 /// to SharedError.
