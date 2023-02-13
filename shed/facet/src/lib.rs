@@ -203,6 +203,9 @@
 //! Initializers for normal fields may reference any of the facets that
 //! are part of the container, or any of the nested containers.
 //!
+//! You can also use a tuple struct for a container, however these can *only*
+//! contain facets.
+//!
 //! For example:
 //!
 //! ```
@@ -210,7 +213,10 @@
 //! # #[facet::facet] trait MyTrait { fn get_name(&self) -> &str; }
 //! # #[facet::facet] struct MyStruct {}
 //! # #[facet::facet] trait OtherTrait {}
-//! # #[facet::container] struct NestedContainer { #[facet] other_trait: dyn OtherTrait }
+//!
+//! #[facet::container]
+//! struct NestedContainer(dyn OtherTrait);
+//!
 //! #[facet::container]
 //! struct MyContainer {
 //!     #[init(my_trait.get_name().to_string())]

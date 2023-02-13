@@ -19,6 +19,7 @@ use syn::Error;
 use syn::Expr;
 use syn::Fields;
 use syn::Ident;
+use syn::Index;
 use syn::ItemStruct;
 use syn::Token;
 use syn::Type;
@@ -27,8 +28,34 @@ use syn::TypeParamBound;
 use crate::facet_crate_name;
 use crate::snakify_pascal_case;
 
+#[derive(Debug, Copy, Clone)]
+enum ContainerType {
+    Named,
+    Unnamed,
+}
+
+impl ContainerType {
+    fn gen_init(&self, body: TokenStream) -> TokenStream {
+        match self {
+            ContainerType::Named => {
+                quote! {
+                    Self {
+                        #body
+                    }
+                }
+            }
+            ContainerType::Unnamed => {
+                quote! {
+                    Self( #body )
+                }
+            }
+        }
+    }
+}
+
 #[derive(Debug)]
 struct ContainerMembers {
+    container_type: ContainerType,
     field_idents: Vec<Ident>,
     field_inits: Vec<Expr>,
     facet_idents: Vec<Ident>,
@@ -47,7 +74,7 @@ impl ContainerMembers {
         let mut delegate_idents = Vec::new();
         let mut delegate_types = Vec::new();
         let mut delegate_facets = Vec::new();
-        match &mut container.fields {
+        let container_type = match &mut container.fields {
             Fields::Named(named_fields) => {
                 for field in named_fields.named.iter_mut() {
                     let mut attr_found = false;
@@ -121,6 +148,21 @@ impl ContainerMembers {
                     }
                     field.attrs = new_attrs;
                 }
+                ContainerType::Named
+            }
+            Fields::Unnamed(unnamed_fields) => {
+                for (index, field) in unnamed_fields.unnamed.iter_mut().enumerate() {
+                    let mut facet_type = field.ty.clone();
+                    if let Type::TraitObject(obj) = &mut facet_type {
+                        obj.bounds.push(syn::parse2(quote!(::std::marker::Send))?);
+                        obj.bounds.push(syn::parse2(quote!(::std::marker::Sync))?);
+                        obj.bounds.push(syn::parse2(quote!('static))?);
+                    }
+                    field.ty = syn::parse2(quote!(::std::sync::Arc<#facet_type>))?;
+                    facet_idents.push(format_ident!("_field{}", index));
+                    facet_types.push(facet_type);
+                }
+                ContainerType::Unnamed
             }
             _ => {
                 return Err(Error::new(
@@ -128,9 +170,10 @@ impl ContainerMembers {
                     "facet::container requires a struct with named fields",
                 ));
             }
-        }
+        };
 
         Ok(ContainerMembers {
+            container_type,
             field_idents,
             field_inits,
             facet_idents,
@@ -191,6 +234,12 @@ fn gen_buildable_impl(
     let delegate_idents = &members.delegate_idents;
     let delegate_types = &members.delegate_types;
 
+    let container_init = members.container_type.gen_init(quote! {
+        #( #delegate_idents, )*
+        #( #field_idents, )*
+        #( #facet_idents, )*
+    });
+
     quote! {
         impl<B> ::#facet_crate::Buildable<B> for #container_name
         where B: ::std::marker::Send + ::std::marker::Sync
@@ -218,11 +267,7 @@ fn gen_buildable_impl(
                     let #field_idents = #field_inits;
                 )*
 
-                Ok(Self {
-                    #( #delegate_idents, )*
-                    #( #field_idents, )*
-                    #( #facet_idents, )*
-                })
+                Ok(#container_init)
            }
         }
     }
@@ -240,6 +285,11 @@ fn gen_async_buildable_impl(
     let delegate_idents = &members.delegate_idents;
     let delegate_types = &members.delegate_types;
 
+    let container_init = members.container_type.gen_init(quote! {
+            #( #delegate_idents, )*
+            #( #field_idents, )*
+            #( #facet_idents, )*
+    });
     // Desugared async-trait so that the builder lifetime can be specified.
     quote! {
         impl<'builder, B> ::#facet_crate::AsyncBuildable<'builder, B> for #container_name
@@ -304,11 +354,7 @@ fn gen_async_buildable_impl(
                     let #field_idents = #field_inits;
                 )*
 
-                Self {
-                    #( #delegate_idents, )*
-                    #( #field_idents, )*
-                    #( #facet_idents, )*
-                }
+                #container_init
             }
         }
 
@@ -326,13 +372,22 @@ fn gen_attr_impls(
     let delegate_idents = &members.delegate_idents;
     let delegate_facets = &members.delegate_facets;
 
-    for (facet_ident, facet_type) in facet_idents.iter().zip(facet_types) {
+    for (index, (facet_ident, facet_type)) in facet_idents.iter().zip(facet_types).enumerate() {
+        let field = match members.container_type {
+            ContainerType::Named => {
+                quote!(#facet_ident)
+            }
+            ContainerType::Unnamed => {
+                let index = Index::from(index);
+                quote!(#index)
+            }
+        };
         output.push(quote! {
             impl ::#facet_crate::FacetRef<#facet_type> for #container_name {
                 #[inline]
                 fn facet_ref(&self) -> &(#facet_type)
                 {
-                    self.#facet_ident.as_ref()
+                    self.#field.as_ref()
                 }
             }
 
@@ -340,7 +395,7 @@ fn gen_attr_impls(
                 #[inline]
                 fn facet_ref(&self) -> &(#facet_type)
                 {
-                    (*self).#facet_ident.as_ref()
+                    (*self).#field.as_ref()
                 }
             }
 
@@ -348,7 +403,7 @@ fn gen_attr_impls(
                 #[inline]
                 fn facet_arc(&self) -> ::std::sync::Arc<#facet_type>
                 {
-                    self.#facet_ident.clone()
+                    self.#field.clone()
                 }
             }
 
@@ -356,7 +411,7 @@ fn gen_attr_impls(
                 #[inline]
                 fn facet_arc(&self) -> ::std::sync::Arc<#facet_type>
                 {
-                    (*self).#facet_ident.clone()
+                    (*self).#field.clone()
                 }
             }
 
@@ -446,12 +501,14 @@ fn gen_from_impl(container_name: &Ident, members: &ContainerMembers) -> Option<T
             }
         });
 
+        let container_init = members.container_type.gen_init(quote! {
+            #(#facet_idents),*
+        });
+
         Some(quote! {
             impl #container_name {
-                pub fn from_parts(#(#part_params),*) -> #container_name {
-                    #container_name {
-                        #(#facet_idents),*
-                    }
+                pub fn from_parts(#(#part_params),*) -> Self {
+                    #container_init
                 }
             }
             #[allow(unused)]
