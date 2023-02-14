@@ -16,4 +16,4 @@ categories = ["data-structures"]
 once_cell = "1.12"
 
 [dev-dependencies]
-ahash = "0.7.4"
+ahash = "0.8"
