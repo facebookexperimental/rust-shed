@@ -15,5 +15,5 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-cxx = "1.0.89"
+cxx = "1.0.91"
 thiserror = "1.0.36"
