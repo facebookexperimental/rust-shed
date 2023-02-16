@@ -9,6 +9,8 @@
 
 //! See the [ScubaValue] documentation
 
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
 use std::f32;
@@ -349,6 +351,23 @@ impl<K: AsRef<str>, V: AsRef<str>> From<HashMap<K, V>> for ScubaValue {
     }
 }
 
+impl From<BTreeSet<String>> for ScubaValue {
+    fn from(value: BTreeSet<String>) -> Self {
+        ScubaValue::TagSet(HashSet::from_iter(value.into_iter()))
+    }
+}
+
+impl<K: AsRef<str>, V: AsRef<str>> From<BTreeMap<K, V>> for ScubaValue {
+    fn from(value: BTreeMap<K, V>) -> Self {
+        let mut values: Vec<String> = value
+            .iter()
+            .map(|(k, v)| format!("{}:{}", k.as_ref(), v.as_ref()))
+            .collect();
+        values.sort();
+        ScubaValue::NormVector(values)
+    }
+}
+
 impl From<Option<String>> for ScubaValue {
     fn from(value: Option<String>) -> Self {
         match value {
@@ -402,6 +421,13 @@ impl From<Option<bool>> for ScubaValue {
 
 impl<'a> From<HashSet<&'a str>> for ScubaValue {
     fn from(value: HashSet<&'a str>) -> Self {
+        let set = value.into_iter().map(|s| s.to_string()).collect();
+        ScubaValue::TagSet(set)
+    }
+}
+
+impl<'a> From<BTreeSet<&'a str>> for ScubaValue {
+    fn from(value: BTreeSet<&'a str>) -> Self {
         let set = value.into_iter().map(|s| s.to_string()).collect();
         ScubaValue::TagSet(set)
     }
@@ -567,6 +593,20 @@ mod tests {
     #[test]
     fn from_hashmap_string() {
         let mut input = HashMap::new();
+        input.insert("foo", "bar");
+        input.insert("bar", "10");
+
+        let expected = vec!["bar:10", "foo:bar"];
+
+        assert_matches!(
+            ScubaValue::from(input),
+            ScubaValue::NormVector(ref actual) if *actual == expected
+        );
+    }
+
+    #[test]
+    fn from_btree_map_string() {
+        let mut input = BTreeMap::new();
         input.insert("foo", "bar");
         input.insert("bar", "10");
 
@@ -768,6 +808,15 @@ mod tests {
     fn tagset_sorted() {
         let vec = vec!["6", "8", "5", "4", "3", "9", "2", "0", "7", "1"];
         let set = vec.into_iter().collect::<HashSet<_>>();
+        let value: Value = ScubaValue::from(set).into();
+        let expected = json!(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+        assert_eq!(value, expected);
+    }
+
+    #[test]
+    fn btree_tagset_sorted() {
+        let vec = vec!["6", "8", "5", "4", "3", "9", "2", "0", "7", "1"];
+        let set = vec.into_iter().collect::<BTreeSet<_>>();
         let value: Value = ScubaValue::from(set).into();
         let expected = json!(["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]);
         assert_eq!(value, expected);
