@@ -19,7 +19,7 @@ use services_common as _; // used in oss
 mod oss;
 
 #[cfg(fbcode_build)]
-pub use services::*;
+pub use fb_services::*;
 
 #[cfg(not(fbcode_build))]
 pub use crate::oss::*;

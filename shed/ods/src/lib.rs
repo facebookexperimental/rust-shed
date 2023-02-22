@@ -14,6 +14,6 @@
 pub mod oss;
 
 #[cfg(fbcode_build)]
-pub use ods::send_data_to_ods;
+pub use fb_ods::send_data_to_ods;
 #[cfg(not(fbcode_build))]
 pub use oss::send_data_to_ods;

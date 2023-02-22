@@ -25,7 +25,7 @@ mod oss;
 #[cfg(not(fbcode_build))]
 pub use abomonation::Abomonation;
 #[cfg(fbcode_build)]
-pub use cachelib::*;
+pub use fb_cachelib::*;
 
 #[cfg(not(fbcode_build))]
 pub use crate::oss::abomonation_future_cache::*;

@@ -22,7 +22,7 @@
 //! For non-fbcode builds there is no client yet.
 
 #[cfg(fbcode_build)]
-pub use scuba::*;
+pub use fb_scuba::*;
 #[cfg(fbcode_build)]
 use scuba_sample as _;
 #[cfg(not(fbcode_build))]
