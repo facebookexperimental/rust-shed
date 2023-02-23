@@ -16,7 +16,7 @@ bzip2 = { version = "0.3", features = ["tokio"] }
 flate2 = { version = "1.0.22", features = ["rust_backend", "tokio"], default-features = false }
 futures = "0.1.31"
 tokio-io = "0.1"
-zstd = { version = "0.11.2+zstd.1.5.2", features = ["zstdmt"] }
+zstd = { version = "0.11.2+zstd.1.5.2", features = ["experimental", "zstdmt"] }
 
 [dev-dependencies]
 assert_matches = "1.5"
