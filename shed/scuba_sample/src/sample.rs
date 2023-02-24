@@ -62,6 +62,16 @@ impl ScubaSample {
         }
     }
 
+    /// Joins the values from another scuba sample to the current one. Unlike
+    /// [`ScubaSample::join_values`], this panics if there are any values already present in self.
+    pub fn join_values_or_panic(&mut self, sample: &ScubaSample) {
+        for (k, v) in sample.values.iter() {
+            if self.values.insert(k.to_owned(), v.clone()).is_some() {
+                panic!("Duplicate value in scuba sample: {}", k);
+            }
+        }
+    }
+
     /// Create a new empty sample with the provided timestamp as the timestamp of
     /// this sample
     pub fn with_timestamp(seconds_since_epoch: u64) -> Self {
