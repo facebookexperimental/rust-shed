@@ -257,6 +257,7 @@ impl fmt::Debug for ScubaSampleBuilder {
 }
 
 /// Enum representing commonly used server data written to the Scuba sample.
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub enum ServerData {
     /// Hostname of the server
     Hostname,
@@ -268,6 +269,8 @@ pub enum ServerData {
     CanaryId,
     /// Tupperware JobHandle of the service
     JobHandle,
+    /// Tupperware TaskHandle of the service
+    TaskHandle,
     /// Build revision of the current binary
     BuildRevision,
     /// Build rule of the current binary
@@ -291,6 +294,7 @@ impl ServerData {
             ServerData::TaskId => "tw_task_id",
             ServerData::CanaryId => "tw_canary_id",
             ServerData::JobHandle => "tw_handle",
+            ServerData::TaskHandle => "tw_task_handle",
             ServerData::BuildRevision => "build_revision",
             ServerData::BuildRule => "build_rule",
             ServerData::ScheduledJobCluster => "chronos_cluster",
