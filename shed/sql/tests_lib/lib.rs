@@ -162,7 +162,10 @@ pub async fn test_read_query(conn: Connection, semantics: TestSemantics) {
 }
 
 pub async fn test_datetime_query(conn: Connection) {
-    let date = NaiveDate::from_ymd(2021, 1, 21).and_hms(21, 21, 21);
+    let date = NaiveDate::from_ymd_opt(2021, 1, 21)
+        .unwrap()
+        .and_hms_opt(21, 21, 21)
+        .unwrap();
     let res = TestQuery13::query(&conn, &3, &date).await.unwrap();
     assert_eq!(res.affected_rows(), 1);
 
