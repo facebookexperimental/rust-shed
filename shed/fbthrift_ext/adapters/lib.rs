@@ -9,24 +9,24 @@
 
 use std::marker::PhantomData;
 
-use fbthrift::adapter::ThriftTypeAdapter;
+use fbthrift::adapter::ThriftAdapter;
 use uuid::Uuid;
 
 pub struct UuidAdapter<T> {
     inner: PhantomData<T>,
 }
 
-impl ThriftTypeAdapter for UuidAdapter<Vec<u8>> {
-    type ThriftType = Vec<u8>;
+impl ThriftAdapter for UuidAdapter<Vec<u8>> {
+    type OriginalType = Vec<u8>;
     type AdaptedType = Uuid;
 
     type Error = uuid::Error;
 
-    fn to_thrift(value: &Self::AdaptedType) -> Self::ThriftType {
+    fn to_original(value: &Self::AdaptedType) -> Self::OriginalType {
         value.as_bytes().to_vec()
     }
 
-    fn from_thrift(value: Self::ThriftType) -> Result<Self::AdaptedType, Self::Error> {
+    fn from_original(value: Self::OriginalType) -> Result<Self::AdaptedType, Self::Error> {
         if value.is_empty() {
             Ok(Uuid::nil())
         } else {
