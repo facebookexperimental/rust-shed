@@ -29,6 +29,8 @@ pub use facebook::RowField;
 #[cfg(fbcode_build)]
 pub use facebook::Transaction;
 #[cfg(fbcode_build)]
+pub use facebook::TransactionResult;
+#[cfg(fbcode_build)]
 pub use facebook::TryFromRowField;
 #[cfg(fbcode_build)]
 pub use facebook::ValueError;
@@ -51,6 +53,8 @@ pub use mysql_stub::RowField;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::Transaction;
 #[cfg(not(fbcode_build))]
+pub use mysql_stub::TransactionResult;
+#[cfg(not(fbcode_build))]
 pub use mysql_stub::TryFromRowField;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::ValueError;
@@ -58,6 +62,90 @@ pub use mysql_stub::ValueError;
 pub use mysql_stub::WriteResult;
 
 use super::WriteResult as SqlWriteResult;
+
+/// A simple wrapper struct around a SQL string, just to add some type
+/// safety.
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct MySqlQuery {
+    query: String,
+}
+
+impl MySqlQuery {
+    /// Create a new MySqlQuery
+    pub fn new(query: impl Into<String>) -> MySqlQuery {
+        MySqlQuery {
+            query: query.into(),
+        }
+    }
+}
+
+impl std::fmt::Display for MySqlQuery {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.query)
+    }
+}
+
+/// A trait representing types that can be formatted as SQL.
+pub trait AsSql {
+    /// Format the given value as a SQL string.
+    fn as_sql(&self, no_backslash_escape: bool) -> String;
+}
+
+impl<T: mysql_async::prelude::ToValue> AsSql for T {
+    fn as_sql(&self, no_backslash_escape: bool) -> String {
+        mysql_async::prelude::ToValue::to_value(self).as_sql(no_backslash_escape)
+    }
+}
+
+/// A wrapper around a slice that implements AsSql. Useful for
+/// creating IN clauses in `mysql_query!`.
+pub struct SqlList<'a, T: AsSql>(&'a [T]);
+
+impl<'a, T: AsSql> SqlList<'a, T> {
+    /// Create a new instance of SqlList
+    pub fn new(values: &'a [T]) -> SqlList<'a, T> {
+        SqlList(values)
+    }
+}
+
+impl<'a, T: AsSql> AsSql for SqlList<'a, T> {
+    fn as_sql(&self, no_backslash_escape: bool) -> String {
+        let mut result = String::new();
+        result.push('(');
+        let mut first = true;
+        for value in self.0 {
+            if first {
+                first = false;
+            } else {
+                result.push_str(", ");
+            }
+            result.push_str(&AsSql::as_sql(value, no_backslash_escape));
+        }
+        result.push(')');
+        result
+    }
+}
+
+/// mysql_query!("SELECT foo FROM table WHERE col = {id}", id = "foo");
+/// mysql_query!("SELECT foo FROM table WHERE col = {}", "foo");
+#[macro_export]
+macro_rules! mysql_query {
+    ($query:expr) => {
+        ::sql::mysql::MySqlQuery::new(format!($query))
+    };
+    ($query:expr, $($key:tt = $value:expr),*) => {
+        ::sql::mysql::MySqlQuery::new(format!(
+                $query,
+                $( $key = &::sql::mysql::AsSql::as_sql(&$value, false) ),*
+        ))
+    };
+    ($query:expr, $($arg:expr),*) => {
+        ::sql::mysql::MySqlQuery::new(format!(
+                $query, $( &::sql::mysql::AsSql::as_sql(&$arg, false) ),*
+        ))
+    }
+}
+pub use mysql_query;
 
 /// Changes which locks are used. See <https://dev.mysql.com/doc/refman/8.0/en/innodb-transaction-isolation-levels.html>
 #[derive(Debug, Clone, Copy)]

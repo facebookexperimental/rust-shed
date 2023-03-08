@@ -63,12 +63,44 @@ pub struct ConnectionStats;
 #[derive(Clone)]
 pub struct Connection;
 
+/// Transaction result object.
+#[allow(dead_code)]
+pub struct TransactionResult<T> {
+    results: T,
+}
+
+impl<T> TransactionResult<T> {
+    /// Get last inserted ids
+    pub fn last_insert_id(&self) -> &[u64] {
+        unimplemented!("This is a stub");
+    }
+
+    /// Get number of affected rows
+    pub fn rows_affected(&self) -> u64 {
+        unimplemented!("This is a stub");
+    }
+
+    /// Get query results.
+    pub fn results(&self) -> &T {
+        unimplemented!("This is a stub");
+    }
+}
+
 unsafe impl Send for Connection {}
 
 impl Connection {
     /// Set isolation level for connection
     pub fn set_isolation_level(&mut self, _isolation_level: Option<IsolationLevel>) {
         unimplemented!("This is a stub")
+    }
+
+    /// Performs multiple queries in a single transaction.
+    #[allow(unused_variables)]
+    pub async fn execute_transaction<R, Q>(
+        &self,
+        queries: impl IntoIterator<Item = Q>,
+    ) -> Result<TransactionResult<R>, MysqlError> {
+        unimplemented!("This is a stub");
     }
 
     /// Performs a given query and returns the result as a vector of rows.
