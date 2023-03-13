@@ -20,7 +20,6 @@ chrono = { version = "0.4", features = ["clock", "serde", "std"], default-featur
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
 hostname = "0.3"
 itertools = "0.10.3"
-nix = "0.25"
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 slog-term = "2.8"
 
@@ -29,3 +28,9 @@ lazy_static = "1.4"
 rand = { version = "0.8", features = ["small_rng"] }
 regex = "1.6.0"
 thiserror = "1.0.36"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+nix = "0.25"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+nix = "0.25"
