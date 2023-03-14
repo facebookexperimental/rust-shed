@@ -7,6 +7,10 @@
  * of this source tree.
  */
 
-mod uuid;
+pub mod duration;
+pub mod uuid;
 
+#[doc(inline)]
+pub use crate::duration::*;
+#[doc(inline)]
 pub use crate::uuid::UuidAdapter;
