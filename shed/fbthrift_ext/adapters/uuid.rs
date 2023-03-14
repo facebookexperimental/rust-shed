@@ -7,15 +7,42 @@
  * of this source tree.
  */
 
+//! Adapters that interpret thrift types as [`Uuid`]s.
+
 use std::marker::PhantomData;
 
 use fbthrift::adapter::ThriftAdapter;
 use uuid::Uuid;
 
+/// Adapts thrift strings and thrift bytes as [`Uuid`]s.
+///
+/// For more information, see implementation documentation.
 pub struct UuidAdapter<T> {
     inner: PhantomData<T>,
 }
 
+/// Implementation for adapting thrift bytes.
+///
+/// This adapter can perform round-trip serialization and deserialization
+/// without transforming data for all non-empty inputs.
+///
+/// Passing in an empty vector returns the [nil UUID] instead of an empty
+/// vector.
+///
+/// [nil UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier#Nil_UUID
+///
+/// # Examples
+///
+/// ```thrift
+/// include "thrift/annotation/rust.thrift";
+///
+/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter"}
+/// typedef binary uuid;
+///
+/// struct CreateWorkflowRequest {
+///   1: uuid id;
+/// }
+/// ```
 impl ThriftAdapter for UuidAdapter<Vec<u8>> {
     type StandardType = Vec<u8>;
     type AdaptedType = Uuid;
