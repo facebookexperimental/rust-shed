@@ -62,6 +62,47 @@ impl ThriftAdapter for UuidAdapter<Vec<u8>> {
     }
 }
 
+/// Implementation for adapting optionally hyphenated thrift strings.
+///
+/// Unlike the `Vec<u8>` implementation, this adapter may transform your data.
+/// The adapter supports both hypenated and unhyphenated UUIDs, and will always
+/// serializes as a hypenated lowercase string.
+///
+/// Passing in an empty string returns the [nil UUID].
+///
+/// [nil UUID]: https://en.wikipedia.org/wiki/Universally_unique_identifier#Nil_UUID
+///
+/// # Examples
+///
+/// ```thrift
+/// include "thrift/annotation/rust.thrift";
+///
+/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter"}
+/// typedef string uuid;
+///
+/// struct CreateWorkflowRequest {
+///   1: uuid id;
+/// }
+/// ```
+impl ThriftAdapter for UuidAdapter<String> {
+    type StandardType = String;
+    type AdaptedType = Uuid;
+
+    type Error = uuid::Error;
+
+    fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
+        value.to_string()
+    }
+
+    fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
+        if value.is_empty() {
+            Ok(Uuid::nil())
+        } else {
+            Uuid::try_parse(&value)
+        }
+    }
+}
+
 #[cfg(test)]
 mod vec_impl {
     use super::*;
@@ -102,5 +143,68 @@ mod vec_impl {
         assert!(UuidAdapter::from_thrift(bytes).is_err());
         // uuids need to have valid bytes
         assert!(UuidAdapter::from_thrift(vec![0xff, 16]).is_err());
+    }
+}
+
+#[cfg(test)]
+mod string_impl {
+    use super::*;
+
+    type UuidAdapter = super::UuidAdapter<String>;
+
+    fn test_with_mutation(f: impl FnOnce(String) -> String) {
+        let original = "550e8400-e29b-41d4-a716-446655440000".to_owned();
+        let adapted = UuidAdapter::from_thrift(f(original.clone())).unwrap();
+        assert_eq!(UuidAdapter::to_thrift(&adapted), original);
+    }
+
+    #[test]
+    fn unhypenated() {
+        test_with_mutation(|original| original.chars().filter(|c| c.is_alphanumeric()).collect());
+    }
+
+    #[test]
+    fn hyphenated() {
+        test_with_mutation(|s| s);
+    }
+
+    #[test]
+    fn uppercase() {
+        test_with_mutation(|original| original.to_uppercase());
+    }
+
+    #[test]
+    fn mixed_case() {
+        test_with_mutation(|original| {
+            original
+                .chars()
+                .enumerate()
+                .map(|(i, c)| {
+                    if i % 2 == 0 {
+                        c
+                    } else {
+                        c.to_ascii_uppercase()
+                    }
+                })
+                .collect()
+        })
+    }
+
+    #[test]
+    fn empty() {
+        let nil = "00000000-0000-0000-0000-000000000000".to_owned();
+        let adapted = UuidAdapter::from_thrift(String::new()).unwrap();
+        assert_eq!(adapted, Uuid::nil());
+        assert_eq!(UuidAdapter::to_thrift(&adapted), nil);
+    }
+
+    #[test]
+    fn invalid_uuid() {
+        // uuids need to be 16 bytes long
+        assert!(UuidAdapter::from_thrift("hello world".to_owned()).is_err());
+        // partially-hyphenated uuids are not supported
+        assert!(UuidAdapter::from_thrift("550e8400e29b41d4-a716-446655440000".to_owned()).is_err());
+        // uuids need to have valid bytes
+        assert!(UuidAdapter::from_thrift("gggggggggggggggg-gggg-gggggggggggg".to_owned()).is_err());
     }
 }
