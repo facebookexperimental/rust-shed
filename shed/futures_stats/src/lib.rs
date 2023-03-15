@@ -35,6 +35,11 @@ pub struct FutureStats {
     /// Future is spending time performing expensive synchronous work.
     pub poll_time: Duration,
 
+    /// Max time the wrapped Future spent in its `poll()` function.  usually be
+    /// small -- large amounts of time spent in `poll()` may indicate that the
+    /// Future is blocking event loop with synchronous work.
+    pub max_poll_time: Duration,
+
     /// Number of times that the Future was polled.
     pub poll_count: u64,
 }
@@ -52,6 +57,11 @@ pub struct StreamStats {
     /// usually be small -- large amounts of time spent in `poll()` may indicate that the
     /// Stream is spending time performing expensive synchronous work.
     pub poll_time: Duration,
+
+    /// Max time the wrapped Future spent in its `poll()` function.  usually be
+    /// small -- large amounts of time spent in `poll()` may indicate that the
+    /// Future is blocking event loop with synchronous work.
+    pub max_poll_time: Duration,
 
     /// Number of times that the Stream was polled.
     pub poll_count: u64,

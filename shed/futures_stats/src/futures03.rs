@@ -30,6 +30,7 @@ pub struct TimedFuture<F> {
     start: Option<Instant>,
     poll_count: u64,
     poll_time: Duration,
+    max_poll_time: Duration,
 }
 
 impl<F> TimedFuture<F> {
@@ -39,6 +40,7 @@ impl<F> TimedFuture<F> {
             start: None,
             poll_count: 0,
             poll_time: Duration::from_secs(0),
+            max_poll_time: Duration::from_secs(0),
         }
     }
 }
@@ -55,6 +57,7 @@ impl<F: Future> Future for TimedFuture<F> {
 
         let poll = unsafe { Pin::new_unchecked(&mut this.inner).poll(cx) };
         this.poll_time += poll_start.elapsed();
+        this.max_poll_time = poll_start.elapsed().max(this.max_poll_time);
 
         let out = match poll {
             Poll::Pending => return Poll::Pending,
@@ -64,6 +67,7 @@ impl<F: Future> Future for TimedFuture<F> {
         let stats = FutureStats {
             completion_time: this.start.expect("start time not set").elapsed(),
             poll_time: this.poll_time,
+            max_poll_time: this.max_poll_time,
             poll_count: this.poll_count,
         };
 
@@ -81,6 +85,7 @@ impl<F> CancelData for TimedFuture<F> {
                 .map_or_else(|| Duration::from_secs(0), |start| start.elapsed()),
             poll_time: self.poll_time,
             poll_count: self.poll_count,
+            max_poll_time: self.max_poll_time,
         }
     }
 }
@@ -137,6 +142,7 @@ where
     count: usize,
     poll_count: u64,
     poll_time: Duration,
+    max_poll_time: Duration,
     first_item_time: Option<Duration>,
 }
 
@@ -155,6 +161,7 @@ where
             count: 0,
             poll_count: 0,
             poll_time: Duration::from_secs(0),
+            max_poll_time: Duration::from_secs(0),
             first_item_time: None,
         }
     }
@@ -163,6 +170,7 @@ where
         let stats = StreamStats {
             completion_time: self.start.expect("start time not set").elapsed(),
             poll_time: self.poll_time,
+            max_poll_time: self.max_poll_time,
             poll_count: self.poll_count,
             count: self.count,
             first_item_time: self.first_item_time,
@@ -206,6 +214,7 @@ where
         let poll_start = Instant::now();
         let poll = unsafe { Pin::new_unchecked(&mut this.inner).poll_next(cx) };
         this.poll_time += poll_start.elapsed();
+        this.max_poll_time = poll_start.elapsed().max(this.max_poll_time);
         match poll {
             Poll::Pending => Poll::Pending,
             Poll::Ready(Some(item)) => {
@@ -310,6 +319,7 @@ mod tests {
     use std::sync::atomic::Ordering;
     use std::sync::Arc;
     use std::sync::Mutex;
+    use std::thread;
 
     use futures::stream;
     use futures::stream::StreamExt;
@@ -319,9 +329,21 @@ mod tests {
 
     #[tokio::test]
     async fn test_timed_future() {
-        let (stats, result) = async { 123u32 }.timed().await;
+        let ten_millis = Duration::from_millis(10);
+        let twenty_millis = Duration::from_millis(20);
+        let (stats, result) = async {
+            thread::sleep(ten_millis);
+            tokio::task::yield_now().await;
+            thread::sleep(ten_millis);
+            tokio::task::yield_now().await;
+            123u32
+        }
+        .timed()
+        .await;
         assert_eq!(result, 123u32);
         assert!(stats.poll_count > 0);
+        assert!(stats.poll_time > twenty_millis);
+        assert!(stats.max_poll_time > ten_millis);
     }
 
     #[tokio::test]
