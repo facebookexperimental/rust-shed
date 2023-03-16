@@ -85,9 +85,12 @@
 //! All adapters are re-exported at the root level for easy usage in thrift.
 
 pub mod duration;
+pub mod path;
 pub mod uuid;
 
 #[doc(inline)]
 pub use crate::duration::*;
+#[doc(inline)]
+pub use crate::path::Utf8PathAdapter;
 #[doc(inline)]
 pub use crate::uuid::UuidAdapter;
