@@ -36,7 +36,7 @@ pub struct UuidAdapter<T> {
 /// ```thrift
 /// include "thrift/annotation/rust.thrift";
 ///
-/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter"}
+/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter<>"}
 /// typedef binary uuid;
 ///
 /// struct CreateWorkflowRequest {
@@ -77,7 +77,7 @@ impl ThriftAdapter for UuidAdapter<Vec<u8>> {
 /// ```thrift
 /// include "thrift/annotation/rust.thrift";
 ///
-/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter"}
+/// @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter<>"}
 /// typedef string uuid;
 ///
 /// struct CreateWorkflowRequest {

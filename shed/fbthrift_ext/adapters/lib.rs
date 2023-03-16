@@ -53,7 +53,7 @@
 //! ```thrift
 //! include "thrift/annotation/rust.thrift"
 //!
-//! @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter"}
+//! @rust.Adapter{name = "::fbthrift_adapters::UuidAdapter<>"}
 //! typedef binary uuid
 //!
 //! struct CreateWorkflowRequest {
@@ -85,11 +85,14 @@
 //! All adapters are re-exported at the root level for easy usage in thrift.
 
 pub mod duration;
+pub mod nonnegative;
 pub mod path;
 pub mod uuid;
 
 #[doc(inline)]
 pub use crate::duration::*;
+#[doc(inline)]
+pub use crate::nonnegative::NonNegativeAdapter;
 #[doc(inline)]
 pub use crate::path::Utf8PathAdapter;
 #[doc(inline)]
