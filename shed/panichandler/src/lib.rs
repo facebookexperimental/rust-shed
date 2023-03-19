@@ -29,20 +29,15 @@ const MAX_FRAMES: usize = 1000;
 const INLINED_NAME: bool = false;
 
 /// What's the fate of the process when a panic happens?
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, Eq, PartialEq)]
 pub enum Fate {
     /// Carry on, stiff upper lip old chap
+    #[default]
     Continue,
     /// Exit with the given exit code
     Exit(i32),
     /// Kill self with SIGABRT
     Abort,
-}
-
-impl Default for Fate {
-    fn default() -> Self {
-        Fate::Continue
-    }
 }
 
 fn handler(panic: &PanicInfo<'_>, fate: Fate) {

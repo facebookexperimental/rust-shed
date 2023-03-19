@@ -43,7 +43,7 @@ pub type Args = HashMap<String, Value>;
 
 /// Phases from the table of "all event types and their associated phases" used
 /// in [Event::ph] field.
-#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Eq, PartialEq, Serialize)]
 pub enum Phase {
     /// Supported for event type "Duration"
     #[serde(rename = "B")]
@@ -90,14 +90,9 @@ pub enum Phase {
 
     /// The Unspecified variant exists soley to implement the Default trait.
     /// It should not be used; attempting to serialize it will result in an error.
+    #[default]
     #[serde(skip_serializing)]
     Unspecified,
-}
-
-impl Default for Phase {
-    fn default() -> Self {
-        Phase::Unspecified
-    }
 }
 
 /// Struct representing a JSON record of an individual event in a trace, as
