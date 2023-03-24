@@ -129,83 +129,70 @@ impl<F> CancelData for TimedTryFuture<F> {
 
 /// A Stream that gathers some basic statistics for inner Stream.
 /// This structure's main usage is by calling [TimedStreamExt::timed].
-pub struct TimedStream<S, C, F>
+pub struct TimedStream<S, C>
 where
     S: Stream,
-    C: FnOnce(StreamStats) -> F,
-    F: Future<Output = ()>,
+    C: FnOnce(StreamStats),
 {
     inner: S,
     callback: Option<C>,
-    callback_future: Option<F>,
     start: Option<Instant>,
     count: usize,
     poll_count: u64,
     poll_time: Duration,
     max_poll_time: Duration,
     first_item_time: Option<Duration>,
+    completed: bool,
 }
 
-impl<S, C, F> TimedStream<S, C, F>
+impl<S, C> TimedStream<S, C>
 where
     S: Stream,
-    C: FnOnce(StreamStats) -> F,
-    F: Future<Output = ()>,
+    C: FnOnce(StreamStats),
 {
     fn new(stream: S, callback: C) -> Self {
         TimedStream {
             inner: stream,
             callback: Some(callback),
-            callback_future: None,
             start: None,
             count: 0,
             poll_count: 0,
             poll_time: Duration::from_secs(0),
             max_poll_time: Duration::from_secs(0),
             first_item_time: None,
+            completed: false,
         }
     }
 
-    fn run_callback(&mut self) -> F {
-        let stats = StreamStats {
-            completion_time: self.start.expect("start time not set").elapsed(),
-            poll_time: self.poll_time,
-            max_poll_time: self.max_poll_time,
-            poll_count: self.poll_count,
-            count: self.count,
-            first_item_time: self.first_item_time,
-        };
-        let callback = self.callback.take().expect("callback was already called");
-        callback(stats)
-    }
-
-    fn poll_callback_future(&mut self, cx: &mut Context) -> Poll<Option<<Self as Stream>::Item>> {
-        if let Some(ref mut fut) = self.callback_future {
-            // We've already exhausted the stream, now we are just processing callback future
-            let poll = unsafe { Pin::new_unchecked(fut).poll(cx) };
-            match poll {
-                Poll::Pending => Poll::Pending,
-                Poll::Ready(()) => Poll::Ready(None),
-            }
-        } else {
-            panic!("callback future is not set!");
+    fn run_callback(&mut self) {
+        if let Some(callback) = self.callback.take() {
+            let stats = StreamStats {
+                completion_time: self.start.as_ref().map(Instant::elapsed),
+                poll_time: self.poll_time,
+                max_poll_time: self.max_poll_time,
+                poll_count: self.poll_count,
+                count: self.count,
+                first_item_time: self.first_item_time,
+                completed: self.completed,
+            };
+            callback(stats)
         }
     }
 }
 
-impl<S, C, F> Stream for TimedStream<S, C, F>
+impl<S, C> Stream for TimedStream<S, C>
 where
     S: Stream,
-    C: FnOnce(StreamStats) -> F,
-    F: Future<Output = ()>,
+    C: FnOnce(StreamStats),
 {
     type Item = S::Item;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         let this = unsafe { self.get_unchecked_mut() };
-        if this.callback_future.is_some() {
-            // We've already exhausted the stream, now we are just processing callback future
-            return this.poll_callback_future(cx);
+
+        if this.completed {
+            // The stream has already been polled to completion.
+            return Poll::Ready(None);
         }
 
         let _ = this.start.get_or_insert_with(Instant::now);
@@ -225,10 +212,21 @@ where
                 Poll::Ready(Some(item))
             }
             Poll::Ready(None) => {
-                this.callback_future = Some(this.run_callback());
-                this.poll_callback_future(cx)
+                this.completed = true;
+                this.run_callback();
+                Poll::Ready(None)
             }
         }
+    }
+}
+
+impl<S, C> Drop for TimedStream<S, C>
+where
+    S: Stream,
+    C: FnOnce(StreamStats),
+{
+    fn drop(&mut self) {
+        self.run_callback();
     }
 }
 
@@ -293,19 +291,16 @@ pub trait TimedStreamExt: Stream + Sized {
     /// # futures::executor::block_on(async {
     /// let out = stream::iter([0u32; 3].iter())
     ///     .timed(|stats| {
-    ///         async move {
-    ///             assert_eq!(stats.count, 3);
-    ///         }
+    ///         assert_eq!(stats.count, 3);
     ///     })
     ///     .collect::<Vec<u32>>()
     ///     .await;
     /// assert_eq!(out, vec![0, 0, 0]);
     /// # });
     /// ```
-    fn timed<C, F>(self, callback: C) -> TimedStream<Self, C, F>
+    fn timed<C>(self, callback: C) -> TimedStream<Self, C>
     where
-        C: FnOnce(StreamStats) -> F,
-        F: Future<Output = ()>,
+        C: FnOnce(StreamStats),
     {
         TimedStream::new(self, callback)
     }
@@ -374,14 +369,34 @@ mod tests {
         let out: Vec<_> = stream::iter([0u32; TEST_COUNT].iter())
             .timed({
                 let callback_called = callback_called.clone();
-                move |stats| async move {
+                move |stats| {
                     assert_eq!(stats.count, TEST_COUNT);
+                    assert!(stats.completed);
                     callback_called.store(true, Ordering::SeqCst);
                 }
             })
             .collect::<Vec<u32>>()
             .await;
         assert_eq!(out, vec![0; TEST_COUNT]);
+        assert!(callback_called.load(Ordering::SeqCst));
+    }
+
+    #[tokio::test]
+    async fn test_cancel_timed_stream() {
+        let callback_called = Arc::new(AtomicBool::new(false));
+        const TEST_COUNT: usize = 3;
+        let mut s = stream::iter([0u32; TEST_COUNT].iter()).timed({
+            let callback_called = callback_called.clone();
+            move |stats| {
+                assert_eq!(stats.count, 1);
+                assert!(!stats.completed);
+                callback_called.store(true, Ordering::SeqCst);
+            }
+        });
+        let first = s.next().await;
+        assert_eq!(first, Some(&0));
+        assert!(!callback_called.load(Ordering::SeqCst));
+        drop(s);
         assert!(callback_called.load(Ordering::SeqCst));
     }
 }

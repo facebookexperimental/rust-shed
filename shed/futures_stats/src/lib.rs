@@ -47,10 +47,12 @@ pub struct FutureStats {
 /// A structure that holds some basic statistics for Stream.
 #[derive(Clone, Debug)]
 pub struct StreamStats {
-    /// Time elapsed between the first time the Stream was polled until it completed.
-    pub completion_time: Duration,
+    /// Time elapsed between the first time the Stream was polled until it completed.  None if the
+    /// Stream was never polled.
+    pub completion_time: Option<Duration>,
 
-    /// Time elapsed between the first time the Stream was polled until the first item became available
+    /// Time elapsed between the first time the Stream was polled until the first item became available.
+    /// None if the Stream did not yield any items.
     pub first_item_time: Option<Duration>,
 
     /// Cumulative time the wrapped Stream spent in its `poll()` function. This should
@@ -66,6 +68,9 @@ pub struct StreamStats {
     /// Number of times that the Stream was polled.
     pub poll_count: u64,
 
-    /// Number of items in the stream
+    /// Number of items in the stream.
     pub count: usize,
+
+    /// Whether the stream was polled to completion.
+    pub completed: bool,
 }

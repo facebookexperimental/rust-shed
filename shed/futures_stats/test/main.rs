@@ -29,7 +29,6 @@ fn main() {
 
     let stream = stream::iter([1, 2, 3].map(Ok::<u32, ()>)).timed(|stats| {
         println!("{:#?}", stats);
-        future::ready(())
     });
     runtime
         .block_on(stream.try_for_each(|_| future::ok(())))
@@ -38,7 +37,6 @@ fn main() {
     let empty: Vec<Result<u32, ()>> = vec![];
     let stream = stream::iter(empty.into_iter()).timed(|stats| {
         assert!(stats.first_item_time.is_none());
-        future::ready(())
     });
     runtime
         .block_on(stream.try_for_each(|_| future::ok(())))
