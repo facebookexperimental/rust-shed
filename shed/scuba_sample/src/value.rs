@@ -308,22 +308,14 @@ impl From<String> for ScubaValue {
     }
 }
 
-impl<'a> From<&'a str> for ScubaValue {
-    fn from(value: &'a str) -> Self {
+impl From<&str> for ScubaValue {
+    fn from(value: &str) -> Self {
         ScubaValue::Normal(value.to_string())
     }
 }
-
-impl From<Vec<String>> for ScubaValue {
-    fn from(value: Vec<String>) -> Self {
-        ScubaValue::NormVector(value)
-    }
-}
-
-impl<'a> From<Vec<&'a str>> for ScubaValue {
-    fn from(value: Vec<&'a str>) -> Self {
-        let vec = value.into_iter().map(|s| s.to_string()).collect();
-        ScubaValue::NormVector(vec)
+impl<T: Into<String>> From<Vec<T>> for ScubaValue {
+    fn from(value: Vec<T>) -> Self {
+        ScubaValue::NormVector(value.into_iter().map(|v| v.into()).collect())
     }
 }
 
