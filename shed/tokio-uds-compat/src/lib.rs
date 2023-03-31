@@ -32,7 +32,6 @@ mod windows {
     use tokio::io::AsyncRead;
     use tokio::io::AsyncWrite;
     use tokio::io::ReadBuf;
-    use tokio::sync::Mutex;
 
     pub struct OwnedReadHalf {
         inner: Arc<UnixStream>,
