@@ -11,7 +11,7 @@ repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 once_cell = "1.12"
 
 [dev-dependencies]

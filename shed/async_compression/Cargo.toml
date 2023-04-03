@@ -20,6 +20,6 @@ zstd = { version = "0.11.2+zstd.1.5.2", features = ["experimental", "zstdmt"] }
 
 [dev-dependencies]
 assert_matches = "1.5"
-futures03 = { package = "futures", version = "0.3.28", features = ["async-await", "compat"] }
+futures03 = { package = "futures", version = "0.3.22", features = ["async-await", "compat"] }
 quickcheck = "1.0"
 tokio = { version = "1.25.0", features = ["full", "test-util", "tracing"] }

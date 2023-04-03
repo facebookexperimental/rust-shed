@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 fbinit = { version = "0.1.2", path = "../fbinit" }
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
+futures = { version = "0.3.22", features = ["async-await", "compat"] }
 once_cell = "1.12"
 perthread = { version = "0.1.0", path = "../perthread" }
 stats_traits = { version = "0.1.0", path = "traits" }
