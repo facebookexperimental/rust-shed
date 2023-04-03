@@ -15,6 +15,6 @@ name = "futures_stats_test"
 path = "test/main.rs"
 
 [dependencies]
-futures = { version = "0.3.22", features = ["async-await", "compat"] }
+futures = { version = "0.3.28", features = ["async-await", "compat"] }
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
 tokio = { version = "1.25.0", features = ["full", "test-util", "tracing"] }
