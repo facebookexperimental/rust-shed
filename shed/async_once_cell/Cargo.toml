@@ -13,5 +13,5 @@ license = "MIT OR Apache-2.0"
 tokio = { version = "1.25.0", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
-futures = { version = "0.3.22", features = ["async-await", "compat"] }
+futures = { version = "0.3.28", features = ["async-await", "compat"] }
 rand = { version = "0.8", features = ["small_rng"] }
