@@ -21,10 +21,6 @@ pub mod transaction;
 use std::fmt;
 use std::fmt::Debug;
 
-use anyhow::bail;
-use anyhow::format_err;
-use anyhow::Context;
-use anyhow::Error;
 use vec1::Vec1;
 
 // Used in docs
@@ -53,60 +49,6 @@ impl SqlConnections {
             read_connection: connection.clone(),
             read_master_connection: connection,
         }
-    }
-}
-
-/// Struct to store a set of write, read and read-only connections for a shard.
-/// Plus a schema connection so that sqlite tables can be setup.
-#[derive(Clone)]
-pub struct SqlConnectionsWithSchema {
-    /// Normal connections not used for schema creation
-    connections: SqlConnections,
-    /// Connections for schema creation, only populated for sqlite.
-    /// This is separate from write_connection as test cases still rely on schema being
-    /// present but empty when in readonly mode.
-    schema_connection: Option<Connection>,
-}
-
-impl SqlConnectionsWithSchema {
-    /// Create a new SqlConnectionsWithSchema
-    pub fn new(connections: SqlConnections, schema_connection: Option<Connection>) -> Self {
-        Self {
-            connections,
-            schema_connection,
-        }
-    }
-
-    /// Create SqlConnections from a single connection.
-    pub fn new_single(connection: Connection) -> Self {
-        Self {
-            connections: SqlConnections::new_single(connection.clone()),
-            schema_connection: Some(connection),
-        }
-    }
-
-    /// Get a reference to the regular connections
-    pub fn connections(&self) -> &SqlConnections {
-        &self.connections
-    }
-
-    /// Execute sql on the schema connection to create schema if not present
-    /// For mysql the schema connection should be None as schema is setup in advance2
-    pub fn create_schema(&self, schema_sql: &str) -> Result<(), Error> {
-        match &self.schema_connection {
-            Some(Connection::Sqlite(conn)) => conn
-                .get_sqlite_guard()
-                .execute_batch(schema_sql)
-                .with_context(|| format_err!("failed sql: {}", schema_sql)),
-            Some(_) => bail!("not expecting schema connection for mysql"),
-            None => Ok(()),
-        }
-    }
-}
-
-impl From<SqlConnectionsWithSchema> for SqlConnections {
-    fn from(from: SqlConnectionsWithSchema) -> SqlConnections {
-        from.connections
     }
 }
 

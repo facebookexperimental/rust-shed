@@ -83,7 +83,6 @@ pub use sql_common::sqlite;
 pub use sql_common::transaction::Transaction;
 pub use sql_common::Connection;
 pub use sql_common::SqlConnections;
-pub use sql_common::SqlConnectionsWithSchema;
 pub use sql_common::SqlShardedConnections;
 pub use sql_common::WriteResult;
 
