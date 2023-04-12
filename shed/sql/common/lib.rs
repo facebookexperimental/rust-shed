@@ -20,7 +20,6 @@ pub mod transaction;
 
 use std::fmt;
 use std::fmt::Debug;
-use std::sync::Arc;
 
 use anyhow::bail;
 use anyhow::format_err;
@@ -150,14 +149,14 @@ impl From<Vec1<SqlConnections>> for SqlShardedConnections {
 pub enum Connection {
     /// Sqlite lets you use this crate with rusqlite connections such as in memory or on disk Sqlite
     /// databases, both useful in case of testing or local sql db use cases.
-    Sqlite(Arc<sqlite::SqliteMultithreaded>),
+    Sqlite(sqlite::SqliteMultithreaded),
     /// A variant used for the new Mysql client connection factory.
     Mysql(mysql::Connection),
 }
 
 impl From<sqlite::SqliteMultithreaded> for Connection {
     fn from(con: sqlite::SqliteMultithreaded) -> Self {
-        Connection::Sqlite(Arc::new(con))
+        Connection::Sqlite(con)
     }
 }
 

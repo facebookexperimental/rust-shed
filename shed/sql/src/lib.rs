@@ -308,7 +308,6 @@ macro_rules! _query_common {
         use std::fmt::Write;
         // Some users of queries! have redefined Result
         use std::result::Result;
-        use std::sync::Arc;
 
         use $crate::anyhow::Context;
         use $crate::anyhow::Error;
@@ -349,7 +348,7 @@ macro_rules! _read_query_impl {
         ) -> Result<Vec<($( $rtype, )*)>, Error> {
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
+                    sqlite_query(multithread_con $( , $pname )* $( , $lname )*).await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -386,7 +385,7 @@ macro_rules! _read_query_impl {
         }
 
         async fn sqlite_query(
-            multithread_con: Arc<SqliteMultithreaded>,
+            multithread_con: &SqliteMultithreaded,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<Vec<($( $rtype, )*)>, Error> {
@@ -520,7 +519,7 @@ macro_rules! _write_query_impl {
 
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_exec_query(multithread_con.clone(), values, $( $pname ),*).await
+                    sqlite_exec_query(multithread_con, values, $( $pname ),*).await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query(values, $( $pname ),*);
@@ -580,7 +579,7 @@ macro_rules! _write_query_impl {
         }
 
         async fn sqlite_exec_query(
-            multithread_con: Arc<SqliteMultithreaded>,
+            multithread_con: &SqliteMultithreaded,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
         ) -> Result<WriteResult, Error> {
@@ -696,7 +695,7 @@ macro_rules! _write_query_impl {
         ) -> Result<WriteResult, Error> {
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_exec_query(multithread_con.clone() $( , $pname )* $( , $lname )*).await
+                    sqlite_exec_query(multithread_con $( , $pname )* $( , $lname )*).await
                 }
                 Connection::Mysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -739,7 +738,7 @@ macro_rules! _write_query_impl {
         }
 
         async fn sqlite_exec_query(
-            multithread_con: Arc<SqliteMultithreaded>,
+            multithread_con: &SqliteMultithreaded,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<WriteResult, Error> {

@@ -36,26 +36,29 @@ impl crate::Connection {
 }
 
 /// Wrapper around rusqlite connection that makes it fully thread safe (but not deadlock safe)
+#[derive(Clone)]
 pub struct SqliteMultithreaded {
-    con: Arc<Mutex<Option<SqliteConnection>>>,
-    condvar: Arc<Condvar>,
+    inner: Arc<SqliteMultithreadedInner>,
 }
 
-/// Returns a guard that grabs a lock and connection. Can be used instead of SqliteConnection
-/// When guard is destroyed then connection is put back and threads that are waiting for it
-/// are notified
+/// Shared inner part of SqliteMultithreded plus any active connection guard.
+pub struct SqliteMultithreadedInner {
+    connection: Mutex<Option<SqliteConnection>>,
+    condvar: Condvar,
+}
+
+/// Guard containing an active connection.
+///
+/// When this guard is destroyed, the connection is put back and threads that
+/// are waiting for it are notified.
 pub struct SqliteConnectionGuard {
-    m: Arc<Mutex<Option<SqliteConnection>>>,
-    condvar: Arc<Condvar>,
-    // drop() need to remove the connection, so use Option<...> here
-    con: Option<SqliteConnection>,
+    inner: Arc<SqliteMultithreadedInner>,
+    // drop() needs to remove the connection, so use Option<...> here
+    connection: Option<SqliteConnection>,
 }
 
 impl SqliteConnectionGuard {
-    fn new(
-        m: Arc<Mutex<Option<SqliteConnection>>>,
-        condvar: Arc<Condvar>,
-    ) -> SqliteConnectionGuard {
+    fn new(inner: Arc<SqliteMultithreadedInner>) -> SqliteConnectionGuard {
         let _global_lock =
             CONN_CONDVAR.wait_while(CONN_LOCK.lock().expect("lock poisoned"), |allowed| {
                 if *allowed {
@@ -65,18 +68,20 @@ impl SqliteConnectionGuard {
                     true
                 }
             });
-        let con = {
-            let mut mutexguard = condvar
-                .wait_while(m.lock().expect("poisoned lock"), |con| con.is_none())
+        let connection = {
+            let mut connection = inner
+                .condvar
+                .wait_while(inner.connection.lock().expect("poisoned lock"), |con| {
+                    con.is_none()
+                })
                 .expect("poisoned lock");
 
-            mutexguard.take().expect("connection should not be empty")
+            connection.take().expect("connection should not be empty")
         };
 
         SqliteConnectionGuard {
-            m,
-            condvar,
-            con: Some(con),
+            inner,
+            connection: Some(connection),
         }
     }
 }
@@ -85,7 +90,7 @@ impl Deref for SqliteConnectionGuard {
     type Target = SqliteConnection;
 
     fn deref(&self) -> &Self::Target {
-        self.con
+        self.connection
             .as_ref()
             .expect("invariant violation - deref called after drop()")
     }
@@ -94,30 +99,33 @@ impl Deref for SqliteConnectionGuard {
 impl Drop for SqliteConnectionGuard {
     fn drop(&mut self) {
         *(CONN_LOCK.lock().expect("lock poisoned")) = true;
-        let mut locked_m = self.m.lock().expect("poisoned lock");
-        locked_m.get_or_insert(self.con.take().unwrap());
+        let mut connection = self.inner.connection.lock().expect("poisoned lock");
+        connection.get_or_insert(self.connection.take().unwrap());
         // notify others that wait for this connection
-        self.condvar.notify_one();
+        self.inner.condvar.notify_one();
         CONN_CONDVAR.notify_one();
     }
 }
 
 impl SqliteMultithreaded {
     /// Create a new instance wrapping the provided sqlite connection.
-    pub fn new(con: SqliteConnection) -> Self {
+    pub fn new(connection: SqliteConnection) -> Self {
         Self {
-            con: Arc::new(Mutex::new(Some(con))),
-            condvar: Arc::new(Condvar::new()),
+            inner: Arc::new(SqliteMultithreadedInner {
+                connection: Mutex::new(Some(connection)),
+                condvar: Condvar::new(),
+            }),
         }
     }
 
-    /// Returns a guard that grabs a lock and connection.
+    /// Returns a guard that grabs the sqlite connection.
+    ///
     /// When guard is destroyed then connection is put back and threads that are waiting for it
-    /// are notified
-    /// NOTE: it will block any other `get_sqlite_guard()` calls. So you shouldn't be async i.e.
-    /// if you have a future that calls `get_sqlite_guard()` then it shouldn't return NotReady
-    /// because it can cause a deadlock if another future will try to grab get_sqlite_guard
+    /// are notified.
+    ///
+    /// NOTE: This is a lock which will block any other `get_sqlite_guard()` calls, so you
+    /// must not hold this over an await point as this may cause a deadlock.
     pub fn get_sqlite_guard(&self) -> SqliteConnectionGuard {
-        SqliteConnectionGuard::new(self.con.clone(), self.condvar.clone())
+        SqliteConnectionGuard::new(self.inner.clone())
     }
 }
