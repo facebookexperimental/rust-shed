@@ -77,7 +77,6 @@ use rusqlite::types::Value as SqliteValue;
 use rusqlite::types::ValueRef as SqliteValueRef;
 use rusqlite::Result as SqliteResult;
 pub use sql_common;
-pub use sql_common::error;
 pub use sql_common::mysql;
 pub use sql_common::sqlite;
 pub use sql_common::transaction::Transaction;

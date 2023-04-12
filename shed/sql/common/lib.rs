@@ -13,7 +13,6 @@
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 #![cfg_attr(not(fbcode_build), allow(unused_crate_dependencies))]
 
-pub mod error;
 pub mod mysql;
 pub mod sqlite;
 pub mod transaction;
@@ -28,6 +27,12 @@ use vec1::Vec1;
 mod _unused {
     use sql as _;
     use sql_tests_lib as _;
+}
+
+// Used in OSS build only
+#[cfg(fbcode_build)]
+mod _oss_only {
+    use thiserror as _;
 }
 
 /// Struct to store a set of write, read and read-only connections for a shard.
