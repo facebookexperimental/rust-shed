@@ -67,15 +67,8 @@ pub enum Transaction {
 }
 
 impl Transaction {
-    /// Create a new transaction for the provided connection using default
-    /// transaction options.
+    /// Create a new transaction for the provided connection.
     pub async fn new(connection: &super::Connection) -> Result<Transaction, Error> {
-        Transaction::new_with_options(connection).await
-    }
-
-    /// Create a new transaction for the provided connection using provided
-    /// transaction options.
-    pub async fn new_with_options(connection: &super::Connection) -> Result<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
                 let con = con.get_sqlite_guard();
