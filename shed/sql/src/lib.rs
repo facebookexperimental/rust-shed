@@ -321,6 +321,7 @@ macro_rules! _query_common {
         use $crate::rusqlite::Statement as SqliteStatement;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
+        use $crate::sqlite::SqliteQueryType;
         use $crate::Connection;
         use $crate::Transaction;
         use $crate::ValueWrapper;
@@ -393,7 +394,7 @@ macro_rules! _read_query_impl {
                 $( >list $lname )*
             );
 
-            let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.acquire_sqlite_connection(SqliteQueryType::Read).await?;
 
             let mut ref_params: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
             for idx in 0..params.len() {
@@ -596,7 +597,7 @@ macro_rules! _write_query_impl {
                 multi_params.push(params);
             }
 
-            let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.acquire_sqlite_connection(SqliteQueryType::Write).await?;
 
             let mut stmt = sqlite_statement(&con)?;
 
@@ -746,7 +747,7 @@ macro_rules! _write_query_impl {
                 $( >list $lname )*
             );
 
-            let con = multithread_con.get_sqlite_guard();
+            let con = multithread_con.acquire_sqlite_connection(SqliteQueryType::Write).await?;
 
             let mut stmt = sqlite_statement(&con  $( , $lname )*)?;
 

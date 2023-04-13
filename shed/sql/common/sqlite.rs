@@ -16,6 +16,8 @@ use std::sync::Arc;
 use std::sync::Condvar;
 use std::sync::Mutex;
 
+use anyhow::Result;
+use async_trait::async_trait;
 use lazy_static::lazy_static;
 use rusqlite::Connection as SqliteConnection;
 
@@ -33,6 +35,48 @@ impl crate::Connection {
     pub fn with_sqlite(con: SqliteConnection) -> Self {
         SqliteMultithreaded::new(con).into()
     }
+
+    /// Given a `rusqlite::Connection` create a connection to Sqlite database that might be used
+    /// by this crate, and add callbacks for when operations happen.
+    pub fn with_sqlite_callbacks(
+        con: SqliteConnection,
+        callbacks: Box<dyn SqliteCallbacks>,
+    ) -> Self {
+        SqliteMultithreaded::new_with_callbacks(con, callbacks).into()
+    }
+}
+
+/// Sqlite query categorization to allow callbacks to perform different
+/// things on the basis of the operation.
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum SqliteQueryType {
+    /// The caller is starting a query that will read from the database.
+    Read,
+
+    /// The caller is starting a query that will write to the database.
+    Write,
+
+    /// The caller is starting a query that will modify the database schema
+    /// (e.g. CREATE TABLE or ALTER TABLE).
+    SchemaChange,
+
+    /// The caller is starting a transaction.  The `after_transaction_commit`
+    /// callback will be called if the transaction is committed.
+    Transaction,
+}
+
+/// Callbacks for sqlite operations.  These are used to customize behaviour or
+/// track operations.
+#[async_trait]
+pub trait SqliteCallbacks: Send + Sync {
+    /// Called when the sqlite connection guard is acquired for a query.
+    async fn query_start(&self, _query_type: SqliteQueryType) -> Result<()> {
+        Ok(())
+    }
+
+    /// Called when a transaction has been committed and the sqlite connection
+    /// guard has been released.
+    async fn after_transaction_commit(&self) {}
 }
 
 /// Wrapper around rusqlite connection that makes it fully thread safe (but not deadlock safe)
@@ -45,6 +89,7 @@ pub struct SqliteMultithreaded {
 pub struct SqliteMultithreadedInner {
     connection: Mutex<Option<SqliteConnection>>,
     condvar: Condvar,
+    callbacks: Option<Box<dyn SqliteCallbacks>>,
 }
 
 /// Guard containing an active connection.
@@ -84,6 +129,27 @@ impl SqliteConnectionGuard {
             connection: Some(connection),
         }
     }
+
+    /// Commit a transaction that is being executed on this connection, and
+    /// then release the connection.  If the commit fails, the connection is
+    /// not release, and is instead returned along with the error.
+    pub async fn commit(self) -> Result<(), (Self, rusqlite::Error)> {
+        fn commit_and_release(
+            guard: SqliteConnectionGuard,
+        ) -> Result<Arc<SqliteMultithreadedInner>, (SqliteConnectionGuard, rusqlite::Error)>
+        {
+            match guard.execute_batch("COMMIT") {
+                Ok(()) => Ok(guard.inner.clone()),
+                Err(e) => Err((guard, e)),
+            }
+        }
+
+        let inner = commit_and_release(self)?;
+        if let Some(callbacks) = &inner.callbacks {
+            callbacks.after_transaction_commit().await;
+        }
+        Ok(())
+    }
 }
 
 impl Deref for SqliteConnectionGuard {
@@ -114,18 +180,40 @@ impl SqliteMultithreaded {
             inner: Arc::new(SqliteMultithreadedInner {
                 connection: Mutex::new(Some(connection)),
                 condvar: Condvar::new(),
+                callbacks: None,
             }),
         }
     }
 
-    /// Returns a guard that grabs the sqlite connection.
+    /// Create a new instance wrapping the provided sqlite connection, and
+    /// with callbacks that are called when sqlite operations happen.
+    pub fn new_with_callbacks(
+        connection: SqliteConnection,
+        callbacks: Box<dyn SqliteCallbacks>,
+    ) -> Self {
+        Self {
+            inner: Arc::new(SqliteMultithreadedInner {
+                connection: Mutex::new(Some(connection)),
+                condvar: Condvar::new(),
+                callbacks: Some(callbacks),
+            }),
+        }
+    }
+
+    /// Returns a guard that acquires the sqlite connection.
     ///
     /// When guard is destroyed then connection is put back and threads that are waiting for it
     /// are notified.
     ///
-    /// NOTE: This is a lock which will block any other `get_sqlite_guard()` calls, so you
-    /// must not hold this over an await point as this may cause a deadlock.
-    pub fn get_sqlite_guard(&self) -> SqliteConnectionGuard {
-        SqliteConnectionGuard::new(self.inner.clone())
+    /// NOTE: This is a lock which will block any other `acquire_sqlite_connection()` calls, so
+    /// you must not hold this over an await point as this may cause a deadlock.
+    pub async fn acquire_sqlite_connection(
+        &self,
+        query_type: SqliteQueryType,
+    ) -> Result<SqliteConnectionGuard> {
+        if let Some(callbacks) = &self.inner.callbacks {
+            callbacks.query_start(query_type).await?;
+        }
+        Ok(SqliteConnectionGuard::new(self.inner.clone()))
     }
 }

@@ -14,6 +14,7 @@ use futures::future::TryFutureExt;
 
 use crate::mysql;
 use crate::sqlite::SqliteConnectionGuard;
+use crate::sqlite::SqliteQueryType;
 
 impl crate::Connection {
     /// Start an SQL transaction for this connection. Refer to `transaction::Transaction` docs for
@@ -71,7 +72,9 @@ impl Transaction {
     pub async fn new(connection: &super::Connection) -> Result<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
-                let con = con.get_sqlite_guard();
+                let con = con
+                    .acquire_sqlite_connection(SqliteQueryType::Transaction)
+                    .await?;
                 // Transactions in SQLite are always SERIALIZABLE; no transaction options.
                 con.execute_batch("BEGIN DEFERRED")?;
                 Ok(Transaction::Sqlite(Some(con)))
@@ -86,19 +89,17 @@ impl Transaction {
     /// Perform a commit on this transaction
     pub async fn commit(mut self) -> Result<(), Error> {
         match self {
-            Transaction::Sqlite(ref mut con) => {
-                let actual_con = con.take().unwrap();
-                let res = match actual_con.execute_batch("COMMIT") {
-                    // Successfully committed, need to give the connection back
+            Transaction::Sqlite(ref mut tr_con) => {
+                let con = tr_con.take().unwrap();
+                match con.commit().await {
                     Ok(()) => Ok(()),
-                    // Put it back so rollback will be performed on drop
-                    err @ Err(_) => {
-                        *con = Some(actual_con);
-                        err
+                    Err((con, e)) => {
+                        // Put the connection back so that rollback will be
+                        // performed on drop.
+                        *tr_con = Some(con);
+                        Err(e.into())
                     }
-                };
-
-                Ok(res?)
+                }
             }
             Transaction::Mysql(ref mut tr) => {
                 let tr = tr.take().expect("Called commit after drop");
