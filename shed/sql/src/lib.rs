@@ -191,7 +191,7 @@ macro_rules! queries {
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            write $name (
+            $vi write $name (
                 values: ($( $vname: $vtype ),*)
                 $( , $pname: $ptype )*
             ) { $qtype, mysql($q) sqlite($q) }
@@ -247,7 +247,7 @@ macro_rules! queries {
         $( $tt:tt )*
     ) => (
         $crate::queries! {
-            write $name (
+            $vi write $name (
                 $( $pname: $ptype ),*
                 $( >list $lname: $ltype )*
             ) { $qtype, mysql($q) sqlite($q) }

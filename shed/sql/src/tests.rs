@@ -10,6 +10,7 @@
 #![deny(warnings)]
 
 use sql_tests_lib::test_datetime_query;
+use sql_tests_lib::test_query_visibility_modifiers_compile;
 use sql_tests_lib::test_read_query;
 use sql_tests_lib::test_transaction_commit;
 use sql_tests_lib::test_transaction_rollback;
@@ -67,6 +68,11 @@ async fn test_transaction_rollback_on_drop_with_sqlite() {
 #[tokio::test]
 async fn test_transaction_commit_with_sqlite() {
     test_transaction_commit(prepare_sqlite_con(), TestSemantics::Sqlite).await;
+}
+
+#[tokio::test]
+async fn test_visibility_modifiers_compile_with_sqlite() {
+    test_query_visibility_modifiers_compile(prepare_sqlite_con()).await;
 }
 
 #[cfg(fbcode_build)]

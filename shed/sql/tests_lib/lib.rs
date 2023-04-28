@@ -292,3 +292,25 @@ pub async fn test_transaction_commit(conn: Connection, semantics: TestSemantics)
         vec![(123,), (72,), (53,)]
     );
 }
+
+pub async fn test_query_visibility_modifiers_compile(conn: Connection) {
+    mod b {
+        use crate::queries;
+
+        queries! {
+            pub read ASelect() -> (u64) {
+                "SELECT 1"
+            }
+
+            pub write AnInsert(values: (x: i64)) {
+                none,
+                "INSERT INTO foo (x) VALUES ({values})"
+            }
+        }
+    }
+
+    assert_eq!(b::ASelect::query(&conn).await.unwrap(), vec![(1u64,)]);
+    let res = b::AnInsert::query(&conn, &[(&44i64,)]).await.unwrap();
+    assert_eq!(res.affected_rows(), 1);
+    assert_eq!(res.last_insert_id(), Some(1));
+}
