@@ -8,7 +8,6 @@
  */
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
-#![allow(unstable_name_collisions)]
 
 //! Crate extending functionality of [std::time]
 
