@@ -14,7 +14,7 @@ futures = { version = "0.3.28", features = ["async-await", "compat"] }
 pin-project = "0.4.30"
 thiserror = "1.0.36"
 tokio_1x = { package = "tokio", version = "1.25.0", features = ["full", "test-util", "tracing"] }
-tokio_1x_stream = { package = "tokio-stream", version = "0.1.4", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
+tokio_1x_stream = { package = "tokio-stream", version = "0.1.14", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
 [dev-dependencies]
 anyhow = "1.0.65"
