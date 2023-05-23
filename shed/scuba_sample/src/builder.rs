@@ -261,6 +261,8 @@ impl fmt::Debug for ScubaSampleBuilder {
 pub enum ServerData {
     /// Hostname of the server
     Hostname,
+    /// Hostname scheme of the server
+    HostnameScheme,
     /// Tier of the service
     Tier,
     /// Tupperware TaskId of the service
@@ -290,6 +292,7 @@ impl ServerData {
     pub fn default_key(&self) -> &'static str {
         match self {
             ServerData::Hostname => "server_hostname",
+            ServerData::HostnameScheme => "server_hostname_scheme",
             ServerData::Tier => "server_tier",
             ServerData::TaskId => "tw_task_id",
             ServerData::CanaryId => "tw_canary_id",
