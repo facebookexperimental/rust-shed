@@ -23,6 +23,7 @@ use std::path::PathBuf;
 
 use anyhow::Context;
 use anyhow::Result;
+#[allow(deprecated)]
 use openssl::pkcs12::ParsedPkcs12;
 use openssl::pkey::PKey;
 use openssl::ssl::SslAcceptor;
@@ -69,8 +70,12 @@ impl SslConfig {
 
         let pkcs12 =
             build_identity(self.cert, self.private_key).context("failed to build pkcs12")?;
-        acceptor.set_certificate(&pkcs12.cert)?;
-        acceptor.set_private_key(&pkcs12.pkey)?;
+
+        #[allow(deprecated)]
+        let ParsedPkcs12 { cert, pkey, .. } = pkcs12;
+
+        acceptor.set_certificate(&cert)?;
+        acceptor.set_private_key(&pkey)?;
 
         // Set up client authentication via root certificate
         for cert in read_x509_stack(self.ca_pem)? {
@@ -84,6 +89,7 @@ impl SslConfig {
 
 /// Read certificate and private key data from pem files and convert it into native_tls::Identity
 /// archive
+#[allow(deprecated)]
 pub fn build_identity(
     cert_pem_file: impl AsRef<Path>,
     private_key_pem_file: impl AsRef<Path>,
