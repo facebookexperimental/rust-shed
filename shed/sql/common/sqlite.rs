@@ -21,11 +21,13 @@ use async_trait::async_trait;
 use lazy_static::lazy_static;
 use rusqlite::Connection as SqliteConnection;
 
+/// Lock to ensure that only one connection is in use for writes at a time
+/// inside the process TODO: Remove this lock, and replace by better connection
+/// handling (as SQLite will get this right if we use a single connection to
+/// each file). See T59837828
+static CONN_LOCK: Mutex<bool> = Mutex::new(true);
+
 lazy_static! {
-    /// Lock to ensure that only one connection is in use for writes at a time inside the process
-    /// TODO: Remove this lock, and replace by better connection handling (as SQLite will get this right
-    /// if we use a single connection to each file). See T59837828
-    static ref CONN_LOCK: Mutex<bool> = Mutex::new(true);
     static ref CONN_CONDVAR: Condvar = Condvar::new();
 }
 
