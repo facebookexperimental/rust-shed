@@ -105,6 +105,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::redundant_clone)]
     fn test_clone_shared_error() {
         let error = TestError::SomeError("some context".to_owned());
         let shared_error: SharedError<_> = error.into();
