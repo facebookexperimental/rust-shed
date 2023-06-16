@@ -9,12 +9,14 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
-//! This crate is a wrapper around [fbthrift](https://github.com/facebook/fbthrift)'s compiler.
-//! Its main usage is withing
-//! [Cargo's build script](https://doc.rust-lang.org/cargo/reference/build-scripts.html)
-//! where it might be invoked to generate rust code from thrift files.
+//! This crate is a wrapper around
+//! [fbthrift](https://github.com/facebook/fbthrift)'s compiler. Its main usage
+//! is from within [Cargo build
+//! scripts](https://doc.rust-lang.org/cargo/reference/build-scripts.html) where
+//! it might be invoked to generate rust code from thrift files.
 
 use std::borrow::Cow;
+use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
@@ -31,12 +33,40 @@ use anyhow::anyhow;
 use anyhow::ensure;
 use anyhow::Context;
 use anyhow::Result;
+use serde::Deserialize;
 use which::which;
 
-/// Builder for thrift compilare wrapper
+/// A thrift library 'foo' (say) results in two crates 'foo' and 'foo_types'. We
+/// arrange that the thrift compiler wrapper be invoked from the build of both.
+/// The behavior of the wrapper is sensitive to the invocation context ('foo' vs
+/// 'foo-types') and this type is used to disambiguate.
+#[derive(Debug, Deserialize, Eq, PartialEq)]
+pub enum GenContext {
+    /// 'lib' crate generation context (e.g. 'foo').
+    #[serde(rename = "lib")]
+    Lib,
+    /// 'types' crate generation context (e.g. 'foo_types').
+    #[serde(rename = "types")]
+    Types,
+}
+
+impl TryFrom<&str> for GenContext {
+    type Error = anyhow::Error;
+
+    fn try_from(ctx: &str) -> Result<Self> {
+        match ctx {
+            "lib" => Ok(GenContext::Lib),
+            "types" => Ok(GenContext::Types),
+            _ => Err(anyhow!("'{}' is not recognized", ctx)),
+        }
+    }
+}
+
+/// Builder for thrift compiler wrapper.
 pub struct Config {
     thrift_bin: Option<OsString>,
     out_dir: PathBuf,
+    gen_context: GenContext,
     base_path: Option<PathBuf>,
     crate_map: Option<PathBuf>,
     options: Option<String>,
@@ -45,21 +75,26 @@ pub struct Config {
 
 impl Config {
     /// Return a new configuration with the required parameters set
-    pub fn new(thrift_bin: Option<OsString>, out_dir: PathBuf) -> Self {
-        Self {
+    pub fn new(
+        gen_context: GenContext,
+        thrift_bin: Option<OsString>,
+        out_dir: PathBuf,
+    ) -> Result<Self> {
+        Ok(Self {
             thrift_bin,
             out_dir,
+            gen_context,
             base_path: None,
             crate_map: None,
             options: None,
             include_srcs: vec![],
-        }
+        })
     }
 
     /// Return a new configuration with parameters computed based on environment variables set by
     /// Cargo's build scrip (OUT_DIR mostly). If THRIFT is in the environment, that will be used as
     /// the Thrift binary. Otherwise, it will be detected in run_compiler.
-    pub fn from_env() -> Result<Self> {
+    pub fn from_env(gen_context: GenContext) -> Result<Self> {
         println!("cargo:rerun-if-env-changed=THRIFT");
 
         let thrift_bin = env::var_os("THRIFT");
@@ -69,7 +104,7 @@ impl Config {
         );
 
         let crate_map = out_dir.join("cratemap");
-        let mut conf = Self::new(thrift_bin, out_dir);
+        let mut conf = Self::new(gen_context, thrift_bin, out_dir)?;
 
         if crate_map.is_file() {
             conf.crate_map(crate_map);
@@ -108,8 +143,11 @@ impl Config {
         self
     }
 
-    /// Run the compiler on the input files. As a result a `lib.rs` file will
-    /// be generated inside the output dir.
+    /// Run the compiler on the input files. As a result a `lib.rs` file will be
+    /// generated inside the output dir. The contents of the `lib.rs` can vary
+    /// according to the generation context (e.g. for a given thrift library,
+    /// 'foo' say, we invoke the generator for the crate 'foo' and for the crate
+    /// 'foo-types').
     pub fn run(&self, input_files: impl IntoIterator<Item = impl AsRef<Path>>) -> Result<()> {
         let thrift_bin = self.resolve_thrift_bin()?;
 
@@ -130,6 +168,8 @@ impl Config {
             to.push(&from);
             copy(&from, &to)?;
         }
+
+        let _ = self.gen_context; // Not used yet.
 
         if input.len() == 1 {
             self.run_compiler(

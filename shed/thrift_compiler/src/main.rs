@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::clap_app;
 use thrift_compiler::Config;
+use thrift_compiler::GenContext;
 
 fn main() -> Result<()> {
     let matches = clap_app!(thrift_compiler =>
@@ -21,17 +22,18 @@ fn main() -> Result<()> {
         (@arg out: -o --out +takes_value "Directory where the result will be saved (default: .)")
         (@arg use_env: -e --use-environment "Uses environment variables instead of command line arguments")
         (@arg input: +required +takes_value ... "Paths to .thrift files")
+        (@arg gen_context: -g --context +takes_value "Generation context: 'lib' or 'types' (default:'lib')")
     ).get_matches();
 
     let out = matches
         .value_of_os("out")
         .map_or_else(env::current_dir, |x| Ok(PathBuf::from(x)))?;
     let input = matches.values_of_os("input").unwrap();
-
+    let gen_context = GenContext::try_from(matches.value_of("gen_context").unwrap_or("lib"))?;
     let compiler = if matches.is_present("use_env") {
-        Config::from_env()?
+        Config::from_env(gen_context)?
     } else {
-        Config::new(None, out)
+        Config::new(gen_context, None, out)?
     };
     compiler.run(input)
 }
