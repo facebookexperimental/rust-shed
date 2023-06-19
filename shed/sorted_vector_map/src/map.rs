@@ -151,6 +151,30 @@ where
         }
     }
 
+    /// Removes a key-value pair from the map, returning the stored key and
+    /// value if the key was previously in the map.
+    pub fn remove_entry<Q>(&mut self, q: &Q) -> Option<(K, V)>
+    where
+        K: Borrow<Q>,
+        Q: Ord + ?Sized,
+    {
+        match self.find_index(q) {
+            Ok(index) => {
+                let (k, v) = self.0.remove(index);
+                Some((k, v))
+            }
+            Err(_index) => None,
+        }
+    }
+
+    /// Retains only the elements specified by the predicate.
+    pub fn retain<F>(&mut self, mut f: F)
+    where
+        F: FnMut(&K, &mut V) -> bool,
+    {
+        self.0.retain_mut(|&mut (ref k, ref mut v)| f(k, v))
+    }
+
     /// Moves all elements from other into Self, leaving other empty.
     pub fn append(&mut self, other: &mut SortedVectorMap<K, V>) {
         if other.is_empty() {
@@ -262,6 +286,30 @@ where
         }
     }
 
+    /// Returns the first entry in the map for in-place manipulation. The key
+    /// of this entry is the minimum key in the map.
+    pub fn first_entry(&mut self) -> Option<OccupiedEntry<'_, K, V>> {
+        if self.0.is_empty() {
+            None
+        } else {
+            Some(OccupiedEntry {
+                map: self,
+                index: 0,
+            })
+        }
+    }
+
+    /// Returns the last entry in the map for in-place manipulation. The key
+    /// of this entry is the maximum key in the map.
+    pub fn last_entry(&mut self) -> Option<OccupiedEntry<'_, K, V>> {
+        if self.0.is_empty() {
+            None
+        } else {
+            let index = self.0.len() - 1;
+            Some(OccupiedEntry { map: self, index })
+        }
+    }
+
     /// Splits the collection in two at the given key.  Returns
     /// everything after the given key, including the key.
     pub fn split_off<Q>(&mut self, q: &Q) -> SortedVectorMap<K, V>
@@ -328,6 +376,20 @@ where
     /// vector is not efficient.
     pub fn pop_last(&mut self) -> Option<(K, V)> {
         self.0.pop()
+    }
+
+    /// Creates a consuming iterator visiting all the keys, in sorted order.
+    /// The map cannot be used after calling this. The iterator element type
+    /// is `K`.
+    pub fn into_keys(self) -> impl Iterator<Item = K> {
+        self.0.into_iter().map(|(k, _v)| k)
+    }
+
+    /// Creates a consuming iterator visiting all the values, in order by key.
+    /// The map cannot be used after calling this. The iterator element type
+    /// is `V`.
+    pub fn into_values(self) -> impl Iterator<Item = V> {
+        self.0.into_iter().map(|(_k, v)| v)
     }
 
     /// Extend from a vector of key-value pairs.  This can be more efficient
@@ -1005,6 +1067,11 @@ mod tests {
         assert!(svm.contains_key("test1"));
         assert!(!svm.contains_key("test2"));
         assert!(!svm.contains_key("never"));
+        assert_eq!(
+            svm.remove_entry("test3"),
+            Some(("test3", "value3".to_string()))
+        );
+        assert_eq!(svm.remove_entry("never"), None);
         svm.clear();
         assert!(svm.is_empty());
         assert_eq!(svm.get(&"test1"), None);
@@ -1088,8 +1155,10 @@ mod tests {
         svm.insert(20, 400);
         assert_eq!(svm.first_key_value(), Some((&5, &100)));
         assert_eq!(svm.last_key_value(), Some((&20, &400)));
+        assert_eq!(svm.first_entry().map(|e| *e.key()), Some(5));
         assert_eq!(svm.pop_last(), Some((20, 400)));
         assert_eq!(svm.last_key_value(), Some((&15, &300)));
+        assert_eq!(svm.last_entry().map(|e| *e.key()), Some(15));
         assert_eq!(svm.pop_last(), Some((15, 300)));
         assert_eq!(svm.pop_last(), Some((10, 200)));
         assert_eq!(svm.first_key_value(), Some((&5, &100)));
@@ -1098,6 +1167,8 @@ mod tests {
         assert_eq!(svm.pop_last(), None);
         assert_eq!(svm.first_key_value(), None);
         assert_eq!(svm.last_key_value(), None);
+        assert_eq!(svm.first_entry().map(|e| *e.key()), None);
+        assert_eq!(svm.last_entry().map(|e| *e.key()), None);
     }
 
     #[test]
@@ -1119,6 +1190,37 @@ mod tests {
         assert_eq!(svm[&'f'], 0);
         svm[&'f'] = 1;
         assert_eq!(svm.get(&'f'), Some(&1));
+    }
+
+    #[test]
+    fn retain() {
+        let mut svm = sorted_vector_map! {
+            1 => "one",
+            2 => "two",
+            3 => "three",
+            4 => "four",
+            5 => "five",
+        };
+        svm.retain(|k, v| match k.cmp(&3) {
+            Ordering::Less => {
+                *v = "small";
+                true
+            }
+            Ordering::Greater => {
+                *v = "big";
+                true
+            }
+            Ordering::Equal => false,
+        });
+        assert_eq!(
+            svm,
+            sorted_vector_map! {
+                    1 => "small",
+                    2 => "small",
+                    4 => "big",
+                    5 => "big",
+            }
+        );
     }
 
     #[test]
@@ -1234,6 +1336,16 @@ mod tests {
         fn like_btreemap_iter(b: BTreeMap<u32, u32>) -> bool {
             let svm = svmap_from_btreemap(&b);
             itertools::equal(svm.iter(), b.iter())
+        }
+
+        fn like_btreemap_into_keys(b: BTreeMap<u32, u32>) -> bool {
+            let svm = svmap_from_btreemap(&b);
+            itertools::equal(svm.into_keys(), b.into_keys())
+        }
+
+        fn like_btreemap_into_values(b: BTreeMap<u32, u32>) -> bool {
+            let svm = svmap_from_btreemap(&b);
+            itertools::equal(svm.into_values(), b.into_values())
         }
 
         fn like_btreemap_range(b: BTreeMap<u32, u32>, key1: u32, key2: u32) -> bool {

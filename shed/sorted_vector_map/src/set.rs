@@ -249,6 +249,14 @@ where
         }
     }
 
+    /// Retains only the elements specified by the predicate.
+    pub fn retain<F>(&mut self, f: F)
+    where
+        F: FnMut(&T) -> bool,
+    {
+        self.0.retain(f)
+    }
+
     /// Moves all elements from `other` into `self`, leaving `other` empty.
     pub fn append(&mut self, other: &mut SortedVectorSet<T>) {
         if other.is_empty() {
@@ -849,6 +857,15 @@ mod tests {
         assert_eq!(svs.pop_last(), None);
         assert_eq!(svs.first(), None);
         assert_eq!(svs.last(), None);
+    }
+
+    #[test]
+    fn retain() {
+        let mut svs = sorted_vector_set! {
+            1, 2, 3, 4, 5
+        };
+        svs.retain(|v| *v != 3);
+        assert_eq!(svs, sorted_vector_set! { 1, 2, 4, 5 });
     }
 
     #[test]
