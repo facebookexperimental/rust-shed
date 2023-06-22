@@ -86,6 +86,7 @@
 
 pub mod duration;
 pub mod nonnegative;
+pub mod ordered_float;
 pub mod path;
 pub mod uuid;
 
@@ -93,6 +94,8 @@ pub mod uuid;
 pub use crate::duration::*;
 #[doc(inline)]
 pub use crate::nonnegative::NonNegativeAdapter;
+#[doc(inline)]
+pub use crate::ordered_float::OrderedFloatAdapter;
 #[doc(inline)]
 pub use crate::path::Utf8PathAdapter;
 #[doc(inline)]
