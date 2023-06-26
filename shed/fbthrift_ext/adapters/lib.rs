@@ -88,6 +88,7 @@ pub mod duration;
 pub mod nonnegative;
 pub mod ordered_float;
 pub mod path;
+pub mod unsigned_int;
 pub mod uuid;
 
 #[doc(inline)]
@@ -98,5 +99,7 @@ pub use crate::nonnegative::NonNegativeAdapter;
 pub use crate::ordered_float::OrderedFloatAdapter;
 #[doc(inline)]
 pub use crate::path::Utf8PathAdapter;
+#[doc(inline)]
+pub use crate::unsigned_int::UnsignedIntAdapter;
 #[doc(inline)]
 pub use crate::uuid::UuidAdapter;
