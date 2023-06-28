@@ -22,13 +22,6 @@ use std::fmt::Debug;
 
 use vec1::Vec1;
 
-// Used in docs
-#[cfg(test)]
-mod _unused {
-    use sql as _;
-    use sql_tests_lib as _;
-}
-
 // Used in OSS build only
 #[cfg(fbcode_build)]
 mod _oss_only {
@@ -147,4 +140,11 @@ impl WriteResult {
     pub fn affected_rows(&self) -> u64 {
         self.affected_rows
     }
+}
+
+// Used in docs
+#[cfg(test)]
+mod _unused {
+    use sql as _;
+    use sql_tests_lib as _;
 }
