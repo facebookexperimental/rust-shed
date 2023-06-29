@@ -407,7 +407,7 @@ where
             return;
         }
         // Sort stably so that later duplicates overwrite earlier ones.
-        new.sort_by(|a, b| a.0.borrow().cmp(b.0.borrow()));
+        new.sort_by(|a, b| a.0.cmp(&b.0));
         if self.0.is_empty() {
             // This map is empty, so we can take the new values as-is,
             // removing duplicates if necessary.  In the common case
