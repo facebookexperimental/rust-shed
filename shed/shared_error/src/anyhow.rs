@@ -7,8 +7,6 @@
  * of this source tree.
  */
 
-use std::error::Error as StdError;
-use std::ops::Deref;
 use std::sync::Arc;
 
 use anyhow::Error;
@@ -104,16 +102,14 @@ impl slog::KV for SharedError {
     ) -> slog::Result {
         serializer.emit_str("error", &format!("{self}"))?;
         serializer.emit_str("error_debug", &format!("{self:#?}"))?;
-
-        let err = self.deref() as &dyn StdError;
-        serializer.emit_str("root_cause", &format!("{err}"))?;
-
         Ok(())
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::error::Error as _;
+
     use super::*;
 
     #[derive(Debug, Error)]
