@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.65"
 bytes = { version = "1.1", features = ["serde"] }
 thiserror = "1.0.36"
-tokio-util = { version = "0.6", features = ["full"] }
+tokio-util = { version = "0.7.8", features = ["full"] }
 
 [dev-dependencies]
 quickcheck = "1.0"
