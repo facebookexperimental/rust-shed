@@ -20,11 +20,7 @@ use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
-use std::fs::copy;
-use std::fs::create_dir_all;
-use std::fs::read_to_string;
-use std::fs::rename;
-use std::fs::write;
+use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -98,10 +94,9 @@ impl Config {
         println!("cargo:rerun-if-env-changed=THRIFT");
 
         let thrift_bin = env::var_os("THRIFT");
-        let out_dir = PathBuf::from(
-            env::var("OUT_DIR")
-                .with_context(|| anyhow!("The OUT_DIR environment variable must be set"))?,
-        );
+        let out_dir = env::var_os("OUT_DIR")
+            .map(PathBuf::from)
+            .context("OUT_DIR environment variable must be set")?;
 
         let crate_map = out_dir.join("cratemap");
         let mut conf = Self::new(gen_context, thrift_bin, out_dir)?;
@@ -152,40 +147,30 @@ impl Config {
         let thrift_bin = self.resolve_thrift_bin()?;
 
         let input = name_and_path_from_input(input_files)?;
-        create_dir_all(&self.out_dir)?;
+        fs::create_dir_all(&self.out_dir)?;
 
         for input in &input {
-            println!(
-                "cargo:rerun-if-changed={}",
-                input.1.as_ref().to_string_lossy()
-            );
+            println!("cargo:rerun-if-changed={}", input.1.as_ref().display());
         }
 
         for include_src in &self.include_srcs {
             println!("cargo:rerun-if-changed={include_src}");
-            let from = PathBuf::from(include_src);
-            let mut to = self.out_dir.clone();
-            to.push(&from);
-            copy(&from, &to)?;
+            fs::copy(include_src, self.out_dir.join(include_src))?;
         }
 
         let _ = self.gen_context; // Not used yet.
 
-        if input.len() == 1 {
-            self.run_compiler(
-                thrift_bin.as_os_str(),
-                &self.out_dir,
-                input.into_iter().next().unwrap().1,
-            )?;
+        if let [(_name, file)] = &input[..] {
+            self.run_compiler(&thrift_bin, &self.out_dir, file)?;
         } else {
             let partial_dir = self.out_dir.join("partial");
-            create_dir_all(&partial_dir)?;
+            fs::create_dir_all(&partial_dir)?;
 
             for (name, file) in &input {
                 let out = partial_dir.join(name);
-                create_dir_all(&out)?;
-                self.run_compiler(thrift_bin.as_os_str(), &out, file)?;
-                rename(out.join("lib.rs"), out.join("mod.rs"))?;
+                fs::create_dir_all(&out)?;
+                self.run_compiler(&thrift_bin, &out, file)?;
+                fs::rename(out.join("lib.rs"), out.join("mod.rs"))?;
             }
 
             let partial_lib_modules = input
@@ -193,14 +178,14 @@ impl Config {
                 .map(|(name, _file)| format!("pub mod {};\n", name.to_string_lossy()))
                 .collect::<Vec<_>>()
                 .join("\n");
-            write(partial_dir.join("mod.rs"), partial_lib_modules)?;
+            fs::write(partial_dir.join("mod.rs"), partial_lib_modules)?;
 
             let lib_modules = input
                 .iter()
                 .map(|(name, _file)| format!("pub use partial::{};\n", name.to_string_lossy()))
                 .collect::<Vec<_>>()
                 .join("\n");
-            write(
+            fs::write(
                 self.out_dir.join("lib.rs"),
                 format!("pub mod partial;\n\n{lib_modules}"),
             )?;
@@ -309,7 +294,7 @@ impl Config {
             )
         );
 
-        read_to_string(&out_file)
+        fs::read_to_string(&out_file)
             .with_context(|| format!("Failed to read content of file '{}'", out_file.display()))
     }
 }
@@ -333,5 +318,5 @@ fn name_and_path_from_input<T: AsRef<Path>>(
                 file,
             ))
         })
-        .collect::<Result<Vec<(OsString, _)>>>()
+        .collect()
 }
