@@ -65,8 +65,10 @@ pub struct Config {
     gen_context: GenContext,
     base_path: Option<PathBuf>,
     crate_map: Option<PathBuf>,
+    types_crate: Option<String>,
     options: Option<String>,
-    include_srcs: Vec<String>,
+    lib_include_srcs: Vec<String>, // src to include in the primary crate
+    types_include_srcs: Vec<String>, // src to include in the -types sub-crate
 }
 
 impl Config {
@@ -82,8 +84,10 @@ impl Config {
             gen_context,
             base_path: None,
             crate_map: None,
+            types_crate: None,
             options: None,
-            include_srcs: vec![],
+            lib_include_srcs: vec![],
+            types_include_srcs: vec![],
         })
     }
 
@@ -125,6 +129,13 @@ impl Config {
         self
     }
 
+    /// Set the name of the types sub-crate needed by by the thrift-compiler (to
+    /// be able to generate things like `use ::foo__types`).
+    pub fn types_crate(&mut self, value: impl Into<String>) -> &mut Self {
+        self.types_crate = Some(value.into());
+        self
+    }
+
     /// Set the options to be passed to `mstch_rust` code generation. Example
     /// options are `serde`.
     pub fn options(&mut self, value: impl Into<String>) -> &mut Self {
@@ -132,9 +143,15 @@ impl Config {
         self
     }
 
-    /// Set extra srcs to be available in the generated crate.
-    pub fn include_srcs(&mut self, value: Vec<String>) -> &mut Self {
-        self.include_srcs = value;
+    /// Set extra srcs to be available in the generated primary crate.
+    pub fn lib_include_srcs(&mut self, value: Vec<String>) -> &mut Self {
+        self.lib_include_srcs = value;
+        self
+    }
+
+    /// Set extra srcs to be available in the generated types sub-crate.
+    pub fn types_include_srcs(&mut self, value: Vec<String>) -> &mut Self {
+        self.types_include_srcs = value;
         self
     }
 
@@ -147,48 +164,94 @@ impl Config {
         let thrift_bin = self.resolve_thrift_bin()?;
 
         let input = name_and_path_from_input(input_files)?;
-        fs::create_dir_all(&self.out_dir)?;
+        let out = &self.out_dir;
+        fs::create_dir_all(out)?;
 
         for input in &input {
             println!("cargo:rerun-if-changed={}", input.1.as_ref().display());
         }
-
-        for include_src in &self.include_srcs {
-            println!("cargo:rerun-if-changed={include_src}");
-            fs::copy(include_src, self.out_dir.join(include_src))?;
+        for lib_include_src in &self.lib_include_srcs {
+            println!("cargo:rerun-if-changed={lib_include_src}");
+            fs::copy(lib_include_src, out.join(lib_include_src))?;
+        }
+        for types_include_src in &self.types_include_srcs {
+            println!("cargo:rerun-if-changed={types_include_src}");
+            fs::copy(types_include_src, out.join(types_include_src))?;
         }
 
-        let _ = self.gen_context; // Not used yet.
-
         if let [(_name, file)] = &input[..] {
-            self.run_compiler(&thrift_bin, &self.out_dir, file)?;
-        } else {
-            let partial_dir = self.out_dir.join("partial");
-            fs::create_dir_all(&partial_dir)?;
+            match self.gen_context {
+                GenContext::Lib => {
+                    // The primary crate.
+                    // Generate 'lib.rs', 'types.rs'.
+                    self.run_compiler(&thrift_bin, out, file)?;
 
-            for (name, file) in &input {
-                let out = partial_dir.join(name);
-                fs::create_dir_all(&out)?;
-                self.run_compiler(&thrift_bin, &out, file)?;
-                fs::rename(out.join("lib.rs"), out.join("mod.rs"))?;
+                    // 'types.rs' is not of interest here.
+                    fs::remove_file(out.join("types.rs"))?;
+
+                    // 'lib.rs' has the content we want.
+                    { /* nothing to do */ }
+                }
+                GenContext::Types => {
+                    // The -types sub-crate.
+                    // Generate 'lib.rs', 'types.rs'.
+                    self.run_compiler(&thrift_bin, out, file)?;
+
+                    // 'lib.rs' is not of interest here.
+                    fs::remove_file(out.join("lib.rs"))?;
+
+                    // 'types.rs' has the content we want (but the file needs
+                    // renaming to 'lib.rs').
+                    fs::rename(out.join("types.rs"), out.join("lib.rs"))?;
+                }
+            }
+        } else {
+            match self.gen_context {
+                GenContext::Lib => {
+                    // The primary crate.
+                    for (name, file) in &input {
+                        // Generate 'a/lib.rs', 'a/types.rs' (assuming 'a' for
+                        // `name`).
+                        let submod = out.join(name);
+                        fs::create_dir_all(&submod)?;
+                        self.run_compiler(&thrift_bin, &submod, file)?;
+
+                        // 'types.rs' is not of interest here.
+                        fs::remove_file(submod.join("types.rs"))?;
+
+                        // 'lib.rs' has the content we want (but the file needs
+                        // renaming to 'mod.rs').
+                        fs::rename(submod.join("lib.rs"), submod.join("mod.rs"))?;
+                    }
+                }
+                GenContext::Types => {
+                    // The -types sub-crate.
+                    for (name, file) in &input {
+                        // Generate 'a/lib.rs', 'a/types.rs' (assuming 'a' for
+                        // `name`).
+                        let submod = out.join(name);
+                        fs::create_dir_all(&submod)?;
+                        self.run_compiler(&thrift_bin, &submod, file)?;
+
+                        // 'lib.rs' is not of interest here.
+                        fs::remove_file(submod.join("lib.rs"))?;
+
+                        // 'types.rs' has the content we want (but the file needs
+                        // renaming to 'mod.rs').
+                        fs::rename(submod.join("types.rs"), submod.join("mod.rs"))?;
+                    }
+                }
             }
 
-            let partial_lib_modules = input
-                .iter()
-                .map(|(name, _file)| format!("pub mod {};\n", name.to_string_lossy()))
-                .collect::<Vec<_>>()
-                .join("\n");
-            fs::write(partial_dir.join("mod.rs"), partial_lib_modules)?;
-
-            let lib_modules = input
-                .iter()
-                .map(|(name, _file)| format!("pub use partial::{};\n", name.to_string_lossy()))
-                .collect::<Vec<_>>()
-                .join("\n");
-            fs::write(
-                self.out_dir.join("lib.rs"),
-                format!("pub mod partial;\n\n{lib_modules}"),
-            )?;
+            let lib = format!(
+                "{}\n",
+                input
+                    .iter()
+                    .map(|(name, _file)| format!("pub mod {};", name.to_string_lossy()))
+                    .collect::<Vec<_>>()
+                    .join("\n")
+            );
+            fs::write(out.join("lib.rs"), lib)?;
         }
 
         Ok(())
@@ -241,6 +304,7 @@ impl Config {
 
         let args = {
             let mut args = Vec::new();
+
             if let Some(crate_map) = &self.crate_map {
                 args.push(format!("cratemap={}", crate_map.display()))
             }
@@ -249,11 +313,23 @@ impl Config {
                 cmd.arg("-I");
                 cmd.arg(base_path);
             }
+            if let Some(types_crate) = &self.types_crate {
+                args.push(format!("types_crate={}", types_crate));
+            }
+            if !self.lib_include_srcs.is_empty() {
+                args.push(format!(
+                    "lib_include_srcs={}",
+                    self.lib_include_srcs.join(":")
+                ));
+            }
+            if !self.types_include_srcs.is_empty() {
+                args.push(format!(
+                    "types_include_srcs={}",
+                    self.types_include_srcs.join(":")
+                ));
+            }
             if let Some(options) = &self.options {
                 args.push(options.to_owned());
-            }
-            if !self.include_srcs.is_empty() {
-                args.push(format!("include_srcs={}", self.include_srcs.join(":")));
             }
             if args.is_empty() {
                 "".to_owned()
