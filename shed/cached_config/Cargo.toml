@@ -19,7 +19,7 @@ fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbth
 serde = { version = "1.0.167", features = ["derive", "rc"] }
 serde_json = { version = "1.0.100", features = ["float_roundtrip", "unbounded_depth"] }
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
-tokio = { version = "1.25.0", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.29.1", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
 serde_derive = "1.0.167"

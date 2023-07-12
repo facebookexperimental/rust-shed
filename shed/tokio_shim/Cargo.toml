@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 futures = { version = "0.3.28", features = ["async-await", "compat"] }
 pin-project = "0.4.30"
 thiserror = "1.0.43"
-tokio_1x = { package = "tokio", version = "1.25.0", features = ["full", "test-util", "tracing"] }
+tokio_1x = { package = "tokio", version = "1.29.1", features = ["full", "test-util", "tracing"] }
 tokio_1x_stream = { package = "tokio-stream", version = "0.1.14", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
 [dev-dependencies]
