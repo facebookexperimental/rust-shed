@@ -15,6 +15,8 @@
 mod client;
 mod keygen;
 
+use anyhow::Result;
+
 pub use crate::client::MemcacheClient;
 pub use crate::client::MemcacheGetType;
 pub use crate::client::MemcacheSetType;
@@ -23,3 +25,14 @@ pub use crate::keygen::KeyGen;
 /// Memcache max size for key + value + overhead is around 1MB, so we are leaving 1KB for key +
 /// overhead
 pub const MEMCACHE_VALUE_MAX_SIZE: usize = 999_000;
+
+/// Set the number of threads used for the memcache proxy.
+pub fn set_proxy_threads_count(_count: usize) -> Result<()> {
+    Ok(())
+}
+
+/// Set the maximum number of outstanding memcache requests that are
+/// permitted.
+pub fn set_max_outstanding_requests(_count: usize) -> Result<()> {
+    Ok(())
+}
