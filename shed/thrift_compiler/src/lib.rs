@@ -16,10 +16,10 @@
 //! it might be invoked to generate rust code from thrift files.
 
 use std::borrow::Cow;
-use std::convert::TryFrom;
 use std::env;
 use std::ffi::OsStr;
 use std::ffi::OsString;
+use std::fmt;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
@@ -29,6 +29,7 @@ use anyhow::anyhow;
 use anyhow::ensure;
 use anyhow::Context;
 use anyhow::Result;
+use clap::ValueEnum;
 use serde::Deserialize;
 use which::which;
 
@@ -36,7 +37,7 @@ use which::which;
 /// arrange that the thrift compiler wrapper be invoked from the build of both.
 /// The behavior of the wrapper is sensitive to the invocation context ('foo' vs
 /// 'foo-types') and this type is used to disambiguate.
-#[derive(Debug, Deserialize, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, ValueEnum)]
 pub enum GenContext {
     /// 'lib' crate generation context (e.g. 'foo').
     #[serde(rename = "lib")]
@@ -46,15 +47,13 @@ pub enum GenContext {
     Types,
 }
 
-impl TryFrom<&str> for GenContext {
-    type Error = anyhow::Error;
-
-    fn try_from(ctx: &str) -> Result<Self> {
-        match ctx {
-            "lib" => Ok(GenContext::Lib),
-            "types" => Ok(GenContext::Types),
-            _ => Err(anyhow!("'{}' is not recognized", ctx)),
-        }
+impl fmt::Display for GenContext {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        let t = match self {
+            GenContext::Lib => "lib",
+            GenContext::Types => "types",
+        };
+        fmt.write_str(t)
     }
 }
 

@@ -16,6 +16,6 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.71"
-clap = "2.33"
+clap = { version = "4.3.5", features = ["derive", "env", "string", "unicode", "wrap_help"] }
 serde = { version = "1.0.176", features = ["derive", "rc"] }
 which = "4.2.4"
