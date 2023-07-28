@@ -7,12 +7,12 @@
  * of this source tree.
  */
 
-//! Adapters that interpret thrift integers as [`Duration`]s.
+//! Adapters that interpret thrift integers/floats as [`Duration`]s.
 //!
-//! There are two flavors of adapters in this module: saturating adapters and
-//! wrapping adapters. Saturating adapters will serialize an oversized integer
-//! as the largest value of the thrift type that it adapts, while wrapping
-//! adapters truncate the value instead.
+//! There are two flavors of integer adapters in this module: saturating
+//! adapters and wrapping adapters. Saturating adapters will serialize an
+//! oversized integer as the largest value of the thrift type that it adapts,
+//! while wrapping adapters truncate the value instead.
 //!
 //! For each flavor, there are multiple variants that describe the unit of time
 //! that the adapter deserializes and serializes the value as. For example,
@@ -25,6 +25,7 @@
 use std::marker::PhantomData;
 use std::num::TryFromIntError;
 use std::time::Duration;
+use std::time::TryFromFloatSecsError;
 
 use fbthrift::adapter::ThriftAdapter;
 use paste::paste;
@@ -138,6 +139,55 @@ make_duration!(Microsecond, micros, i8, i16, i32, i64);
 
 make_duration!(Nanosecond, nanos, i8, i16, i32, i64);
 
+macro_rules! make_floating_duration {
+    ($granularity:ident, $accessor:ident, $($std_type:ty),+) => {
+        paste! {
+            #[doc =
+"Floating point " $granularity:lower "s adapter for thrift floats.
+
+This adapter supports all floating point types and interprets the value as "
+$granularity:lower "s. It does not support negative values, and will fail
+deserializing negative values.
+
+For other adapters, see the [`duration`](crate::duration) module.
+
+# Examples
+
+```thrift
+include \"thrift/annotation/rust.thrift\";
+
+@rust.Adapter{name = \"::fbthrift_adapters::FloatingSecondAdapter\"}
+typedef f64 timeout;
+
+struct CreateWorkflowRequest {
+  1: timeout id;
+}
+```
+"]
+            pub struct [< Floating $granularity Adapter >]<T>(PhantomData<T>);
+
+            $(
+                impl ThriftAdapter for [< Floating $granularity Adapter >]<$std_type> {
+                    type StandardType = $std_type;
+                    type AdaptedType = Duration;
+
+                    type Error = [< TryFromFloat $accessor:camel Error >];
+
+                    fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
+                        Duration::[< as_ $accessor _ $std_type >](value)
+                    }
+
+                    fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
+                        Duration::[< try_from_ $accessor _ $std_type >](value)
+                    }
+                }
+            )+
+        }
+    }
+}
+
+make_floating_duration!(Second, secs, f32, f64);
+
 #[cfg(test)]
 mod saturating {
     use std::time::Duration;
@@ -179,5 +229,27 @@ mod wrapping {
     #[test]
     fn negative() {
         assert!(WrappingSecondAdapter::<i8>::from_thrift(-1).is_err());
+    }
+}
+
+#[cfg(test)]
+mod floating {
+    use super::*;
+
+    #[test]
+    fn negative() {
+        assert!(FloatingSecondAdapter::<f32>::from_thrift(-1.23).is_err());
+        assert!(FloatingSecondAdapter::<f32>::from_thrift(f32::NEG_INFINITY).is_err());
+    }
+
+    #[test]
+    fn overflow() {
+        assert!(FloatingSecondAdapter::<f64>::from_thrift(1e100).is_err());
+        assert!(FloatingSecondAdapter::<f32>::from_thrift(f32::INFINITY).is_err());
+    }
+
+    #[test]
+    fn nan() {
+        assert!(FloatingSecondAdapter::<f32>::from_thrift(f32::NAN).is_err());
     }
 }
