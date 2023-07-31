@@ -17,11 +17,11 @@ use std::io::Write;
 use std::result;
 
 use bzip2::write::BzEncoder;
-use flate2::write::GzEncoder;
 use futures::Poll;
 use tokio_io::AsyncWrite;
 
 use crate::decompressor::DecompressorType;
+use crate::raw::AsyncGzEncoder;
 use crate::raw::AsyncZstdEncoder;
 use crate::raw::RawEncoder;
 use crate::retry::retry_write;
@@ -74,7 +74,7 @@ where
             c_type: ct,
             inner: match ct {
                 CompressorType::Bzip2(level) => Box::new(BzEncoder::new(w, level)),
-                CompressorType::Gzip(level) => Box::new(GzEncoder::new(w, level)),
+                CompressorType::Gzip(level) => Box::new(AsyncGzEncoder::new(w, level)),
                 CompressorType::Zstd { level } => Box::new(AsyncZstdEncoder::new(w, level)),
             },
         }

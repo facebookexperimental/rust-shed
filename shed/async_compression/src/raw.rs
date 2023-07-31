@@ -104,16 +104,43 @@ where
     }
 }
 
-impl<W> RawEncoder<W> for GzEncoder<W>
+/// A wrapper around GzEncoder which depends on and implements AsyncWrite.
+pub struct AsyncGzEncoder<W: AsyncWrite>(GzEncoder<W>);
+
+impl<W: AsyncWrite> AsyncGzEncoder<W> {
+    pub fn new(obj: W, level: flate2::Compression) -> Self {
+        AsyncGzEncoder(GzEncoder::new(obj, level))
+    }
+}
+
+impl<W: AsyncWrite> Write for AsyncGzEncoder<W> {
+    #[inline]
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
+    }
+
+    #[inline]
+    fn flush(&mut self) -> io::Result<()> {
+        self.0.flush()
+    }
+}
+
+impl<W: AsyncWrite> AsyncWrite for AsyncGzEncoder<W> {
+    #[inline]
+    fn shutdown(&mut self) -> Poll<(), io::Error> {
+        self.0.get_mut().shutdown()
+    }
+}
+
+impl<W> RawEncoder<W> for AsyncGzEncoder<W>
 where
     W: AsyncWrite + Send + 'static,
 {
-    #[inline]
     fn try_finish(
         mut self: Box<Self>,
     ) -> result::Result<W, (Box<dyn RawEncoder<W> + Send>, io::Error)> {
-        match GzEncoder::try_finish(&mut self) {
-            Ok(()) => Ok(GzEncoder::finish(*self).unwrap()),
+        match GzEncoder::try_finish(&mut self.0) {
+            Ok(_) => Ok(GzEncoder::finish(self.0).unwrap()),
             Err(e) => Err((self, e)),
         }
     }
