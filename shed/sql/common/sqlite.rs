@@ -67,7 +67,7 @@ pub enum SqliteQueryType {
     Transaction,
 }
 
-/// Callbacks for sqlite operations.  These are used to customize behaviour or
+/// Callbacks for sqlite operations.  These are used to customize behavior or
 /// track operations.
 #[async_trait]
 pub trait SqliteCallbacks: Send + Sync {
