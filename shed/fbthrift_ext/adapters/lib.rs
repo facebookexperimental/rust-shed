@@ -84,6 +84,7 @@
 //!
 //! All adapters are re-exported at the root level for easy usage in thrift.
 
+pub mod chrono;
 pub mod duration;
 pub mod nonnegative;
 pub mod ordered_float;
