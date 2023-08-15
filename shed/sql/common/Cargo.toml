@@ -23,7 +23,7 @@ itertools = "0.10.3"
 lazy_static = "1.4"
 mysql_async = "0.27.1"
 mysql_derive = { version = "0.1.0", path = "../derive" }
-rusqlite = { version = "0.29.0", features = ["backup", "blob", "column_decltype"] }
+rusqlite = { version = "0.29.0", features = ["backup", "blob", "column_decltype", "limits"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "1.0.43"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
