@@ -185,7 +185,8 @@ impl Config {
 
                     self.run_compiler(&thrift_bin, out, file)?;
 
-                    // 'types.rs' is not of interest here.
+                    // These files are not of interest here.
+                    fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
 
                     // 'lib.rs' together with the remaining files have the
@@ -201,14 +202,14 @@ impl Config {
                     fs::remove_file(out.join("lib.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
-                    fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("dependencies.rs"))?;
                     fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
                     fs::remove_file(out.join("mock.rs"))?;
 
-                    // 'types.rs' has the content we want (but the file needs
-                    // renaming to 'lib.rs').
+                    // 'types.rs' (together with the remaining files) has the
+                    // content we want (but the file needs renaming to
+                    // 'lib.rs').
                     fs::rename(out.join("types.rs"), out.join("lib.rs"))?;
                 }
             }
@@ -222,7 +223,8 @@ impl Config {
                         fs::create_dir_all(&submod)?;
                         self.run_compiler(&thrift_bin, &submod, file)?;
 
-                        // 'types.rs' is not of interest here.
+                        // These files are not of interest here.
+                        fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
 
                         // 'lib.rs' (together with the remaining files) has the
@@ -239,17 +241,17 @@ impl Config {
                         fs::create_dir_all(&submod)?;
                         self.run_compiler(&thrift_bin, &submod, file)?;
 
-                        // These files are not of interest here (for now).
+                        // These files are not of interest here.
                         fs::remove_file(submod.join("lib.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
-                        fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("dependencies.rs"))?;
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
 
-                        // 'types.rs' has the content we want (but the file needs
-                        // renaming to 'mod.rs').
+                        // 'types.rs' (together with the remaining files) has the
+                        // content we want (but the file needs renaming to
+                        // 'mod.rs').
                         fs::rename(submod.join("types.rs"), submod.join("mod.rs"))?;
                     }
                 }
