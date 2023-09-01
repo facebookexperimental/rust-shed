@@ -35,7 +35,7 @@ fn main() {
         .unwrap();
 
     let empty: Vec<Result<u32, ()>> = vec![];
-    let stream = stream::iter(empty.into_iter()).timed(|stats| {
+    let stream = stream::iter(empty).timed(|stats| {
         assert!(stats.first_item_time.is_none());
     });
     runtime

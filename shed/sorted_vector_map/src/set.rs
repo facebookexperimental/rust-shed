@@ -874,7 +874,7 @@ mod tests {
         let mut svs2 = svs.split_off(&7);
         assert_eq!(svs.iter().cloned().collect::<Vec<_>>(), vec![1, 3, 5]);
         assert_eq!(svs2.iter().cloned().collect::<Vec<_>>(), vec![7, 9, 11]);
-        svs2.extend(vec![4, 5, 6, 7, 8].into_iter());
+        svs2.extend(vec![4, 5, 6, 7, 8]);
         assert_eq!(
             svs2.iter().cloned().collect::<Vec<_>>(),
             vec![4, 5, 6, 7, 8, 9, 11]

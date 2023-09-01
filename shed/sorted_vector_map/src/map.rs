@@ -1235,7 +1235,7 @@ mod tests {
         let mut svm2 = svm.split_off(&3);
         assert_eq!(svm.keys().cloned().collect::<Vec<_>>(), vec![1, 2]);
         assert_eq!(svm2.keys().cloned().collect::<Vec<_>>(), vec![3, 4, 5]);
-        svm2.extend(vec![(6, "six"), (7, "seven")].into_iter());
+        svm2.extend(vec![(6, "six"), (7, "seven")]);
         assert_eq!(
             svm2.keys().cloned().collect::<Vec<_>>(),
             vec![3, 4, 5, 6, 7]

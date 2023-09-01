@@ -345,7 +345,7 @@ impl<K: AsRef<str>, V: AsRef<str>> From<HashMap<K, V>> for ScubaValue {
 
 impl From<BTreeSet<String>> for ScubaValue {
     fn from(value: BTreeSet<String>) -> Self {
-        ScubaValue::TagSet(HashSet::from_iter(value.into_iter()))
+        ScubaValue::TagSet(HashSet::from_iter(value))
     }
 }
 
