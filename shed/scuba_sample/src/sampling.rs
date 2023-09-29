@@ -26,6 +26,15 @@ pub enum Sampling {
     SampledOut,
 }
 
+/// Indicates whether a sample should be logged to Scuba
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ShouldLog {
+    /// The sample should be sent to Scuba due to its sampling result.
+    Log,
+    /// The sample should not be sent to Scuba due to its sampling result.
+    DoNotLog,
+}
+
 impl Sampling {
     /// Apply a sampling decision to this Sampling instance, using the provided sample_rate. One in
     /// sample_rate samples will be sampled in.
@@ -51,24 +60,24 @@ impl Sampling {
 
     /// Indicate whether a given [ScubaSample] should be logged, and modifies the sample
     /// accordingly to report that it has been sampled.
-    pub fn apply(&self, sample: &mut ScubaSample) -> bool {
+    pub fn apply(&self, sample: &mut ScubaSample) -> ShouldLog {
         match &self {
-            Self::NoSampling => true,
+            Self::NoSampling => ShouldLog::Log,
             Self::SampledIn(r) => {
                 // Notify the backend that sampling has happened.
                 sample.add("sample_rate", r.get());
-                true
+                ShouldLog::Log
             }
-            Self::SampledOut => false,
+            Self::SampledOut => ShouldLog::DoNotLog,
         }
     }
 
     /// Indicate whether this [Sampling] will require logging when applied.
-    pub fn is_logged(&self) -> bool {
+    pub fn is_logged(&self) -> ShouldLog {
         match &self {
-            Self::NoSampling => true,
-            Self::SampledIn(..) => true,
-            Self::SampledOut => false,
+            Self::NoSampling => ShouldLog::Log,
+            Self::SampledIn(..) => ShouldLog::Log,
+            Self::SampledOut => ShouldLog::DoNotLog,
         }
     }
 }
@@ -112,14 +121,17 @@ mod test {
         let mut sample = ScubaSample::new();
         let sampling = Sampling::SampledIn(nonzero!(10u64));
 
-        assert!(sampling.apply(&mut sample));
+        assert_eq!(sampling.apply(&mut sample), ShouldLog::Log);
         assert_eq!(sample.get("sample_rate"), Some(&ScubaValue::Int(10)));
     }
 
     #[test]
     fn test_is_logged() {
-        assert!(Sampling::NoSampling.is_logged());
-        assert!(Sampling::SampledIn(nonzero!(1u64)).is_logged());
-        assert!(!Sampling::SampledOut.is_logged());
+        assert_eq!(Sampling::NoSampling.is_logged(), ShouldLog::Log);
+        assert_eq!(
+            Sampling::SampledIn(nonzero!(1u64)).is_logged(),
+            ShouldLog::Log
+        );
+        assert_eq!(Sampling::SampledOut.is_logged(), ShouldLog::DoNotLog);
     }
 }

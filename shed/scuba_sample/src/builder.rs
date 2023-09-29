@@ -30,6 +30,7 @@ use serde_json::Value;
 use crate::sample::ScubaSample;
 use crate::value::ScubaValue;
 use crate::Sampling;
+use crate::ShouldLog;
 
 /// A helper builder to make it easier to create a new sample and log it into
 /// the proper Scuba dataset.
@@ -177,7 +178,7 @@ impl ScubaSampleBuilder {
         self.sample.set_time_now();
         self.next_seq();
 
-        if !self.sampling.apply(&mut self.sample) {
+        if let ShouldLog::DoNotLog = self.sampling.apply(&mut self.sample) {
             return false;
         }
 
@@ -198,8 +199,8 @@ impl ScubaSampleBuilder {
         self.sample.set_time(time);
         self.next_seq();
 
-        if !self.sampling.apply(&mut self.sample) {
-            return true;
+        if let ShouldLog::DoNotLog = self.sampling.apply(&mut self.sample) {
+            return false;
         }
 
         if let Some(ref log_file) = self.log_file {
