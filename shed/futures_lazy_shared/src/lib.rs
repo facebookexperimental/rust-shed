@@ -10,10 +10,10 @@
 use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::sync::OnceLock;
 
 use futures::future::FutureExt;
 use futures::future::Shared;
-use once_cell::sync::OnceCell;
 
 /// A lazily-initialized shared future
 ///
@@ -29,7 +29,7 @@ where
     T: Clone,
 {
     Ready(T),
-    Lazy(Arc<OnceCell<Shared<Pin<Box<dyn Future<Output = T> + Send>>>>>),
+    Lazy(Arc<OnceLock<Shared<Pin<Box<dyn Future<Output = T> + Send>>>>>),
 }
 
 impl<T> LazyShared<T>
@@ -43,12 +43,12 @@ where
 
     /// Initialize the lazy-shared future with no value.
     pub fn new_empty() -> Self {
-        LazyShared::Lazy(Arc::new(OnceCell::new()))
+        LazyShared::Lazy(Arc::new(OnceLock::new()))
     }
 
     /// Initialize the lazy-shared future with a future.
     pub fn new_future(f: impl Future<Output = T> + Send + 'static) -> Self {
-        let cell = OnceCell::new();
+        let cell = OnceLock::new();
         cell.set(f.boxed().shared()).unwrap();
         LazyShared::Lazy(Arc::new(cell))
     }
