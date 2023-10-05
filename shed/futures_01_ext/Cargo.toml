@@ -16,7 +16,7 @@ futures = "0.1.31"
 tokio-io = "0.1"
 
 [dev-dependencies]
-anyhow = "1.0.71"
+anyhow = "=1.0.72"
 assert_matches = "1.5"
 cloned = { version = "0.1.0", path = "../cloned" }
 futures03 = { package = "futures", version = "0.3.28", features = ["async-await", "compat"] }

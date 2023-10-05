@@ -15,7 +15,7 @@ name = "slog_glog_fmt_example"
 path = "example/main.rs"
 
 [dependencies]
-anyhow = "1.0.71"
+anyhow = "=1.0.72"
 chrono = { version = "0.4", features = ["clock", "serde", "std"], default-features = false }
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
 hostname = "0.3"
