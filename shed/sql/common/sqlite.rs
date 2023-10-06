@@ -18,7 +18,6 @@ use std::sync::Mutex;
 
 use anyhow::Result;
 use async_trait::async_trait;
-use lazy_static::lazy_static;
 use rusqlite::Connection as SqliteConnection;
 
 /// Lock to ensure that only one connection is in use for writes at a time
@@ -27,9 +26,7 @@ use rusqlite::Connection as SqliteConnection;
 /// each file). See T59837828
 static CONN_LOCK: Mutex<bool> = Mutex::new(true);
 
-lazy_static! {
-    static ref CONN_CONDVAR: Condvar = Condvar::new();
-}
+static CONN_CONDVAR: Condvar = Condvar::new();
 
 impl crate::Connection {
     /// Given a `rusqlite::Connection` create a connection to Sqlite database that might be used

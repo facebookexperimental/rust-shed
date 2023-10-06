@@ -22,13 +22,11 @@
 //!
 //! Examples:
 //! ```
-//! use lazy_static::lazy_static;
+//! use once_cell::sync::Lazy;
 //! use perthread::{PerThread, ThreadMap};
 //!
 //! // Set up the map of per-thread counters
-//! lazy_static! {
-//!     static ref COUNTERS: ThreadMap<usize> = ThreadMap::default();
-//! }
+//! static COUNTERS: Lazy<ThreadMap<usize>> = Lazy::new(ThreadMap::default);
 //!
 //! // Declare a specific per-thread counter
 //! thread_local! {
@@ -175,7 +173,7 @@ struct StableStorage<T> {
     map: NonNull<ThreadMap<T>>,
 }
 
-// Required in order for PerThread<T> to be held in a lazy_static in the single
+// Required in order for PerThread<T> to be held in a once_cell in the single
 // threaded use case. The main motivating use case for ThreadMap and PerThread
 // does not involve sharing PerThread<T> instances across threads, but the
 // design is compatible with that and it is safe to do so.
@@ -232,7 +230,7 @@ mod tests {
     use std::collections::HashSet;
     use std::hash::Hash;
 
-    use lazy_static::lazy_static;
+    use once_cell::sync::Lazy;
 
     use super::*;
 
@@ -247,11 +245,9 @@ mod tests {
 
     #[test]
     fn test_single_thread() {
-        lazy_static! {
-            static ref TEST_MAP: ThreadMap<i64> = ThreadMap::default();
-            static ref TEST_VAL1: PerThread<i64> = TEST_MAP.register(42);
-            static ref TEST_VAL2: PerThread<i64> = TEST_MAP.register(431);
-        }
+        static TEST_MAP: Lazy<ThreadMap<i64>> = Lazy::new(ThreadMap::default);
+        static TEST_VAL1: Lazy<PerThread<i64>> = Lazy::new(|| TEST_MAP.register(42));
+        static TEST_VAL2: Lazy<PerThread<i64>> = Lazy::new(|| TEST_MAP.register(431));
 
         let mut expected_values = HashSet::new();
         assert_map_content(&*TEST_MAP, &expected_values);
@@ -270,9 +266,7 @@ mod tests {
         use std::sync::mpsc::sync_channel;
         struct Ack;
 
-        lazy_static! {
-            static ref TEST_MAP: ThreadMap<i64> = ThreadMap::default();
-        }
+        static TEST_MAP: Lazy<ThreadMap<i64>> = Lazy::new(ThreadMap::default);
 
         thread_local! {
             static TEST_VAL1: PerThread<i64> = TEST_MAP.register(7);

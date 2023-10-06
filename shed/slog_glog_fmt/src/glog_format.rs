@@ -239,7 +239,7 @@ mod tests {
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
-    use lazy_static::lazy_static;
+    use once_cell::sync::Lazy;
     use regex::Captures;
     use regex::Regex;
     use slog::info;
@@ -254,12 +254,12 @@ mod tests {
     use crate::kv_categorizer::FacebookCategorizer;
     use crate::kv_categorizer::InlineCategorizer;
 
-    lazy_static! {
-        // Create a regex that matches log lines.
-        static ref LOG_REGEX: Regex = Regex::new(
+    // Create a regex that matches log lines.
+    static LOG_REGEX: Lazy<Regex> = Lazy::new(|| {
+        Regex::new(
             r"(?m)^(.)(\d{4} \d\d:\d\d:\d\d\.\d{6}) +(\d+)(?: \[([\d\S-]+)\] )?([^:]+):(\d+)\] ([^\n]*(?:\n[^IEV][^\n]*)*)$"
-        ).unwrap();
-    }
+        ).unwrap()
+    });
 
     #[derive(Error, Debug)]
     enum TestError {
