@@ -51,6 +51,7 @@ members = [
   "shed/hash_memo",
   "shed/hostcaps",
   "shed/hostname",
+  "shed/justknobs_stub",
   "shed/limited_async_read",
   "shed/lock_ext",
   "shed/memcache_stub",
