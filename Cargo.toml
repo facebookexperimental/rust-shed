@@ -22,7 +22,6 @@ tracing-subscriber = { git = "https://github.com/fbsource/tracing.git", rev = "3
 members = [
   "shed/ascii_ext",
   "shed/async_compression",
-  "shed/async_compression/legacy-mononoke",
   "shed/async_once_cell",
   "shed/borrowed",
   "shed/bytes_ext",

@@ -11,6 +11,7 @@
 
 use std::io;
 use std::io::BufRead;
+use std::io::BufReader;
 use std::io::Read;
 use std::io::Write;
 use std::result;
@@ -64,20 +65,20 @@ impl<R: BufRead> RawDecoder<R> for GzDecoder<R> {
     }
 }
 
-impl<R: BufRead> RawDecoder<R> for ZstdDecoder<'_, R> {
+impl<R: BufRead> RawDecoder<R> for ZstdDecoder<'_, BufReader<R>> {
     #[inline]
     fn get_ref(&self) -> &R {
-        ZstdDecoder::get_ref(self)
+        ZstdDecoder::get_ref(self).get_ref()
     }
 
     #[inline]
     fn get_mut(&mut self) -> &mut R {
-        ZstdDecoder::get_mut(self)
+        ZstdDecoder::get_mut(self).get_mut()
     }
 
     #[inline]
     fn into_inner(self: Box<Self>) -> R {
-        ZstdDecoder::finish(*self)
+        ZstdDecoder::finish(*self).into_inner()
     }
 }
 
