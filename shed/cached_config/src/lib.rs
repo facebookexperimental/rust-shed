@@ -21,7 +21,8 @@ mod handle;
 mod oss;
 mod refreshable_entities;
 mod store;
-mod test_source;
+/// Test source for testing purposes.
+pub mod test_source;
 #[cfg(test)]
 mod tests;
 
