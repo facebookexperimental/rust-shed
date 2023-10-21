@@ -593,7 +593,7 @@ mod tests {
         trace.add_event(begin.clone());
         trace.add_event(end.clone());
 
-        let tmp = tempdir::TempDir::new("trace-event").unwrap();
+        let tmp = tempfile::TempDir::with_prefix("trace-event.").unwrap();
         let path = tmp.path().join("trace.json");
 
         trace.save(&path).expect("Failed to save trace");
@@ -627,7 +627,7 @@ mod tests {
         trace.add_event(begin.clone());
         trace.add_event(end.clone());
 
-        let tmp = tempdir::TempDir::new("trace-event").unwrap();
+        let tmp = tempfile::TempDir::with_prefix("trace-event.").unwrap();
         let path = tmp.path().join("trace.json.gz");
 
         trace.save_gzip(&path).expect("Failed to save trace");
@@ -661,7 +661,7 @@ mod tests {
         trace.add_event(begin.clone());
         trace.add_event(end.clone());
 
-        let tmp = tempdir::TempDir::new("trace-event").unwrap();
+        let tmp = tempfile::TempDir::with_prefix("trace-event.").unwrap();
         let path = tmp.path().join("trace.json.zst");
 
         trace.save_zstd(&path).expect("Failed to save trace");
