@@ -21,4 +21,4 @@ zstd = { version = "0.13", features = ["experimental", "zstdmt"] }
 
 [dev-dependencies]
 maplit = "1.0"
-tempfile = "3.5"
+tempfile = "3.8"
