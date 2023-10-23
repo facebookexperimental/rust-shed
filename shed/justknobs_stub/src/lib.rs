@@ -7,55 +7,83 @@
  * of this source tree.
  */
 
-//! This crate provides a client for accessing JustKnobs. The version on GitHub
-//! is no-op for now.
-
+//! This crate provides a client for accessing JustKnobs and takes care of isolating the test setup
+//! from production configs. There are mulitple implementations that this module will choose from:
+//!  * production, for Meta-internal build it's the configerator-based jk impl.  For open-source
+//!    builds it'll be a stub that always returns false.
+//!  * cached-config, which will work with any config source that cached_config crate can work with.
+//!    Can be used for integration tests where the config can be read from on-disk JSON file and
+//!    fully isolated from prod setup.  Used after being initialized with
+//!    init_cached_config_just_knobs/init_cached_config_just_knobs_worker.
 use anyhow as _;
 use anyhow::Result;
+use cached_config::CachedConfigJustKnobs;
 #[cfg(fbcode_build)]
-use fb_justknobs as default_implementation;
+use fb_justknobs as prod_implementation;
 #[cfg(not(fbcode_build))]
-use stub as default_implementation;
+use JustKnobsStub as prod_implementation;
 
 pub mod cached_config;
+pub use cached_config::init_just_knobs as init_cached_config_just_knobs;
+pub use cached_config::init_just_knobs_worker as init_cached_config_just_knobs_worker;
 
-#[cfg(not(fbcode_build))]
-mod stub {
-    use anyhow::Result;
+/// Trait that defines the interface for JustKnobs supported by this library and multiple stub
+/// implementations is contains.
+trait JustKnobs {
+    fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool>;
 
-    pub fn eval(_name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
-        Ok(false)
-    }
+    fn get(_name: &str, switch_val: Option<&str>) -> Result<i64>;
 
-    pub fn get(_name: &str, _switch_val: Option<&str>) -> Result<i64> {
-        Ok(0)
-    }
-
-    pub fn get_as<T>(_name: &str, _switch_val: Option<&str>) -> Result<T>
+    fn get_as<T>(name: &str, switch_val: Option<&str>) -> Result<T>
     where
         T: TryFrom<i64>,
         <T as TryFrom<i64>>::Error: std::error::Error + Send + Sync + 'static,
     {
-        Ok(0.try_into()?)
+        Ok(get(name, switch_val)?.try_into()?)
     }
 }
 
-use cached_config::in_use as cached_config_just_knobs_in_use;
-
-pub fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
-    if cached_config_just_knobs_in_use() {
-        cached_config::eval(name, hash_val, switch_val)
-    } else {
-        default_implementation::eval(name, hash_val, switch_val)
+/// For open-source for now we're using a stub implementation that always returns default.
+struct JustKnobsStub;
+impl JustKnobs for JustKnobsStub {
+    fn eval(_name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
+        Ok(false)
     }
+
+    fn get(_name: &str, _switch_val: Option<&str>) -> Result<i64> {
+        Ok(0)
+    }
+}
+
+pub struct JustKnobsCombinedImpl;
+
+impl JustKnobs for JustKnobsCombinedImpl {
+    fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
+        if cached_config::in_use() {
+            CachedConfigJustKnobs::eval(name, hash_val, switch_val)
+        } else {
+            prod_implementation::eval(name, hash_val, switch_val)
+        }
+    }
+
+    fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
+        if cached_config::in_use() {
+            CachedConfigJustKnobs::get(name, switch_val)
+        } else {
+            prod_implementation::get(name, switch_val)
+        }
+    }
+}
+
+// There is no way to `pub use` implementation of a trait. I wish we could
+// pub use <JustKnobsCombinedImpl as Justknobs>::*;
+// instead of boilerplate code below.
+pub fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
+    JustKnobsCombinedImpl::eval(name, hash_val, switch_val)
 }
 
 pub fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
-    if cached_config_just_knobs_in_use() {
-        cached_config::get(name, switch_val)
-    } else {
-        default_implementation::get(name, switch_val)
-    }
+    JustKnobsCombinedImpl::get(name, switch_val)
 }
 
 pub fn get_as<T>(name: &str, switch_val: Option<&str>) -> Result<T>
@@ -63,9 +91,5 @@ where
     T: TryFrom<i64>,
     <T as TryFrom<i64>>::Error: std::error::Error + Send + Sync + 'static,
 {
-    if cached_config_just_knobs_in_use() {
-        cached_config::get_as(name, switch_val)
-    } else {
-        default_implementation::get_as(name, switch_val)
-    }
+    JustKnobsCombinedImpl::get_as(name, switch_val)
 }

@@ -26,6 +26,8 @@ use slog::warn;
 use slog::Logger;
 use tokio::runtime::Handle;
 
+use crate::JustKnobs;
+
 static JUST_KNOBS: OnceLock<ArcSwap<JustKnobsInMemory>> = OnceLock::new();
 static JUST_KNOBS_WORKER_STATE: OnceLock<JustKnobsWorkerState> = OnceLock::new();
 
@@ -59,40 +61,35 @@ pub fn just_knobs() -> &'static ArcSwap<JustKnobsInMemory> {
     JUST_KNOBS.get_or_init(|| ArcSwap::from(Arc::new(JustKnobsInMemory(HashMap::new()))))
 }
 
-pub fn eval(name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
-    let value = *(just_knobs()
-        .load()
-        .0
-        .get(name)
-        .unwrap_or(&KnobVal::Bool(false)));
+pub struct CachedConfigJustKnobs;
+impl JustKnobs for CachedConfigJustKnobs {
+    fn eval(name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
+        let value = *(just_knobs()
+            .load()
+            .0
+            .get(name)
+            .unwrap_or(&KnobVal::Bool(false)));
 
-    match value {
-        KnobVal::Int(_v) => Err(anyhow!(
-            "JustKnobs knob {} has type int while expected bool",
-            name,
-        )),
-        KnobVal::Bool(b) => Ok(b),
+        match value {
+            KnobVal::Int(_v) => Err(anyhow!(
+                "JustKnobs knob {} has type int while expected bool",
+                name,
+            )),
+            KnobVal::Bool(b) => Ok(b),
+        }
     }
-}
 
-pub fn get(name: &str, _switch_val: Option<&str>) -> Result<i64> {
-    let value = *(just_knobs().load().0.get(name).unwrap_or(&KnobVal::Int(0)));
+    fn get(name: &str, _switch_val: Option<&str>) -> Result<i64> {
+        let value = *(just_knobs().load().0.get(name).unwrap_or(&KnobVal::Int(0)));
 
-    match value {
-        KnobVal::Bool(_v) => Err(anyhow!(
-            "JustKnobs knob {} has type bool while expected int",
-            name,
-        )),
-        KnobVal::Int(b) => Ok(b),
+        match value {
+            KnobVal::Bool(_v) => Err(anyhow!(
+                "JustKnobs knob {} has type bool while expected int",
+                name,
+            )),
+            KnobVal::Int(b) => Ok(b),
+        }
     }
-}
-
-pub fn get_as<T>(name: &str, switch_val: Option<&str>) -> Result<T>
-where
-    T: TryFrom<i64>,
-    <T as TryFrom<i64>>::Error: std::error::Error + Send + Sync + 'static,
-{
-    Ok(get(name, switch_val)?.try_into()?)
 }
 
 fn log_just_knobs(just_knobs: &JustKnobsStruct) -> String {
@@ -212,7 +209,7 @@ mod test {
             store.get_config_handle("justknobs.json".to_owned())?,
             Handle::current(),
         )?;
-        assert!(eval("my/config:knob1", None, None).unwrap());
+        assert!(CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
 
         test_source.insert_config(
             "justknobs.json",
@@ -230,9 +227,12 @@ mod test {
         // mode so the time is auto-advanced if the runtime has nothing to do.
         tokio::time::sleep(Duration::from_millis(SLEEP_TIME_MS)).await;
 
-        assert!(!eval("my/config:knob1", None, None).unwrap());
-        assert_eq!(get("my/config:knob2", None).unwrap(), 10);
-        assert!(!eval("my/config:knob3", None, None).unwrap());
+        assert!(!CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
+        assert_eq!(
+            CachedConfigJustKnobs::get("my/config:knob2", None).unwrap(),
+            10
+        );
+        assert!(!CachedConfigJustKnobs::eval("my/config:knob3", None, None).unwrap());
         Ok(())
     }
 }
