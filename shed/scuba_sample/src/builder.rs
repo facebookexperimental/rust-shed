@@ -264,10 +264,16 @@ pub enum ServerData {
     Hostname,
     /// Hostname scheme of the server
     HostnameScheme,
+    /// Datacenter Region
+    Region,
+    /// Datacenter prefix
+    Datacenter,
     /// Tier of the service
     Tier,
     /// Tupperware TaskId of the service
     TaskId,
+    /// Tupperware cluster name
+    Cluster,
     /// Tupperware CanaryId of the service
     CanaryId,
     /// Tupperware JobHandle of the service
@@ -294,7 +300,10 @@ impl ServerData {
         match self {
             ServerData::Hostname => "server_hostname",
             ServerData::HostnameScheme => "server_hostname_scheme",
+            ServerData::Region => "region",
+            ServerData::Datacenter => "datacenter",
             ServerData::Tier => "server_tier",
+            ServerData::Cluster => "tw_cluster",
             ServerData::TaskId => "tw_task_id",
             ServerData::CanaryId => "tw_canary_id",
             ServerData::JobHandle => "tw_handle",
