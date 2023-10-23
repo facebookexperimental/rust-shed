@@ -15,6 +15,8 @@
 //!    Can be used for integration tests where the config can be read from on-disk JSON file and
 //!    fully isolated from prod setup.  Used after being initialized with
 //!    init_cached_config_just_knobs/init_cached_config_just_knobs_worker.
+//!  * thread-local-in-memory, which is useful for testing. It allows to override justknobs within a
+//!    test without affecting other tests. Used always when cfg(test) is true.
 use anyhow as _;
 use anyhow::Result;
 use cached_config::CachedConfigJustKnobs;
@@ -24,8 +26,16 @@ use fb_justknobs as prod_implementation;
 use JustKnobsStub as prod_implementation;
 
 pub mod cached_config;
+pub mod thread_local_in_memory;
 pub use cached_config::init_just_knobs as init_cached_config_just_knobs;
 pub use cached_config::init_just_knobs_worker as init_cached_config_just_knobs_worker;
+#[cfg(test)]
+pub use thread_local_in_memory::with_just_knobs;
+#[cfg(test)]
+pub use thread_local_in_memory::with_just_knobs_async;
+#[cfg(test)]
+pub use thread_local_in_memory::with_just_knobs_async_arc;
+use thread_local_in_memory::ThreadLocalInMemoryJustKnobsImpl;
 
 /// Trait that defines the interface for JustKnobs supported by this library and multiple stub
 /// implementations is contains.
@@ -59,7 +69,9 @@ pub struct JustKnobsCombinedImpl;
 
 impl JustKnobs for JustKnobsCombinedImpl {
     fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
-        if cached_config::in_use() {
+        if cfg!(test) {
+            ThreadLocalInMemoryJustKnobsImpl::eval(name, hash_val, switch_val)
+        } else if cached_config::in_use() {
             CachedConfigJustKnobs::eval(name, hash_val, switch_val)
         } else {
             prod_implementation::eval(name, hash_val, switch_val)
@@ -67,7 +79,9 @@ impl JustKnobs for JustKnobsCombinedImpl {
     }
 
     fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
-        if cached_config::in_use() {
+        if cfg!(test) {
+            ThreadLocalInMemoryJustKnobsImpl::get(name, switch_val)
+        } else if cached_config::in_use() {
             CachedConfigJustKnobs::get(name, switch_val)
         } else {
             prod_implementation::get(name, switch_val)

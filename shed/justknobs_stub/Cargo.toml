@@ -14,6 +14,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "=1.0.72"
 arc-swap = "1.5"
 cached_config = { version = "0.1.0", path = "../cached_config" }
+futures = { version = "0.3.28", features = ["async-await", "compat"] }
 just_knobs_struct = { version = "0.1.0", path = "cached_config_thrift_struct" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
 serde_json = { version = "1.0.100", features = ["float_roundtrip", "unbounded_depth"] }
@@ -21,4 +22,5 @@ slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 tokio = { version = "1.29.1", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
+maplit = "1.0"
 slog_glog_fmt = { version = "0.1.0", path = "../slog_glog_fmt" }
