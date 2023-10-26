@@ -10,6 +10,10 @@ readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
+[[test]]
+name = "justknobs_in_unnitest"
+path = "tests/justknobs_in_unittest.rs"
+
 [dependencies]
 anyhow = "=1.0.72"
 arc-swap = "1.5"

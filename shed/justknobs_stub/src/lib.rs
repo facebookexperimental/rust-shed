@@ -26,16 +26,19 @@ use fb_justknobs as prod_implementation;
 use JustKnobsStub as prod_implementation;
 
 pub mod cached_config;
-pub mod thread_local_in_memory;
+mod thread_local_in_memory;
 pub use cached_config::init_just_knobs as init_cached_config_just_knobs;
 pub use cached_config::init_just_knobs_worker as init_cached_config_just_knobs_worker;
-#[cfg(test)]
-pub use thread_local_in_memory::with_just_knobs;
-#[cfg(test)]
-pub use thread_local_in_memory::with_just_knobs_async;
-#[cfg(test)]
-pub use thread_local_in_memory::with_just_knobs_async_arc;
 use thread_local_in_memory::ThreadLocalInMemoryJustKnobsImpl;
+
+/// Those should be only used in tests.
+pub mod test_helpers {
+    pub use crate::thread_local_in_memory::with_just_knobs;
+    pub use crate::thread_local_in_memory::with_just_knobs_async;
+    pub use crate::thread_local_in_memory::with_just_knobs_async_arc;
+    pub use crate::thread_local_in_memory::JustKnobsInMemory;
+    pub use crate::thread_local_in_memory::KnobVal;
+}
 
 /// Trait that defines the interface for JustKnobs supported by this library and multiple stub
 /// implementations is contains.
@@ -69,7 +72,7 @@ pub struct JustKnobsCombinedImpl;
 
 impl JustKnobs for JustKnobsCombinedImpl {
     fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
-        if cfg!(test) {
+        if thread_local_in_memory::in_use() {
             ThreadLocalInMemoryJustKnobsImpl::eval(name, hash_val, switch_val)
         } else if cached_config::in_use() {
             CachedConfigJustKnobs::eval(name, hash_val, switch_val)
@@ -79,7 +82,7 @@ impl JustKnobs for JustKnobsCombinedImpl {
     }
 
     fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
-        if cfg!(test) {
+        if thread_local_in_memory::in_use() {
             ThreadLocalInMemoryJustKnobsImpl::get(name, switch_val)
         } else if cached_config::in_use() {
             CachedConfigJustKnobs::get(name, switch_val)

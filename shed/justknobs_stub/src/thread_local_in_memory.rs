@@ -10,6 +10,7 @@
 use std::cell::RefCell;
 /// JustKnobs implementation that thread-local memory for storage. Meant to be used in unit tests.
 use std::collections::HashMap;
+use std::ops::Deref;
 use std::sync::Arc;
 use std::thread_local;
 
@@ -22,11 +23,19 @@ use futures::FutureExt;
 use crate::JustKnobs;
 
 thread_local! {
-    static JUST_KNOBS: RefCell<Arc<JustKnobsInMemory>> = Default::default()
+    static JUST_KNOBS: RefCell<Option<Arc<JustKnobsInMemory>>> = Default::default()
+}
+pub fn in_use() -> bool {
+    JUST_KNOBS.with(|jk| jk.borrow().is_some())
 }
 
 #[derive(Default)]
 pub struct JustKnobsInMemory(HashMap<String, KnobVal>);
+impl JustKnobsInMemory {
+    pub fn new(val: HashMap<String, KnobVal>) -> Self {
+        JustKnobsInMemory(val)
+    }
+}
 #[derive(Copy, Clone)]
 pub enum KnobVal {
     Bool(bool),
@@ -36,7 +45,10 @@ pub enum KnobVal {
 pub(crate) struct ThreadLocalInMemoryJustKnobsImpl;
 impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
     fn eval(name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
-        let value = JUST_KNOBS.with(|jk| *jk.borrow().0.get(name).unwrap_or(&KnobVal::Bool(false)));
+        let value = JUST_KNOBS.with(|jk| match jk.borrow().deref() {
+            Some(jk) => *jk.0.get(name).unwrap_or(&KnobVal::Bool(false)),
+            None => KnobVal::Bool(false),
+        });
 
         match value {
             KnobVal::Int(_v) => Err(anyhow!(
@@ -48,7 +60,10 @@ impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
     }
 
     fn get(name: &str, _switch_val: Option<&str>) -> Result<i64> {
-        let value = JUST_KNOBS.with(|jk| *jk.borrow().0.get(name).unwrap_or(&KnobVal::Int(0)));
+        let value = JUST_KNOBS.with(|jk| match jk.borrow().deref() {
+            Some(jk) => *jk.0.get(name).unwrap_or(&KnobVal::Int(0)),
+            None => KnobVal::Int(0),
+        });
 
         match value {
             KnobVal::Bool(_b) => Err(anyhow!(
@@ -63,7 +78,7 @@ impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
 /// A helper function to override jk during a closure's execution.
 /// This is useful for unit tests.
 pub fn with_just_knobs<T>(new_just_knobs: JustKnobsInMemory, f: impl FnOnce() -> T) -> T {
-    JUST_KNOBS.with(move |jk| *jk.borrow_mut() = Arc::new(new_just_knobs));
+    JUST_KNOBS.with(move |jk| *jk.borrow_mut() = Some(Arc::new(new_just_knobs)));
     let res = f();
     JUST_KNOBS.with(|jk| jk.take());
     res
@@ -83,7 +98,7 @@ pub fn with_just_knobs_async_arc<Out, Fut: Future<Output = Out> + Unpin>(
     mut fut: Fut,
 ) -> impl Future<Output = Out> {
     poll_fn(move |cx| {
-        JUST_KNOBS.with(|jk| *jk.borrow_mut() = new_just_knobs.clone());
+        JUST_KNOBS.with(|jk| *jk.borrow_mut() = Some(new_just_knobs.clone()));
         let res = fut.poll_unpin(cx);
         JUST_KNOBS.with(|jk| jk.take());
         res
@@ -101,7 +116,7 @@ mod test {
         assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
 
         let res = with_just_knobs(
-            JustKnobsInMemory(hashmap! {
+            JustKnobsInMemory::new(hashmap! {
                 "my/config:knob1".to_string() => KnobVal::Bool(true),
                 "my/config:knob2".to_string() => KnobVal::Int(2),
             }),
