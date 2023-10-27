@@ -14,6 +14,10 @@
 pub mod macro_export {
     pub use frunk;
     pub struct ToTuple;
+    pub trait ConvertToTuple {
+        type Output;
+        fn convert(self) -> Self::Output;
+    }
 }
 
 // macro to implement: ToTuple(hlist![…]) => (…,)
@@ -27,6 +31,20 @@ macro_rules! impl_to_tuple_for_seq {
                 match this {
                     $crate::macro_export::frunk::hlist_pat![$($seq),*] => ($($seq,)*)
                 }
+            }
+        }
+
+        impl<$($seq,)*> $crate::macro_export::ConvertToTuple for ($($seq,)*) {
+            type Output = ($($seq,)*);
+            fn convert(self) -> Self::Output {
+                self
+            }
+        }
+
+        impl<$($seq,)*> $crate::macro_export::ConvertToTuple for $crate::macro_export::frunk::HList![$($seq),*] {
+            type Output = ($($seq,)*);
+            fn convert(self) -> ($($seq,)*) {
+                $crate::macro_export::ToTuple(self)
             }
         }
     }
@@ -154,6 +172,7 @@ impl_to_tuple_for_seq!(
 mod tests {
     use frunk::hlist;
 
+    use crate::macro_export::ConvertToTuple;
     use crate::macro_export::ToTuple;
 
     #[test]
@@ -161,5 +180,14 @@ mod tests {
         let tup = ("foo", 42, true);
         let hlist = hlist![tup.0, tup.1, tup.2];
         assert_eq!(tup, ToTuple(hlist));
+    }
+
+    #[test]
+    fn test_convert() {
+        let tup = ("foo", 42, true);
+        assert_eq!(tup, tup.convert());
+
+        let hlist = hlist![tup.0, tup.1, tup.2];
+        assert_eq!(tup, hlist.convert());
     }
 }
