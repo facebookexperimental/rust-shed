@@ -21,7 +21,7 @@ pub mod macro_export {
 }
 
 // macro to implement: ToTuple(hlist![…]) => (…,)
-macro_rules! impl_to_tuple_for_seq {
+macro_rules! impl_to_tuple_for {
     ($($seq:ident),*) => {
         #[allow(non_snake_case)]
         impl<$($seq,)*> FnOnce<($crate::macro_export::frunk::HList![$($seq),*],)> for $crate::macro_export::ToTuple {
@@ -50,119 +50,18 @@ macro_rules! impl_to_tuple_for_seq {
     }
 }
 
+macro_rules! impl_to_tuple_up_to {
+    ($head:ident) => {
+        impl_to_tuple_for!($head);
+    };
+    ($head:ident, $($tail:ident),+) => {
+        impl_to_tuple_for!($head, $($tail),*);
+        impl_to_tuple_up_to!($($tail),*);
+    };
+}
+
 // generate implementations up to length 40
-impl_to_tuple_for_seq!(T0);
-impl_to_tuple_for_seq!(T0, T1);
-impl_to_tuple_for_seq!(T0, T1, T2);
-impl_to_tuple_for_seq!(T0, T1, T2, T3);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12);
-impl_to_tuple_for_seq!(T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38
-);
-impl_to_tuple_for_seq!(
-    T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
-    T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39
-);
-impl_to_tuple_for_seq!(
+impl_to_tuple_up_to!(
     T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20,
     T21, T22, T23, T24, T25, T26, T27, T28, T29, T30, T31, T32, T33, T34, T35, T36, T37, T38, T39,
     T40
