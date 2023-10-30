@@ -7,33 +7,18 @@
  * of this source tree.
  */
 
-#![feature(unboxed_closures)]
-#![feature(fn_traits)]
-
 #[doc(hidden)]
 pub mod macro_export {
     pub use frunk;
-    pub struct ToTuple;
     pub trait ConvertToTuple {
         type Output;
         fn convert(self) -> Self::Output;
     }
 }
 
-// macro to implement: ToTuple(hlist![…]) => (…,)
+// macro to implement: ConvertToTuple for tuples and hlist of a given cardinality
 macro_rules! impl_to_tuple_for {
     ($($seq:ident),*) => {
-        #[allow(non_snake_case)]
-        impl<$($seq,)*> FnOnce<($crate::macro_export::frunk::HList![$($seq),*],)> for $crate::macro_export::ToTuple {
-            type Output = ($($seq,)*);
-            #[inline]
-            extern "rust-call" fn call_once(self, (this,): ($crate::macro_export::frunk::HList![$($seq),*],)) -> Self::Output {
-                match this {
-                    $crate::macro_export::frunk::hlist_pat![$($seq),*] => ($($seq,)*)
-                }
-            }
-        }
-
         impl<$($seq,)*> $crate::macro_export::ConvertToTuple for ($($seq,)*) {
             type Output = ($($seq,)*);
             fn convert(self) -> Self::Output {
@@ -43,13 +28,17 @@ macro_rules! impl_to_tuple_for {
 
         impl<$($seq,)*> $crate::macro_export::ConvertToTuple for $crate::macro_export::frunk::HList![$($seq),*] {
             type Output = ($($seq,)*);
+            #[allow(non_snake_case)]
             fn convert(self) -> ($($seq,)*) {
-                $crate::macro_export::ToTuple(self)
+                match self {
+                    $crate::macro_export::frunk::hlist_pat![$($seq),*] => ($($seq,)*)
+                }
             }
         }
     }
 }
 
+// macro to implement: ConvertToTuple for tuples and hlist of all cardinalities up-to a given cardinality
 macro_rules! impl_to_tuple_up_to {
     ($head:ident) => {
         impl_to_tuple_for!($head);
@@ -72,14 +61,6 @@ mod tests {
     use frunk::hlist;
 
     use crate::macro_export::ConvertToTuple;
-    use crate::macro_export::ToTuple;
-
-    #[test]
-    fn hlist_into_tuple() {
-        let tup = ("foo", 42, true);
-        let hlist = hlist![tup.0, tup.1, tup.2];
-        assert_eq!(tup, ToTuple(hlist));
-    }
 
     #[test]
     fn test_convert() {
