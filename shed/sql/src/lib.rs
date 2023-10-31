@@ -318,6 +318,7 @@ macro_rules! _query_common {
         use $crate::rusqlite::types::ToSql as ToSqliteValue;
         use $crate::rusqlite::Connection as SqliteConnection;
         use $crate::rusqlite::Result as SqliteResult;
+        use $crate::rusqlite::Row as SqliteRow;
         use $crate::rusqlite::Statement as SqliteStatement;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
@@ -405,25 +406,8 @@ macro_rules! _read_query_impl {
                 .and_then(|mut stmt| {
                     stmt.query_map(
                         &ref_params[..],
-                        |row| {
-                            #[allow(clippy::eval_order_dependence)]
-                            {
-                                let mut idx = 0;
-                                let res = (
-                                    $({
-                                        let res: ValueWrapper = row.get(idx)?;
-                                        idx += 1;
-                                        <$rtype as FromValue>::from_value_opt(res.0)
-                                            .unwrap_or_else(|err| {
-                                                panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
-                                            })
-                                    },)*
-                                );
-                                // suppress unused_assignments warning
-                                let _ = idx;
-                                Ok(res)
-                            }
-                    })?.collect()
+                        sqlite_row_to_tuple
+                    )?.collect()
                 }).map_err(Error::from)
         }
 
@@ -447,25 +431,8 @@ macro_rules! _read_query_impl {
                 let mut stmt = sqlite_statement(&transaction  $( , $lname )*)?;
                 let res = stmt.query_map(
                     &ref_params[..],
-                    |row| {
-                        #[allow(clippy::eval_order_dependence)]
-                        {
-                            let mut idx = 0;
-                            let res = (
-                                $({
-                                    let res: ValueWrapper = row.get(idx)?;
-                                    idx += 1;
-                                    <$rtype as FromValue>::from_value_opt(res.0)
-                                        .unwrap_or_else(|err| {
-                                            panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
-                                        })
-                                },)*
-                            );
-                            // suppress unused_assignments warning
-                            let _ = idx;
-                            Ok(res)
-                        }
-                })?.collect();
+                    sqlite_row_to_tuple
+                )?.collect();
                 res
             };
 
@@ -491,6 +458,30 @@ macro_rules! _read_query_impl {
                 $( $pname = concat!(":", stringify!($pname)), )*
                 $( $lname = $lname, )*
             ))
+        }
+
+        fn sqlite_row_to_tuple(row: &SqliteRow) -> SqliteResult<($( $rtype, )*)> {
+            // This is currently necessary to use the `mut idx` to keep track of which element of
+            // the tuple we are constructing.
+            // Once the feature: `macro_metavar_expr` is stable, we can replace `row.get(idx)` with
+            // ${index()} and clean up this code a little
+            #[allow(clippy::eval_order_dependence)]
+            {
+                let mut idx = 0;
+                let res = (
+                    $({
+                        let res: ValueWrapper = row.get(idx)?;
+                        idx += 1;
+                        <$rtype as FromValue>::from_value_opt(res.0)
+                            .unwrap_or_else(|err| {
+                                panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
+                            })
+                    },)*
+                );
+                // suppress unused_assignments warning
+                let _ = idx;
+                Ok(res)
+            }
         }
     );
 }
