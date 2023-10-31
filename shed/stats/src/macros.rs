@@ -100,12 +100,13 @@ pub mod common_macro_prelude {
 /// # Reference
 ///
 /// ## `singleton_counter`, `counter`
+///
+/// **DEPRECATED:** Use `timeseries` instead.
+///
 /// Raw counter types. These take an optional key parameter - if it is not
 /// specified, then it's derived from the stat field name.
 ///
-/// These are deprecated in favor of `timeseries`.
-///
-/// # `timeseries`
+/// ## `timeseries`
 /// The general syntax for `timeseries` is:
 /// ```text
 /// timeseries(<optional key>; <list of aggregations>; [optional intervals])
@@ -125,7 +126,10 @@ pub mod common_macro_prelude {
 /// This maps to a call to
 /// [`StatsManager::create_timeseries`](stats_traits::stats_manager::StatsManager::create_histogram).
 ///
-/// # `histogram`
+/// ## `histogram`
+///
+/// **DEPRECATED:** Use `quantile_stat` instead.
+///
 /// The general syntax for `histogram` is:
 /// ```text
 /// histogram(<optional key>; bucket-width, min, max, <list of aggregations>; <P XX percentiles>)
@@ -153,7 +157,7 @@ pub mod common_macro_prelude {
 /// This maps to a call to
 /// [`StatsManager::create_histogram`](stats_traits::stats_manager::StatsManager::create_histogram).
 ///
-///  # `quantile_stat`
+/// ## `quantile_stat`
 /// The general syntax for `quantile_stat` is:
 /// ```text
 /// quantile_stat(<optional key>; <list of aggregations>; <P XX percentiles>; <list of intervals>)
@@ -178,7 +182,7 @@ pub mod common_macro_prelude {
 ///  This maps to a call to
 /// [`StatsManager::create_quantile_stat`](stats_traits::stats_manager::StatsManager::create_quantile_stat).
 ///
-/// # `dynamic_counter`, `dynamic_timeseries`, `dynamic_histogram`, `dynamic_quantile_stat`
+/// ## `dynamic_counter`, `dynamic_timeseries`, `dynamic_histogram`, `dynamic_quantile_stat`
 ///
 /// These are equivalent to the corresponding `counter`/`timeseries`/`histogram`/`quantile_stat`
 /// above, except that they allow the key to have a dynamic component. The key
