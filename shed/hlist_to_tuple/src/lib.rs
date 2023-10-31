@@ -10,26 +10,26 @@
 #[doc(hidden)]
 pub mod macro_export {
     pub use frunk;
-    pub trait ConvertToTuple {
+    pub trait ToTuple {
         type Output;
-        fn convert(self) -> Self::Output;
+        fn to_tuple(self) -> Self::Output;
     }
 }
 
-// macro to implement: ConvertToTuple for tuples and hlist of a given cardinality
+// macro to implement: ToTuple for tuples and hlist of a given cardinality
 macro_rules! impl_to_tuple_for {
     ($($seq:ident),*) => {
-        impl<$($seq,)*> $crate::macro_export::ConvertToTuple for ($($seq,)*) {
+        impl<$($seq,)*> $crate::macro_export::ToTuple for ($($seq,)*) {
             type Output = ($($seq,)*);
-            fn convert(self) -> Self::Output {
+            fn to_tuple(self) -> Self::Output {
                 self
             }
         }
 
-        impl<$($seq,)*> $crate::macro_export::ConvertToTuple for $crate::macro_export::frunk::HList![$($seq),*] {
+        impl<$($seq,)*> $crate::macro_export::ToTuple for $crate::macro_export::frunk::HList![$($seq),*] {
             type Output = ($($seq,)*);
             #[allow(non_snake_case)]
-            fn convert(self) -> ($($seq,)*) {
+            fn to_tuple(self) -> ($($seq,)*) {
                 match self {
                     $crate::macro_export::frunk::hlist_pat![$($seq),*] => ($($seq,)*)
                 }
@@ -38,7 +38,7 @@ macro_rules! impl_to_tuple_for {
     }
 }
 
-// macro to implement: ConvertToTuple for tuples and hlist of all cardinalities up-to a given cardinality
+// macro to implement: ToTuple for tuples and hlist of all cardinalities up-to a given cardinality
 macro_rules! impl_to_tuple_up_to {
     ($head:ident) => {
         impl_to_tuple_for!($head);
@@ -60,14 +60,14 @@ impl_to_tuple_up_to!(
 mod tests {
     use frunk::hlist;
 
-    use crate::macro_export::ConvertToTuple;
+    use crate::macro_export::ToTuple;
 
     #[test]
     fn test_convert() {
         let tup = ("foo", 42, true);
-        assert_eq!(tup, tup.convert());
+        assert_eq!(tup, tup.to_tuple());
 
         let hlist = hlist![tup.0, tup.1, tup.2];
-        assert_eq!(tup, hlist.convert());
+        assert_eq!(tup, hlist.to_tuple());
     }
 }
