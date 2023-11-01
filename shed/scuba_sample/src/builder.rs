@@ -264,9 +264,9 @@ pub enum ServerData {
     Hostname,
     /// Hostname scheme of the server
     HostnameScheme,
-    /// Datacenter Region
+    /// Datacenter Region (e.g. sweden)
     Region,
-    /// Datacenter prefix
+    /// Datacenter (e.g. lla1)
     Datacenter,
     /// Tier of the service
     Tier,
