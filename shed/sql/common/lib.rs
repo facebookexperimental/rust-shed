@@ -20,6 +20,8 @@ pub mod transaction;
 use std::fmt;
 use std::fmt::Debug;
 
+use mysql_async::prelude::FromValue;
+use mysql_async::Value;
 use vec1::Vec1;
 
 // Used in OSS build only
@@ -134,6 +136,12 @@ impl WriteResult {
     /// Return the id of last inserted row if any.
     pub fn last_insert_id(&self) -> Option<u64> {
         self.last_insert_id
+    }
+
+    /// Return the id of last inserted row if any, as any type that is
+    /// convertable from a MySQL Value.
+    pub fn last_insert_id_as<T: FromValue>(&self) -> Option<T> {
+        self.last_insert_id.map(|id| T::from_value(Value::UInt(id)))
     }
 
     /// Return number of rows affected by the `write` query
