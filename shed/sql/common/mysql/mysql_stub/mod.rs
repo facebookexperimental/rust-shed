@@ -43,9 +43,6 @@ impl From<ValueError> for MysqlError {
     }
 }
 
-/// ODS counters
-pub struct ConnectionStats;
-
 /// Connection object.
 #[derive(Clone)]
 pub struct Connection;

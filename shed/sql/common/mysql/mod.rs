@@ -19,8 +19,6 @@ pub use facebook::opt_try_from_rowfield;
 #[cfg(fbcode_build)]
 pub use facebook::Connection;
 #[cfg(fbcode_build)]
-pub use facebook::ConnectionStats;
-#[cfg(fbcode_build)]
 pub use facebook::MysqlError;
 #[cfg(fbcode_build)]
 pub use facebook::OptionalTryFromRowField;
@@ -41,8 +39,6 @@ pub use mysql_stub::opt_try_from_rowfield;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::Connection;
 #[cfg(not(fbcode_build))]
-pub use mysql_stub::ConnectionStats;
-#[cfg(not(fbcode_build))]
 pub use mysql_stub::MysqlError;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::OptionalTryFromRowField;
@@ -56,8 +52,15 @@ pub use mysql_stub::TransactionResult;
 pub use mysql_stub::TryFromRowField;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::ValueError;
+use stats::prelude::*;
 
 use super::WriteResult as SqlWriteResult;
+
+define_stats_struct! {
+    ConnectionStats("sql.mysql_ffi.{}", label: String),
+    get_connection_ms: histogram(100, 0, 5_000, Average, Count; P 50; P 95; P 99),
+    raw_query_ms: histogram(100, 0, 5_000, Average, Count; P 50; P 95; P 99),
+}
 
 /// A simple wrapper struct around a SQL string, just to add some type
 /// safety.
