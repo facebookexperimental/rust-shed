@@ -34,8 +34,6 @@ pub use facebook::TransactionResult;
 pub use facebook::TryFromRowField;
 #[cfg(fbcode_build)]
 pub use facebook::ValueError;
-#[cfg(fbcode_build)]
-pub use facebook::WriteResult;
 pub use mysql_derive::OptTryFromRowField;
 pub use mysql_derive::TryFromRowField;
 #[cfg(not(fbcode_build))]
@@ -58,8 +56,6 @@ pub use mysql_stub::TransactionResult;
 pub use mysql_stub::TryFromRowField;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::ValueError;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::WriteResult;
 
 use super::WriteResult as SqlWriteResult;
 
@@ -152,6 +148,26 @@ pub use mysql_query;
 pub enum IsolationLevel {
     /// Each consistent read, even within the same transaction, sets and reads its own fresh snapshot.
     ReadCommitted,
+}
+
+/// Result returned by a write query
+pub struct WriteResult(u64, u64);
+
+impl WriteResult {
+    /// Create result
+    pub fn new(last_insert_id: u64, rows_affected: u64) -> Self {
+        WriteResult(last_insert_id, rows_affected)
+    }
+
+    /// Get last inserted id
+    pub fn last_insert_id(&self) -> u64 {
+        self.0
+    }
+
+    /// Get number of affected rows
+    pub fn rows_affected(&self) -> u64 {
+        self.1
+    }
 }
 
 impl From<WriteResult> for SqlWriteResult {

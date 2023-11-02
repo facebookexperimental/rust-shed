@@ -15,6 +15,7 @@ use std::fmt::Display;
 use thiserror::Error;
 
 use crate::mysql::IsolationLevel;
+use crate::mysql::WriteResult;
 
 /// Error for Mysql client
 #[derive(Error, Debug)]
@@ -39,20 +40,6 @@ impl Display for ValueError {
 impl From<ValueError> for MysqlError {
     fn from(_: ValueError) -> Self {
         Self
-    }
-}
-
-/// Result returned by a write query
-pub struct WriteResult;
-
-impl WriteResult {
-    /// Get last inserted id
-    pub fn last_insert_id(&self) -> u64 {
-        unimplemented!("This is a stub");
-    }
-    /// Get number of affected rows
-    pub fn rows_affected(&self) -> u64 {
-        unimplemented!("This is a stub");
     }
 }
 
