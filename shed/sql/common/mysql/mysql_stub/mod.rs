@@ -11,9 +11,15 @@
 
 use std::fmt;
 use std::fmt::Display;
+use std::sync::Arc;
 
+use mysql_async::Conn as MysqlConnection;
+use mysql_async::Pool;
+use mysql_async::QueryResult;
+use mysql_async::TextProtocol;
 use thiserror::Error;
 
+use crate::mysql::ConnectionStats;
 use crate::mysql::IsolationLevel;
 use crate::mysql::WriteResult;
 
@@ -46,6 +52,15 @@ impl From<ValueError> for MysqlError {
 /// Connection object.
 #[derive(Clone)]
 pub struct Connection;
+
+/// Connection object.
+#[derive(Clone)]
+pub struct OssConnection {
+    /// Connection pool
+    pub pool: Pool,
+    /// Stats struct for logging performance
+    pub stats: Arc<ConnectionStats>,
+}
 
 /// Transaction result object.
 #[allow(dead_code)]
@@ -104,6 +119,40 @@ impl Connection {
 
     /// Returns the replication lag for a connection.
     pub async fn get_replica_lag_secs(&self) -> Result<Option<u64>, MysqlError> {
+        unimplemented!("This is a stub");
+    }
+}
+
+unsafe impl Send for OssConnection {}
+
+impl OssConnection {
+    /// Checks out a connection from the pool while collecting stats
+    pub async fn get_conn_counted(
+        _pool: Pool,
+        _stats: &ConnectionStats,
+    ) -> Result<MysqlConnection, mysql_async::Error> {
+        unimplemented!("This is a stub");
+    }
+
+    /// Performs a given query and returns the result as a vector of rows.
+    pub async fn read_query<'a>(
+        &self,
+        _conn: &'a mut MysqlConnection,
+        _query: &'a str,
+    ) -> Result<QueryResult<'a, 'a, TextProtocol>, MysqlError> {
+        unimplemented!("This is a stub");
+    }
+
+    /// Performs a given query and returns the write result.
+    pub async fn write_query(&self, _query: String) -> Result<WriteResult, MysqlError> {
+        unimplemented!("This is a stub");
+    }
+
+    /// Begins trasaction and returns Transaction object.
+    pub async fn begin_transaction(
+        &self,
+        _tx_opts: mysql_async::TxOpts,
+    ) -> Result<mysql_async::Transaction<'static>, MysqlError> {
         unimplemented!("This is a stub");
     }
 }

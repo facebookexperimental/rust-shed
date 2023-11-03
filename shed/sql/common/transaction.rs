@@ -63,8 +63,10 @@ pub enum Transaction {
     /// When a Sqlite transaction is dropped a "rollback" is performed, so one should always make
     /// sure to call "commit" if they want to persist the transation.
     Sqlite(Option<SqliteConnectionGuard>),
-    /// A variant used for the new Mysql client connection.
+    /// A variant used for the internal Mysql client connection.
     Mysql(Option<mysql::Transaction>),
+    /// A variant used for the external Mysql client connection.
+    OssMysql(Option<mysql_async::Transaction<'static>>),
 }
 
 impl Transaction {
@@ -82,6 +84,12 @@ impl Transaction {
             super::Connection::Mysql(conn) => {
                 let transaction = conn.begin_transaction().map_err(Error::from).await?;
                 Ok(Transaction::Mysql(Some(transaction)))
+            }
+            super::Connection::OssMysql(conn) => {
+                let transaction = conn
+                    .begin_transaction(mysql_async::TxOpts::default())
+                    .await?;
+                Ok(Transaction::OssMysql(Some(transaction)))
             }
         }
     }
@@ -105,6 +113,10 @@ impl Transaction {
                 let tr = tr.take().expect("Called commit after drop");
                 Ok(tr.commit().await?)
             }
+            Transaction::OssMysql(ref mut tr) => {
+                let tr = tr.take().expect("Called rollback after drop");
+                Ok(tr.rollback().await?)
+            }
         }
     }
 
@@ -114,6 +126,10 @@ impl Transaction {
             // Sqlite will rollback on drop
             Transaction::Sqlite(..) => Ok(()),
             Transaction::Mysql(ref mut tr) => {
+                let tr = tr.take().expect("Called rollback after drop");
+                Ok(tr.rollback().await?)
+            }
+            Transaction::OssMysql(ref mut tr) => {
                 let tr = tr.take().expect("Called rollback after drop");
                 Ok(tr.rollback().await?)
             }
@@ -136,7 +152,7 @@ impl Drop for Transaction {
                     panic!("Rollback on drop of Sqlite connection has failed: {err:#?}");
                 }
             }
-            Transaction::Mysql(_) => {}
+            Transaction::Mysql(_) | Transaction::OssMysql(_) => {}
         }
     }
 }

@@ -23,6 +23,8 @@ pub use facebook::MysqlError;
 #[cfg(fbcode_build)]
 pub use facebook::OptionalTryFromRowField;
 #[cfg(fbcode_build)]
+pub use facebook::OssConnection;
+#[cfg(fbcode_build)]
 pub use facebook::RowField;
 #[cfg(fbcode_build)]
 pub use facebook::Transaction;
@@ -42,6 +44,8 @@ pub use mysql_stub::Connection;
 pub use mysql_stub::MysqlError;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::OptionalTryFromRowField;
+#[cfg(not(fbcode_build))]
+pub use mysql_stub::OssConnection;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::RowField;
 #[cfg(not(fbcode_build))]

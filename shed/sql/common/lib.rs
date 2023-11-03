@@ -92,8 +92,10 @@ pub enum Connection {
     /// Sqlite lets you use this crate with rusqlite connections such as in memory or on disk Sqlite
     /// databases, both useful in case of testing or local sql db use cases.
     Sqlite(sqlite::SqliteMultithreaded),
-    /// A variant used for the new Mysql client connection factory.
+    /// A variant used for Meta's internal Mysql client connection factory.
     Mysql(mysql::Connection),
+    /// For use in external Mysql DBs
+    OssMysql(mysql::OssConnection),
 }
 
 impl From<sqlite::SqliteMultithreaded> for Connection {
@@ -108,11 +110,18 @@ impl From<mysql::Connection> for Connection {
     }
 }
 
+impl From<mysql::OssConnection> for Connection {
+    fn from(conn: mysql::OssConnection) -> Self {
+        Connection::OssMysql(conn)
+    }
+}
+
 impl Debug for Connection {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Connection::Sqlite(..) => write!(f, "Sqlite"),
-            Connection::Mysql(..) => write!(f, "Mysql client"),
+            Connection::Mysql(..) => write!(f, "Meta internal Mysql client"),
+            Connection::OssMysql(..) => write!(f, "AWS compatible Mysql client"),
         }
     }
 }

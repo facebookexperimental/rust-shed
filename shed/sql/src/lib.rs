@@ -63,6 +63,7 @@ mod tests;
 
 pub use anyhow;
 pub use cloned;
+pub use frunk::HList;
 pub use futures;
 pub use futures_ext;
 pub use futures_util;
@@ -78,6 +79,7 @@ use rusqlite::types::ValueRef as SqliteValueRef;
 use rusqlite::Result as SqliteResult;
 pub use sql_common;
 pub use sql_common::mysql;
+pub use sql_common::mysql::OssConnection;
 pub use sql_common::sqlite;
 pub use sql_common::transaction::Transaction;
 pub use sql_common::Connection;
@@ -307,6 +309,7 @@ macro_rules! _query_common {
         // Some users of queries! have redefined Result
         use std::result::Result;
 
+        use $crate::anyhow::anyhow;
         use $crate::anyhow::Context;
         use $crate::anyhow::Error;
         use $crate::cloned::cloned;
@@ -320,10 +323,12 @@ macro_rules! _query_common {
         use $crate::rusqlite::Result as SqliteResult;
         use $crate::rusqlite::Row as SqliteRow;
         use $crate::rusqlite::Statement as SqliteStatement;
+        use $crate::sql_common::mysql::OssConnection;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
         use $crate::sqlite::SqliteQueryType;
         use $crate::Connection;
+        use $crate::HList;
         use $crate::Transaction;
         use $crate::ValueWrapper;
 
@@ -354,14 +359,47 @@ macro_rules! _read_query_impl {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
                     conn.read_query(query).map_err(Error::from).await
                 }
+                Connection::OssMysql(conn) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+
+                    let mut con = OssConnection::get_conn_counted(conn.pool.clone(), &conn.stats).await?;
+                    let mut res = conn.read_query(&mut con, &query).map_err(Error::from).await?;
+
+                    let result = res
+                        .map( |row| mysql_async_row_to_tuple(row))
+                        .await?
+                        .into_iter()
+                        .collect::<Result<Vec<($( $rtype, )*)>, Error>>()?;
+
+
+                    Ok(result)
+                }
             }
+        }
+
+        fn mysql_async_row_to_tuple(row: $crate::mysql_async::Row) -> Result<($( $rtype, )*), Error> {
+            #[allow(clippy::eval_order_dependence)]
+                let mut idx = 0;
+                let res = (
+                    $({
+                        let res: $crate::mysql_async::Value = row.get(idx).ok_or($crate::anyhow::anyhow!("Failed to parse idx"))?;
+                        idx += 1;
+                        <$rtype as FromValue>::from_value_opt(res)
+                            .unwrap_or_else(|err| {
+                                panic!("Failed to parse `{}`: {}", stringify!($rtype), err)
+                            })
+                    },)*
+                );
+                // suppress unused_assignments warning
+                let _ = idx;
+                Ok(res)
         }
 
         async fn query_internal_with_transaction(
             mut transaction: Transaction,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
+        ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error>{
             match transaction {
                 Transaction::Sqlite(ref mut con) => {
                     let con = con
@@ -380,6 +418,20 @@ macro_rules! _read_query_impl {
                         .expect("should be Some before transaction ended");
                     let result = tr.read_query(query).map_err(Error::from).await?;
                     Ok((Transaction::Mysql(Some(tr)), result))
+                }
+                Transaction::OssMysql(ref mut transaction) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+
+                    let mut tr = transaction.take().expect("should be Some before transaction ended");
+                    let mut query_result  = tr.query_iter(query).map_err(Error::from).await?;
+                    let result = query_result
+                        .map(
+                        |row| mysql_async_row_to_tuple(row)
+                        )
+                        .await?
+                        .into_iter()
+                        .collect::<Result<Vec<($( $rtype, )*)>, Error>>()?;
+                    Ok((Transaction::OssMysql(Some(tr)), result))
                 }
             }
         }
@@ -516,6 +568,11 @@ macro_rules! _write_query_impl {
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
                 }
+                Connection::OssMysql(conn)=> {
+                    let query = mysql_query(values, $( $pname ),*);
+                    let res = conn.write_query(query).map_err(Error::from).await?;
+                    Ok(res.into())
+                },
             }
         }
 
@@ -547,6 +604,20 @@ macro_rules! _write_query_impl {
 
                     let result = tr.write_query(query).map_err(Error::from).await?;
                     Ok((Transaction::Mysql(Some(tr)), result.into()))
+                },
+                Transaction::OssMysql(ref mut transaction)=>{
+                    let query = mysql_query(values, $( $pname ),*);
+                    let mut tr = transaction.take().expect("should be Some before transaction ended");
+
+                    let query_result = tr.query_iter(query).await?;
+
+                    let last_insert_id = query_result.last_insert_id();
+                    let rows_affected = query_result.affected_rows();
+
+                    let result = WriteResult::new(last_insert_id, rows_affected);
+
+                    Ok((Transaction::OssMysql(Some(tr)), result.into()))
+
                 },
             }
         }
@@ -692,6 +763,11 @@ macro_rules! _write_query_impl {
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
                 }
+                Connection::OssMysql(conn) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let res = conn.write_query(query).map_err(Error::from).await?;
+                    Ok(res.into())
+                },
             }
         }
 
@@ -719,6 +795,17 @@ macro_rules! _write_query_impl {
                     let result = tr.write_query(query).map_err(Error::from).await?;
                     Ok((Transaction::Mysql(Some(tr)), result.into()))
                 },
+                Transaction::OssMysql(ref mut transaction) => {
+                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut tr = transaction.take()
+                        .expect("should be Some before transaction ended");
+                    let query_result = tr.query_iter(query).await?;
+
+                    let last_insert_id = query_result.last_insert_id();
+                    let rows_affected = query_result.affected_rows();
+                    let result = WriteResult::new(last_insert_id, rows_affected);
+                    Ok((Transaction::OssMysql(Some(tr)), result))
+                }
             }
         }
 
