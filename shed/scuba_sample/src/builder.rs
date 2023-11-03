@@ -268,6 +268,12 @@ pub enum ServerData {
     Region,
     /// Datacenter (e.g. lla1)
     Datacenter,
+    /// Model name of the server
+    ModelName,
+    /// Model id of the server
+    ModelId,
+    /// Tupperware full cluster name
+    FullClusterName,
     /// Tier of the service
     Tier,
     /// Tupperware TaskId of the service
@@ -302,9 +308,12 @@ impl ServerData {
             ServerData::HostnameScheme => "server_hostname_scheme",
             ServerData::Region => "region",
             ServerData::Datacenter => "datacenter",
+            ServerData::ModelName => "model_name",
+            ServerData::ModelId => "model_id",
+            ServerData::FullClusterName => "full_cluster_name",
             ServerData::Tier => "server_tier",
-            ServerData::Cluster => "tw_cluster",
             ServerData::TaskId => "tw_task_id",
+            ServerData::Cluster => "tw_cluster",
             ServerData::CanaryId => "tw_canary_id",
             ServerData::JobHandle => "tw_handle",
             ServerData::TaskHandle => "tw_task_handle",
