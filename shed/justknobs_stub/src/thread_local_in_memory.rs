@@ -105,6 +105,12 @@ pub fn with_just_knobs_async_arc<Out, Fut: Future<Output = Out> + Unpin>(
     })
 }
 
+/// A helper function to override jk. Useful for unit tests where we need an override
+/// that isn't tied to a single closure/future.
+pub fn override_just_knobs(new_just_knobs: Option<JustKnobsInMemory>) {
+    JUST_KNOBS.with(|t| *t.borrow_mut() = new_just_knobs.map(Arc::new));
+}
+
 #[cfg(test)]
 mod test {
     use maplit::hashmap;
@@ -115,7 +121,7 @@ mod test {
     fn test_jk_override() -> Result<()> {
         assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
 
-        let res = with_just_knobs(
+        let res_closure = with_just_knobs(
             JustKnobsInMemory::new(hashmap! {
                 "my/config:knob1".to_string() => KnobVal::Bool(true),
                 "my/config:knob2".to_string() => KnobVal::Int(2),
@@ -127,7 +133,20 @@ mod test {
                 )
             },
         );
-        assert_eq!(res, (true, 2));
+        assert_eq!(res_closure, (true, 2));
+
+        override_just_knobs(Some(JustKnobsInMemory::new(hashmap! {
+            "my/config:knob3".to_string() => KnobVal::Int(7),
+            "my/config:knob4".to_string() => KnobVal::Bool(true),
+        })));
+        let res_manual_override = (
+            ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob3", None).unwrap(),
+            ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob4", None, None).unwrap(),
+        );
+        assert_eq!(res_manual_override, (7, true));
+
+        override_just_knobs(None);
+
         Ok(())
     }
 }
