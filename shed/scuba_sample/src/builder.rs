@@ -266,6 +266,8 @@ pub enum ServerData {
     HostnameScheme,
     /// Datacenter Region (e.g. sweden)
     Region,
+    /// Datacenter region prefix (e.g. lla)
+    RegionDatacenterPrefix,
     /// Datacenter (e.g. lla1)
     Datacenter,
     /// Model name of the server
@@ -307,6 +309,7 @@ impl ServerData {
             ServerData::Hostname => "server_hostname",
             ServerData::HostnameScheme => "server_hostname_scheme",
             ServerData::Region => "region",
+            ServerData::RegionDatacenterPrefix => "region_datacenter_prefix",
             ServerData::Datacenter => "datacenter",
             ServerData::ModelName => "model_name",
             ServerData::ModelId => "model_id",
