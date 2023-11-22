@@ -115,7 +115,7 @@ impl Transaction {
             }
             Transaction::OssMysql(ref mut tr) => {
                 let tr = tr.take().expect("Called rollback after drop");
-                Ok(tr.rollback().await?)
+                Ok(tr.commit().await?)
             }
         }
     }
