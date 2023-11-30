@@ -187,6 +187,8 @@ impl Config {
 
                     // These files are not of interest here.
                     fs::remove_file(out.join("consts.rs"))?;
+                    fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
 
                     // 'lib.rs' together with the remaining files have the
@@ -200,8 +202,6 @@ impl Config {
 
                     // These files are not of interest here (for now).
                     fs::remove_file(out.join("lib.rs"))?;
-                    fs::remove_file(out.join("errors.rs"))?;
-                    fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("dependencies.rs"))?;
                     fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
@@ -225,6 +225,8 @@ impl Config {
 
                         // These files are not of interest here.
                         fs::remove_file(submod.join("consts.rs"))?;
+                        fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
 
                         // 'lib.rs' (together with the remaining files) has the
@@ -243,8 +245,6 @@ impl Config {
 
                         // These files are not of interest here.
                         fs::remove_file(submod.join("lib.rs"))?;
-                        fs::remove_file(submod.join("errors.rs"))?;
-                        fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("dependencies.rs"))?;
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
