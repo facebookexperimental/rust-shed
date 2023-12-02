@@ -42,7 +42,7 @@ path = "test/testrunner.rs"
 backtrace = "0.3"
 
 [dev-dependencies]
-anyhow = "=1.0.72"
+anyhow = "1.0.75"
 assert_cmd = "2.0"
 predicates = "1"
 

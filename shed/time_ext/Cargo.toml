@@ -11,8 +11,8 @@ repository = "https://github.com/facebookexperimental/rust-shed/"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-anyhow = "=1.0.72"
-thiserror = "1.0.43"
+anyhow = "1.0.75"
+thiserror = "1.0.49"
 
 [dev-dependencies]
 quickcheck = "1.0"

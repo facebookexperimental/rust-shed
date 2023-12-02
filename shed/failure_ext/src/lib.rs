@@ -8,7 +8,6 @@
  */
 
 #![cfg_attr(fbcode_build, feature(error_generic_member_access))]
-#![cfg_attr(fbcode_build, feature(provide_any))]
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 //! Crate extending functionality of the [`anyhow`] crate
@@ -79,8 +78,8 @@ impl StdError for Compat<Error> {
     }
 
     #[cfg(fbcode_build)]
-    fn provide<'a>(&'a self, demand: &mut std::any::Demand<'a>) {
-        demand.provide_ref::<std::backtrace::Backtrace>(self.0.backtrace());
+    fn provide<'a>(&'a self, request: &mut std::error::Request<'a>) {
+        request.provide_ref::<std::backtrace::Backtrace>(self.0.backtrace());
     }
 }
 
