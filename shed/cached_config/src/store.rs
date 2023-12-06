@@ -170,7 +170,7 @@ impl ConfigStore {
 
         let mut clients = self.clients.lock().expect("lock poisoned");
 
-        let client_handle = clients.entry(path).or_insert_with(Vec::new);
+        let client_handle = clients.entry(path).or_default();
         client_handle.push(Arc::downgrade(&entity) as Weak<dyn Refreshable + Send + Sync>);
 
         self.kick.notify_one();

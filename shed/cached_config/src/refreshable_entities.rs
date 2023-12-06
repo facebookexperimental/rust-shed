@@ -95,9 +95,7 @@ where
         };
 
         if has_changed {
-            let contents = Arc::new((self.deserializer)(
-                entity.contents.unwrap_or_else(Bytes::new),
-            )?);
+            let contents = Arc::new((self.deserializer)(entity.contents.unwrap_or_default())?);
             let update_sender = self.update_sender.write().expect("lock poisoned");
             if update_sender.send(contents).is_err() {
                 bail!(
