@@ -15,20 +15,17 @@ use predicates::prelude::*;
 
 macro_rules! get_command {
     ( $name:expr ) => {{
-        let maybe_cmd = {
-            #[cfg(fbcode_build)]
-            {
-                facebook::get_command!($name)
-            }
-            #[cfg(not(fbcode_build))]
-            {
-                None
-            }
-        };
-
-        maybe_cmd
-            .map(Ok)
-            .unwrap_or_else(|| Command::cargo_bin($name))?
+        #[cfg(fbcode_build)]
+        {
+            Command::new(buck_resources::get(format!(
+                "common/rust/shed/panichandler/{}",
+                $name
+            ))?)
+        }
+        #[cfg(not(fbcode_build))]
+        {
+            Command::cargo_bin($name)?
+        }
     }};
 }
 
