@@ -15,7 +15,7 @@ use futures::future::AbortHandle;
 
 /// Spawns a new task returning an abort handle for it.
 ///
-/// It is similar to [tokio_shim::task::spawn] but instad of returning a JoinHandle it will return
+/// It is similar to [tokio::task::spawn] but instad of returning a JoinHandle it will return
 /// an [ControlledHandle]. The [ControlledHandle] can be used to directly abort the task that was
 /// spawned. [ControlledHandle] can be cloned resulting in a new handle to the same underlying
 /// task. Dropping all [ControlledHandle] instances pointing to a given task will result in the
@@ -30,7 +30,7 @@ where
     T::Output: Send + 'static,
 {
     let (abortable_future, abort_handle) = abortable(t);
-    tokio_shim::task::spawn(abortable_future);
+    tokio::task::spawn(abortable_future);
     ControlledHandle::new(abort_handle)
 }
 

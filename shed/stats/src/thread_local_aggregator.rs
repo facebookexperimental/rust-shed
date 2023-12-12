@@ -99,7 +99,8 @@ pub fn create_map() -> Arc<ThreadMap<BoxStatsManager>> {
 /// ```
 pub fn schedule_stats_aggregation_preview() -> Result<SchedulerPreview, StatsScheduledErrorPreview>
 {
-    let stream = tokio_shim::time::interval_stream(Duration::from_secs(1));
+    let stream =
+        tokio_stream::wrappers::IntervalStream::new(tokio::time::interval(Duration::from_secs(1)));
     let scheduler = schedule_stats_on_stream_preview(stream);
 
     if STATS_SCHEDULED.swap(true, atomic::Ordering::Relaxed) {

@@ -16,7 +16,7 @@ use futures::task::Context;
 use futures::task::Poll;
 use pin_project::pin_project;
 use thiserror::Error;
-use tokio_shim::time::Sleep;
+use tokio::time::Sleep;
 
 /// Error returned when a StreamWithTimeout exceeds its deadline.
 #[derive(Debug, Error)]
@@ -60,7 +60,7 @@ impl<S: Stream> Stream for StreamWithTimeout<S> {
         let duration = *this.duration;
 
         if this.deadline.is_none() {
-            this.deadline.set(Some(tokio_shim::time::sleep(duration)));
+            this.deadline.set(Some(tokio::time::sleep(duration)));
         }
 
         // NOTE: This unwrap() is safe as we just set the value.

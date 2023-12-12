@@ -22,7 +22,7 @@ use futures::future::Future;
 use futures::future::FutureExt;
 use futures::future::TryFuture;
 pub use shared_error::anyhow::SharedError;
-use tokio_shim::time::Timeout;
+use tokio::time::Timeout;
 
 pub use self::abort_handle_ref::spawn_controlled;
 pub use self::abort_handle_ref::ControlledHandle;
@@ -35,12 +35,12 @@ pub use self::try_shared::TryShared;
 /// A trait implemented by default for all Futures which extends the standard
 /// functionality.
 pub trait FbFutureExt: Future {
-    /// Construct a new [tokio_shim::time::Timeout].
+    /// Construct a new [tokio::time::Timeout].
     fn timeout(self, timeout: Duration) -> Timeout<Self>
     where
         Self: Sized,
     {
-        tokio_shim::time::timeout(timeout, self)
+        tokio::time::timeout(timeout, self)
     }
 
     /// Call the `on_cancel` callback if this future is canceled (dropped
