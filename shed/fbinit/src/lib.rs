@@ -24,6 +24,4 @@ pub use fbinit_macros::test;
 #[cfg(not(fbcode_build))]
 pub use oss::*;
 #[cfg(fbcode_build)]
-use quickcheck as _; // used in oss
-#[cfg(fbcode_build)]
 pub use real_fbinit::*;

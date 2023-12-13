@@ -9,15 +9,6 @@
 
 #![deny(warnings)]
 
-#[cfg(fbcode_build)]
-mod _unused {
-    // used in oss
-    use abomonation as _;
-    use anyhow as _;
-    use bytes as _;
-    use futures_ext as _;
-}
-
 #[cfg(not(fbcode_build))]
 mod oss;
 

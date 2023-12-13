@@ -11,7 +11,6 @@
 //! to implement traits to be used with the sql's queries macro.
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
-#![cfg_attr(not(fbcode_build), allow(unused_crate_dependencies))]
 
 pub mod mysql;
 pub mod sqlite;
@@ -23,12 +22,6 @@ use std::fmt::Debug;
 use mysql_async::prelude::FromValue;
 use mysql_async::Value;
 use vec1::Vec1;
-
-// Used in OSS build only
-#[cfg(fbcode_build)]
-mod _oss_only {
-    use thiserror as _;
-}
 
 /// Struct to store a set of write, read and read-only connections for a shard.
 #[derive(Clone)]
@@ -157,11 +150,4 @@ impl WriteResult {
     pub fn affected_rows(&self) -> u64 {
         self.affected_rows
     }
-}
-
-// Used in docs
-#[cfg(test)]
-mod _unused {
-    use sql as _;
-    use sql_tests_lib as _;
 }

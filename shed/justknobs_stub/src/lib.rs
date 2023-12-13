@@ -17,7 +17,7 @@
 //!    init_cached_config_just_knobs/init_cached_config_just_knobs_worker.
 //!  * thread-local-in-memory, which is useful for testing. It allows to override justknobs within a
 //!    test without affecting other tests. Used always when cfg(test) is true.
-use anyhow as _;
+
 use anyhow::Result;
 use cached_config::CachedConfigJustKnobs;
 #[cfg(fbcode_build)]
