@@ -7,7 +7,7 @@ authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2021"
 description = "slog Drain for glog-formatted logs"
 readme = "../../README.md"
-repository = "https://github.com/facebookexperimental/rust-shed/"
+repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [[bin]]
