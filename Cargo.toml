@@ -75,3 +75,4 @@ members = [
   "shed/time_ext",
   "shed/tokio-uds-compat",
 ]
+resolver = "2"
