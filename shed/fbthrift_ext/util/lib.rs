@@ -38,16 +38,15 @@ where
 /// # #[tokio::main]
 /// # async fn main() {
 /// use std::task::Poll;
-/// use tokio::sync::Mutex;
+///
 /// use fbthrift_util::poll_with_lock;
+/// use tokio::sync::Mutex;
 ///
 /// struct Foobar(i32);
 /// let lock = Mutex::new(Foobar(132));
 ///
-/// let locked_future = poll_with_lock(
-///     &lock,
-///     |_locked, _ctx| Poll::Ready(Result::<(), ()>::Ok(()))
-/// );
+/// let locked_future =
+///     poll_with_lock(&lock, |_locked, _ctx| Poll::Ready(Result::<(), ()>::Ok(())));
 ///
 /// assert_eq!(locked_future.await.unwrap().0, 132);
 /// # }

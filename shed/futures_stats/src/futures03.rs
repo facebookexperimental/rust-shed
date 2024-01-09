@@ -264,7 +264,10 @@ pub trait TimedTryFutureExt: TryFuture + Sized {
     /// use futures_stats::TimedTryFutureExt;
     ///
     /// # futures::executor::block_on(async {
-    /// let (stats, value) = async { Result::<_, ()>::Ok(123u32) }.try_timed().await.unwrap();
+    /// let (stats, value) = async { Result::<_, ()>::Ok(123u32) }
+    ///     .try_timed()
+    ///     .await
+    ///     .unwrap();
     /// assert_eq!(value, 123);
     /// assert!(stats.poll_count > 0);
     /// # });
@@ -285,8 +288,9 @@ pub trait TimedStreamExt: Stream + Sized {
     /// # Examples
     ///
     /// ```
+    /// use futures::stream::StreamExt;
+    /// use futures::stream::{self};
     /// use futures_stats::TimedStreamExt;
-    /// use futures::stream::{self, StreamExt};
     ///
     /// # futures::executor::block_on(async {
     /// let out = stream::iter([0u32; 3].iter())

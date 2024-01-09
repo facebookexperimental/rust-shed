@@ -26,9 +26,10 @@
 //! ```
 //! use anyhow::Error;
 //! use futures::Future;
-//!
-//! use sql::{queries, Connection};
-//! use sql_tests_lib::{A, B};
+//! use sql::queries;
+//! use sql::Connection;
+//! use sql_tests_lib::A;
+//! use sql_tests_lib::B;
 //!
 //! queries! {
 //!     read MySelect(param_a: A, param_uint: u64) -> (u64, B, B, i64) {
@@ -41,10 +42,7 @@
 //! }
 //!
 //! async fn foo(conn: Connection) -> Result<(), Error> {
-//!     assert_eq!(
-//!         MySelect::query(&conn, &A, &72).await?,
-//!         vec![(44, B, B, 72)]
-//!     );
+//!     assert_eq!(MySelect::query(&conn, &A, &72).await?, vec![(44, B, B, 72)]);
 //!
 //!     let res = MyInsert::query(&conn, &[(&44,)]).await?;
 //!     assert_eq!(res.affected_rows(), 1);

@@ -39,7 +39,9 @@ use crate::kv_defaults::FacebookKV;
 /// error_chain errors.
 /// # Example:
 /// ```
-/// use slog::{info, o, Logger};
+/// use slog::info;
+/// use slog::o;
+/// use slog::Logger;
 /// use slog_glog_fmt::default_drain;
 ///
 /// fn main() {

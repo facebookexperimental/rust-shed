@@ -8,7 +8,6 @@
  */
 
 //! Provides struct field versions of the thread local stats.
-//!
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::thread::LocalKey;

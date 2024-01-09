@@ -159,9 +159,7 @@
 //! #[facet::factory(name: String, value: u32)]
 //! impl MyFactory {
 //!     fn my_trait(&self, name: &str) -> Result<ArcMyTrait, Error> {
-//!         Ok(Arc::new(
-//!             MyTraitImpl::new(name, self.config.as_str())?
-//!         ))
+//!         Ok(Arc::new(MyTraitImpl::new(name, self.config.as_str())?))
 //!     }
 //!
 //!     fn my_struct(&self, my_trait: &ArcMyTrait, value: &u32) -> ArcMyStruct {
@@ -242,7 +240,9 @@
 //! # #[facet::factory(name: String, value: u32)] impl MyFactory {}
 //! # #[facet::container] struct MyContainer {}
 //! # fn main() -> Result<(), anyhow::Error> {
-//! let factory = MyFactory { config: String::from("config") };
+//! let factory = MyFactory {
+//!     config: String::from("config"),
+//! };
 //! let my_container = factory.build::<MyContainer>("name".to_string(), 42)?;
 //! #     Ok(())
 //! # }
@@ -308,7 +308,7 @@
 //! impl MyAsyncFactory {
 //!     async fn my_trait(&self, name: &str) -> Result<ArcMyTrait, Error> {
 //!         Ok(Arc::new(
-//!             MyTraitImpl::new(name, self.config.as_str()).await?
+//!             MyTraitImpl::new(name, self.config.as_str()).await?,
 //!         ))
 //!     }
 //!
@@ -334,7 +334,9 @@
 //! # #[facet::container] struct MyContainer {}
 //! # #[tokio::main]
 //! # async fn main() -> Result<(), anyhow::Error> {
-//! let factory = MyAsyncFactory { config: String::from("config") };
+//! let factory = MyAsyncFactory {
+//!     config: String::from("config"),
+//! };
 //! let my_container = factory.build::<MyContainer>("name".to_string(), 42).await?;
 //! #     Ok(())
 //! # }

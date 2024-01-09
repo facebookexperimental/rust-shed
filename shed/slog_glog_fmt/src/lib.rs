@@ -30,7 +30,11 @@
 //!
 //! ```
 //! use std::sync::Mutex;
-//! use slog::{debug, o, Drain, Logger};
+//!
+//! use slog::debug;
+//! use slog::o;
+//! use slog::Drain;
+//! use slog::Logger;
 //! use slog_glog_fmt::kv_categorizer::InlineCategorizer;
 //!
 //! pub fn main() {

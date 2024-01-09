@@ -19,8 +19,8 @@ use thiserror::Error;
 /// to SharedError.
 ///
 /// ```
-/// use shared_error::anyhow::*;
 /// use ::anyhow::Error;
+/// use shared_error::anyhow::*;
 /// use thiserror::Error;
 ///
 /// #[derive(Debug, Error)]
@@ -44,7 +44,7 @@ use thiserror::Error;
 /// fn some_caller() {
 ///     let result = some_fallible_func();
 ///     match result {
-///         Ok(_) => { /* do something */ },
+///         Ok(_) => { /* do something */ }
 ///         Err(shared_error) => {
 ///             // some_func_1_that_consumes_error(shared_error.clone());
 ///             // ...
@@ -53,7 +53,6 @@ use thiserror::Error;
 ///     }
 ///     let _result = some_fallible_func_anyhow();
 /// }
-///
 /// ```
 #[derive(Error, Debug, Clone)]
 #[error(transparent)]

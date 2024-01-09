@@ -23,7 +23,8 @@
 //! Examples:
 //! ```
 //! use once_cell::sync::Lazy;
-//! use perthread::{PerThread, ThreadMap};
+//! use perthread::PerThread;
+//! use perthread::ThreadMap;
 //!
 //! // Set up the map of per-thread counters
 //! static COUNTERS: Lazy<ThreadMap<usize>> = Lazy::new(ThreadMap::default);

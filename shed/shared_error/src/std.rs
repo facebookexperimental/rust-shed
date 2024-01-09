@@ -37,7 +37,7 @@ use thiserror::Error;
 /// fn some_caller() {
 ///     let result = some_fallible_func();
 ///     match result {
-///         Ok(_) => { /* do something */ },
+///         Ok(_) => { /* do something */ }
 ///         Err(shared_error) => {
 ///             // some_func_1_that_consumes_error(shared_error.clone());
 ///             // ...
@@ -45,7 +45,6 @@ use thiserror::Error;
 ///         }
 ///     }
 /// }
-///
 /// ```
 #[derive(Error, Debug)]
 #[error(transparent)]

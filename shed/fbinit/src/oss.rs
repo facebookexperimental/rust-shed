@@ -59,7 +59,6 @@ use quickcheck::Gen;
 ///     async fn async_test(fb: fbinit::FacebookInit) {
 ///         /* ... */
 ///     }
-///
 #[derive(Copy, Clone)]
 pub struct FacebookInit {
     // Prevent code outside of this crate from constructing.

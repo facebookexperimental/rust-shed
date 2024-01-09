@@ -30,9 +30,10 @@ impl crate::Connection {
 /// ```
 /// use anyhow::Error;
 /// use futures::Future;
-///
-/// use sql::{queries, Connection};
-/// use sql_tests_lib::{A, B};
+/// use sql::queries;
+/// use sql::Connection;
+/// use sql_tests_lib::A;
+/// use sql_tests_lib::B;
 ///
 /// queries! {
 ///     read MySelect(param_a: A, param_uint: u64) -> (u64, B, B, i64) {

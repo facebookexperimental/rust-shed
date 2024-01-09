@@ -494,16 +494,16 @@ macro_rules! __create_stat_key {
 /// }
 ///
 /// struct MyThing {
-///    stats: MyThingStat,
+///     stats: MyThingStat,
 /// }
 ///
 /// impl MyThing {
-///    fn new(somename: String, someidx: usize) -> Self {
-///        MyThing {
-///           stats: MyThingStat::new(somename, someidx),
-///           //...
-///        }
-///    }
+///     fn new(somename: String, someidx: usize) -> Self {
+///         MyThing {
+///             stats: MyThingStat::new(somename, someidx),
+///             //...
+///         }
+///     }
 /// }
 /// #
 /// # fn main() {}
