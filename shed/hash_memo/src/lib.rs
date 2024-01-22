@@ -178,14 +178,8 @@ impl<T: Hash + fmt::Debug> fmt::Debug for EagerHashMemoizer<T> {
 impl<T: Hash> EagerHashMemoizer<T> {
     /// Make a new `EagerHashMemoizer`
     pub fn new<I: BuildHasher>(value: T, factory: &I) -> Self {
-        let hash_memo = {
-            let mut state = factory.build_hasher();
-            value.hash(&mut state);
-            state.finish()
-        };
-
         Self {
-            hash_memo,
+            hash_memo: factory.hash_one(&value),
             inner: value,
         }
     }
@@ -259,11 +253,9 @@ impl<'a, T, I: BuildHasher> LazyHashMemoizer<'a, T, I> {
 // Memo the hash
 impl<T: Hash, I: BuildHasher> Hash for LazyHashMemoizer<'_, T, I> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        let inner_hash = self.hash_memo.get_or_init(|| {
-            let mut inner_state = self.factory.build_hasher();
-            self.inner.hash(&mut inner_state);
-            inner_state.finish()
-        });
+        let inner_hash = self
+            .hash_memo
+            .get_or_init(|| self.factory.hash_one(&self.inner));
 
         // Tells MemoHasher to interpret the write_u64 as the finish value.
         // Hasher has only limited apis, and this is safer than transmuting
@@ -500,26 +492,18 @@ mod tests {
     fn hash_memo_vs_inner<I: BuildHasher>(factory: I) {
         let test_value = TestStruct::new("foo", 42);
         // Totally vanilla
-        let exemplar = {
-            let mut hasher = factory.build_hasher();
-            test_value.hash(&mut hasher);
-            hasher.finish()
-        };
+        let exemplar = factory.hash_one(&test_value);
 
         // Make sure base case is stable
         {
             let new_value = TestStruct::new("foo", 42);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(new_value));
         }
 
         // Make sure base case is not matching incorrectly
         {
             let new_value = TestStruct::new("bar", 21);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_ne!(exemplar, hasher.finish());
+            assert_ne!(exemplar, factory.hash_one(new_value));
         }
 
         // Check the MemoHasher is stable to exemplar
@@ -546,63 +530,47 @@ mod tests {
         // Make sure base case is stable for MemoHasher
         {
             let new_value = TestStruct::new("foo", 42);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(&new_value));
         }
 
         // Make sure MemoHasher is not matching incorrectly
         {
             let new_value = TestStruct::new("bar", 21);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_ne!(exemplar, hasher.finish());
+            assert_ne!(exemplar, factory.hash_one(&new_value));
         }
 
         let test_value = EagerHashMemoizer::new(TestStruct::new("foo", 42), &factory);
         // Make sure stable for MemoHasher + EagerHashMemoizer
         {
-            let mut hasher = factory.build_hasher();
-            test_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(&test_value));
         }
 
         // Make sure stable reuse for MemoHasher + EagerHashMemoizer, with no call to inner_hasher
         {
-            let mut hasher = factory.build_hasher();
-            test_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(&test_value));
         }
 
         // Make sure MemoHasher + EagerHashMemoizer is not matching incorrectly
         {
             let new_value = EagerHashMemoizer::new(TestStruct::new("bar", 21), &factory);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_ne!(exemplar, hasher.finish());
+            assert_ne!(exemplar, factory.hash_one(&new_value));
         }
 
         let test_value = LazyHashMemoizer::new(TestStruct::new("foo", 42), &factory);
         // Make sure stable for MemoHasher + LazyHashMemoizer
         {
-            let mut hasher = factory.build_hasher();
-            test_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(&test_value));
         }
 
         // Make sure stable reuse for MemoHasher + LazyHashMemoizer, with no call to inner_hasher
         {
-            let mut hasher = factory.build_hasher();
-            test_value.hash(&mut hasher);
-            assert_eq!(exemplar, hasher.finish());
+            assert_eq!(exemplar, factory.hash_one(&test_value));
         }
 
         // Make sure MemoHasher + LazyHashMemoizer is not matching incorrectly
         {
             let new_value = LazyHashMemoizer::new(TestStruct::new("bar", 21), &factory);
-            let mut hasher = factory.build_hasher();
-            new_value.hash(&mut hasher);
-            assert_ne!(exemplar, hasher.finish());
+            assert_ne!(exemplar, factory.hash_one(&new_value));
         }
     }
 }

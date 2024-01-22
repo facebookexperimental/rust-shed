@@ -362,11 +362,15 @@ where
 
     /// Returns the first key-value pair in the map.
     pub fn first_key_value(&self) -> Option<(&K, &V)> {
+        // Fixed by https://github.com/rust-lang/rust-clippy/pull/11792
+        #[allow(clippy::map_identity)]
         self.0.first().map(|(k, v)| (k, v))
     }
 
     /// Returns the last key-value pair in the map.
     pub fn last_key_value(&self) -> Option<(&K, &V)> {
+        // Fixed by https://github.com/rust-lang/rust-clippy/pull/11792
+        #[allow(clippy::map_identity)]
         self.0.last().map(|(k, v)| (k, v))
     }
 
@@ -537,6 +541,8 @@ impl<'a, K: 'a, V: 'a> Iterator for Iter<'a, K, V> {
 
     #[inline]
     fn next(&mut self) -> Option<Self::Item> {
+        // Fixed by https://github.com/rust-lang/rust-clippy/pull/11792
+        #[allow(clippy::map_identity)]
         self.0.next().map(|(k, v)| (k, v))
     }
 
@@ -555,6 +561,8 @@ impl<'a, K: 'a, V: 'a> ExactSizeIterator for Iter<'a, K, V> {
 impl<'a, K: 'a, V: 'a> DoubleEndedIterator for Iter<'a, K, V> {
     #[inline]
     fn next_back(&mut self) -> Option<Self::Item> {
+        // Fixed by https://github.com/rust-lang/rust-clippy/pull/11792
+        #[allow(clippy::map_identity)]
         self.0.next_back().map(|(k, v)| (k, v))
     }
 }
