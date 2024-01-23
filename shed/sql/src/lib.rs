@@ -163,7 +163,19 @@ macro_rules! queries {
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
             ) -> Result<Vec<($( $rtype, )*)>, Error> {
-                query_internal(connection $( , $pname )* $( , $lname )*)
+                query_internal(connection, None $( , $pname )* $( , $lname )*)
+                    .await
+                    .context(stringify!(While executing $name query))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query(
+                connection: & Connection,
+                comment: &str,
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
+            ) -> Result<Vec<($( $rtype, )*)>, Error> {
+                query_internal(connection, Some(comment) $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -174,7 +186,19 @@ macro_rules! queries {
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
             ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
-                query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
+                query_internal_with_transaction(transaction, None $( , $pname )* $( , $lname )*)
+                    .await
+                    .context(stringify!(While executing $name query in transaction))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query_with_transaction(
+                transaction: Transaction,
+                comment: &str,
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
+            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
+                query_internal_with_transaction(transaction, Some(comment) $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query in transaction))
             }
@@ -219,7 +243,19 @@ macro_rules! queries {
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
             ) -> Result<WriteResult, Error> {
-                query_internal(connection, values $( , $pname )*)
+                query_internal(connection, None, values $( , $pname )*)
+                    .await
+                    .context(stringify!(While executing $name query))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query(
+                connection: &Connection,
+                comment: &str,
+                values: &[($( & $vtype, )*)],
+                $( $pname: & $ptype ),*
+            ) -> Result<WriteResult, Error> {
+                query_internal(connection, Some(comment), values $( , $pname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -230,7 +266,19 @@ macro_rules! queries {
                 values: &[($( & $vtype, )*)],
                 $( $pname: & $ptype ),*
             ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction, values $( , $pname )*)
+                query_internal_with_transaction(transaction, None, values $( , $pname )*)
+                    .await
+                    .context(stringify!(While executing $name query))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query_with_transaction(
+                transaction: Transaction,
+                comment: &str,
+                values: &[($( & $vtype, )*)],
+                $( $pname: & $ptype ),*
+            ) -> Result<(Transaction, WriteResult), Error> {
+                query_internal_with_transaction(transaction, Some(comment), values $( , $pname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -278,7 +326,19 @@ macro_rules! queries {
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
             ) -> Result<WriteResult, Error> {
-                query_internal(connection $( , $pname )* $( , $lname )*)
+                query_internal(connection, None $( , $pname )* $( , $lname )*)
+                    .await
+                    .context(stringify!(While executing $name query))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query(
+                connection: &Connection,
+                comment: &str,
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
+            ) -> Result<WriteResult, Error> {
+                query_internal(connection, Some(comment) $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -289,7 +349,19 @@ macro_rules! queries {
                 $( $pname: & $ptype, )*
                 $( $lname: & [ $ltype ], )*
             ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction $( , $pname )* $( , $lname )*)
+                query_internal_with_transaction(transaction, None $( , $pname )* $( , $lname )*)
+                    .await
+                    .context(stringify!(While executing $name query))
+            }
+
+            #[allow(dead_code)]
+            pub async fn commented_query_with_transaction(
+                transaction: Transaction,
+                comment: &str,
+                $( $pname: & $ptype, )*
+                $( $lname: & [ $ltype ], )*
+            ) -> Result<(Transaction, WriteResult), Error> {
+                query_internal_with_transaction(transaction, Some(comment) $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -345,6 +417,7 @@ macro_rules! _read_query_impl {
 
         async fn query_internal(
             connection: &Connection,
+            comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<Vec<($( $rtype, )*)>, Error> {
@@ -353,7 +426,10 @@ macro_rules! _read_query_impl {
                     sqlite_query(multithread_con $( , $pname )* $( , $lname )*).await
                 }
                 Connection::Mysql(conn) => {
-                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut query = mysql_query($( $pname, )* $( $lname, )*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     conn.read_query(query).map_err(Error::from).await
                 }
                 Connection::OssMysql(conn) => {
@@ -394,6 +470,7 @@ macro_rules! _read_query_impl {
 
         async fn query_internal_with_transaction(
             mut transaction: Transaction,
+            comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error>{
@@ -410,7 +487,10 @@ macro_rules! _read_query_impl {
                         })
                 }
                 Transaction::Mysql(ref mut transaction) => {
-                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut query = mysql_query($( $pname, )* $( $lname, )*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
                     let result = tr.read_query(query).map_err(Error::from).await?;
@@ -549,6 +629,7 @@ macro_rules! _write_query_impl {
 
         async fn query_internal(
             connection: &Connection,
+            comment: Option<&str>,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
         ) -> Result<WriteResult, Error> {
@@ -561,7 +642,10 @@ macro_rules! _write_query_impl {
                     sqlite_exec_query(multithread_con, values, $( $pname ),*).await
                 }
                 Connection::Mysql(conn) => {
-                    let query = mysql_query(values, $( $pname ),*);
+                    let mut query = mysql_query(values, $( $pname ),*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
                 }
@@ -575,6 +659,7 @@ macro_rules! _write_query_impl {
 
         async fn query_internal_with_transaction(
             mut transaction: Transaction,
+            comment: Option<&str>,
             values: &[($( & $vtype, )*)],
             $( $pname: & $ptype ),*
         ) -> Result<(Transaction, WriteResult), Error> {
@@ -595,7 +680,10 @@ macro_rules! _write_query_impl {
                         })
                 }
                 Transaction::Mysql(ref mut transaction) => {
-                    let query = mysql_query(values, $( $pname ),*);
+                    let mut query = mysql_query(values, $( $pname ),*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
 
@@ -748,6 +836,7 @@ macro_rules! _write_query_impl {
 
         async fn query_internal(
             connection: &Connection,
+            comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<WriteResult, Error> {
@@ -756,7 +845,10 @@ macro_rules! _write_query_impl {
                     sqlite_exec_query(multithread_con $( , $pname )* $( , $lname )*).await
                 }
                 Connection::Mysql(conn) => {
-                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut query = mysql_query($( $pname, )* $( $lname, )*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
                 }
@@ -770,6 +862,7 @@ macro_rules! _write_query_impl {
 
         async fn query_internal_with_transaction(
             mut transaction: Transaction,
+            comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
         ) -> Result<(Transaction, WriteResult), Error> {
@@ -786,7 +879,10 @@ macro_rules! _write_query_impl {
                         })
                 }
                 Transaction::Mysql(ref mut transaction) => {
-                    let query = mysql_query($( $pname, )* $( $lname, )*);
+                    let mut query = mysql_query($( $pname, )* $( $lname, )*);
+                    if let Some(comment) = comment {
+                        query.push_str(&format!(" # {}", comment));
+                    }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
                     let result = tr.write_query(query).map_err(Error::from).await?;

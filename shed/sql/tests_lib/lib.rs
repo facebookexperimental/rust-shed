@@ -151,7 +151,10 @@ pub async fn test_read_query(conn: Connection, semantics: TestSemantics) {
         TestQuery::query(&conn, &A, &72).await.unwrap(),
         vec![(44, B, B, 72)]
     );
-    assert_eq!(TestQuery2::query(&conn).await.unwrap(), vec![(44, B)]);
+    assert_eq!(
+        TestQuery2::commented_query(&conn, "comment").await.unwrap(),
+        vec![(44, B)]
+    );
     assert_eq!(
         TestQuery6::query(&conn).await.unwrap(),
         vec![(match semantics {
@@ -174,7 +177,9 @@ pub async fn test_datetime_query(conn: Connection) {
 }
 
 pub async fn test_write_query(conn: Connection) {
-    let res = TestQuery3::query(&conn, &[(&44,)]).await.unwrap();
+    let res = TestQuery3::commented_query(&conn, "comment", &[(&44,)])
+        .await
+        .unwrap();
     assert_eq!(res.affected_rows(), 1);
     assert_eq!(res.last_insert_id(), Some(1));
 
@@ -243,9 +248,10 @@ pub async fn in_transaction(transaction: Transaction, semantics: TestSemantics) 
         TestSemantics::Sqlite => assert_eq!(res.last_insert_id(), Some(3)),
     }
 
-    let (transaction, res) = TestQuery4::query_with_transaction(transaction, &1, &3)
-        .await
-        .unwrap();
+    let (transaction, res) =
+        TestQuery4::commented_query_with_transaction(transaction, "comment", &1, &3)
+            .await
+            .unwrap();
     assert_eq!(res, vec![(44,), (72,), (53,)]);
 
     let (transaction, res) = TestQuery7::query_with_transaction(transaction, &123)
