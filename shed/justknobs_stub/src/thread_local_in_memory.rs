@@ -78,9 +78,9 @@ impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
 /// A helper function to override jk during a closure's execution.
 /// This is useful for unit tests.
 pub fn with_just_knobs<T>(new_just_knobs: JustKnobsInMemory, f: impl FnOnce() -> T) -> T {
-    JUST_KNOBS.with(move |jk| *jk.borrow_mut() = Some(Arc::new(new_just_knobs)));
+    let old_just_knobs = JUST_KNOBS.with(move |jk| jk.replace(Some(Arc::new(new_just_knobs))));
     let res = f();
-    JUST_KNOBS.with(|jk| jk.take());
+    JUST_KNOBS.with(move |jk| *jk.borrow_mut() = old_just_knobs);
     res
 }
 
@@ -98,9 +98,9 @@ pub fn with_just_knobs_async_arc<Out, Fut: Future<Output = Out> + Unpin>(
     mut fut: Fut,
 ) -> impl Future<Output = Out> {
     poll_fn(move |cx| {
-        JUST_KNOBS.with(|jk| *jk.borrow_mut() = Some(new_just_knobs.clone()));
+        let old_just_knobs = JUST_KNOBS.with(|jk| jk.replace(Some(new_just_knobs.clone())));
         let res = fut.poll_unpin(cx);
-        JUST_KNOBS.with(|jk| jk.take());
+        JUST_KNOBS.with(move |jk| *jk.borrow_mut() = old_just_knobs);
         res
     })
 }
@@ -118,35 +118,136 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_jk_override() -> Result<()> {
+    fn test_with_just_knobs() {
         assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
 
-        let res_closure = with_just_knobs(
+        with_just_knobs(
             JustKnobsInMemory::new(hashmap! {
                 "my/config:knob1".to_string() => KnobVal::Bool(true),
                 "my/config:knob2".to_string() => KnobVal::Int(2),
             }),
             || {
-                (
+                assert!(
                     ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap(),
+                );
+                assert_eq!(
                     ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
-                )
+                    2
+                );
             },
         );
-        assert_eq!(res_closure, (true, 2));
+    }
 
+    #[tokio::test]
+    async fn test_with_just_knobs_async() {
+        assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
+
+        with_just_knobs_async(
+            JustKnobsInMemory::new(hashmap! {
+                "my/config:knob1".to_string() => KnobVal::Bool(true),
+                "my/config:knob2".to_string() => KnobVal::Int(2),
+            }),
+            async {
+                assert!(
+                    ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap(),
+                );
+                assert_eq!(
+                    ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
+                    2
+                );
+            }
+            .boxed(),
+        )
+        .await;
+    }
+
+    #[test]
+    fn test_nested_with_just_knobs() {
+        with_just_knobs(
+            JustKnobsInMemory::new(hashmap! {
+                "my/config:knob1".to_string() => KnobVal::Bool(false),
+                "my/config:knob2".to_string() => KnobVal::Int(5),
+            }),
+            || {
+                with_just_knobs(
+                    JustKnobsInMemory::new(hashmap! {
+                        "my/config:knob1".to_string() => KnobVal::Bool(true),
+                        "my/config:knob2".to_string() => KnobVal::Int(4),
+                    }),
+                    || {
+                        assert!(
+                            ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None)
+                                .unwrap(),
+                        );
+                        assert_eq!(
+                            ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
+                            4
+                        );
+                    },
+                );
+
+                assert!(
+                    !ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap(),
+                );
+                assert_eq!(
+                    ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
+                    5,
+                );
+            },
+        );
+    }
+
+    #[tokio::test]
+    async fn test_nested_with_just_knobs_async() {
+        with_just_knobs_async(
+            JustKnobsInMemory::new(hashmap! {
+                "my/config:knob1".to_string() => KnobVal::Bool(false),
+                "my/config:knob2".to_string() => KnobVal::Int(5),
+            }),
+            async {
+                with_just_knobs_async(
+                    JustKnobsInMemory::new(hashmap! {
+                        "my/config:knob1".to_string() => KnobVal::Bool(true),
+                        "my/config:knob2".to_string() => KnobVal::Int(4),
+                    }),
+                    async {
+                        assert!(
+                            ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None)
+                                .unwrap(),
+                        );
+                        assert_eq!(
+                            ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
+                            4
+                        );
+                    }
+                    .boxed(),
+                )
+                .await;
+
+                assert!(
+                    !ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap(),
+                );
+                assert_eq!(
+                    ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
+                    5,
+                );
+            }
+            .boxed(),
+        )
+        .await;
+    }
+
+    #[test]
+    fn test_override_just_knobs() {
         override_just_knobs(Some(JustKnobsInMemory::new(hashmap! {
             "my/config:knob3".to_string() => KnobVal::Int(7),
             "my/config:knob4".to_string() => KnobVal::Bool(true),
         })));
-        let res_manual_override = (
+
+        assert_eq!(
             ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob3", None).unwrap(),
-            ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob4", None, None).unwrap(),
+            7
         );
-        assert_eq!(res_manual_override, (7, true));
-
-        override_just_knobs(None);
-
-        Ok(())
+        assert!(ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob4", None, None).unwrap());
     }
 }
