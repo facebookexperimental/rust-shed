@@ -33,10 +33,10 @@ use clap::ValueEnum;
 use serde::Deserialize;
 use which::which;
 
-/// A thrift library 'foo' (say) results in two crates 'foo' and 'foo_types'. We
-/// arrange that the thrift compiler wrapper be invoked from the build of both.
-/// The behavior of the wrapper is sensitive to the invocation context ('foo' vs
-/// 'foo-types') and this type is used to disambiguate.
+/// A thrift library 'foo' (say) results in several crates, including 'foo' and
+/// 'foo_types'. We arrange that the thrift compiler wrapper be invoked from the
+/// build of all. The behavior of the wrapper is sensitive to the invocation
+/// context ('foo' vs 'foo-types') and this type is used to disambiguate.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, ValueEnum)]
 pub enum GenContext {
     /// 'lib' crate generation context (e.g. 'foo').
@@ -45,6 +45,9 @@ pub enum GenContext {
     /// 'types' crate generation context (e.g. 'foo_types').
     #[serde(rename = "types")]
     Types,
+    /// 'clients' crate generation context (e.g. 'foo_clients').
+    #[serde(rename = "clients")]
+    Clients,
 }
 
 impl fmt::Display for GenContext {
@@ -52,6 +55,7 @@ impl fmt::Display for GenContext {
         let t = match self {
             GenContext::Lib => "lib",
             GenContext::Types => "types",
+            GenContext::Clients => "clients",
         };
         fmt.write_str(t)
     }
@@ -65,6 +69,7 @@ pub struct Config {
     base_path: Option<PathBuf>,
     crate_map: Option<PathBuf>,
     types_crate: Option<String>,
+    clients_crate: Option<String>,
     options: Option<String>,
     lib_include_srcs: Vec<String>, // src to include in the primary crate
     types_include_srcs: Vec<String>, // src to include in the -types sub-crate
@@ -84,6 +89,7 @@ impl Config {
             base_path: None,
             crate_map: None,
             types_crate: None,
+            clients_crate: None,
             options: None,
             lib_include_srcs: vec![],
             types_include_srcs: vec![],
@@ -132,6 +138,13 @@ impl Config {
     /// be able to generate things like `use ::foo__types`).
     pub fn types_crate(&mut self, value: impl Into<String>) -> &mut Self {
         self.types_crate = Some(value.into());
+        self
+    }
+
+    /// Set the name of the clients sub-crate needed by by the thrift-compiler (to
+    /// be able to generate things like `use ::foo__clients`).
+    pub fn clients_crate(&mut self, value: impl Into<String>) -> &mut Self {
+        self.clients_crate = Some(value.into());
         self
     }
 
@@ -212,6 +225,21 @@ impl Config {
                     // 'lib.rs').
                     fs::rename(out.join("types.rs"), out.join("lib.rs"))?;
                 }
+                GenContext::Clients => {
+                    // The -clients sub-crate.
+
+                    self.run_compiler(&thrift_bin, out, file)?;
+
+                    fs::remove_file(out.join("consts.rs"))?;
+                    fs::remove_file(out.join("dependencies.rs"))?;
+                    fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("lib.rs"))?;
+                    fs::remove_file(out.join("server.rs"))?;
+                    fs::remove_file(out.join("services.rs"))?;
+                    fs::remove_file(out.join("types.rs"))?;
+
+                    fs::rename(out.join("client.rs"), out.join("lib.rs"))?;
+                }
             }
         } else {
             match self.gen_context {
@@ -248,11 +276,31 @@ impl Config {
                         fs::remove_file(submod.join("dependencies.rs"))?;
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
+                        fs::remove_file(submod.join("mock.rs"))?;
 
                         // 'types.rs' (together with the remaining files) has the
                         // content we want (but the file needs renaming to
                         // 'mod.rs').
                         fs::rename(submod.join("types.rs"), submod.join("mod.rs"))?;
+                    }
+                }
+                GenContext::Clients => {
+                    // The -clients sub-crate.
+
+                    for (name, file) in &input {
+                        let submod = out.join(name);
+                        fs::create_dir_all(&submod)?;
+                        self.run_compiler(&thrift_bin, &submod, file)?;
+
+                        fs::remove_file(submod.join("consts.rs"))?;
+                        fs::remove_file(submod.join("dependencies.rs"))?;
+                        fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("lib.rs"))?;
+                        fs::remove_file(submod.join("server.rs"))?;
+                        fs::remove_file(submod.join("services.rs"))?;
+                        fs::remove_file(submod.join("types.rs"))?;
+
+                        fs::rename(submod.join("client.rs"), submod.join("mod.rs"))?;
                     }
                 }
             }
@@ -329,6 +377,9 @@ impl Config {
             }
             if let Some(types_crate) = &self.types_crate {
                 args.push(format!("types_crate={}", types_crate));
+            }
+            if let Some(clients_crate) = &self.clients_crate {
+                args.push(format!("clients_crate={}", clients_crate));
             }
             if !self.lib_include_srcs.is_empty() {
                 args.push(format!(
