@@ -199,8 +199,10 @@ impl Config {
                     self.run_compiler(&thrift_bin, out, file)?;
 
                     // These files are not of interest here.
+                    fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
 
@@ -252,8 +254,10 @@ impl Config {
                         self.run_compiler(&thrift_bin, &submod, file)?;
 
                         // These files are not of interest here.
+                        fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("mock.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
 
