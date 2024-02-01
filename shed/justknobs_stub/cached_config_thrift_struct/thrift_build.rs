@@ -44,6 +44,8 @@ fn main() {
         conf.base_path(base_path);
 
         conf.types_crate("just_knobs_struct__types");
+        conf.clients_crate("just_knobs_struct__clients");
+        conf.services_crate("just_knobs_struct__services");
 
         let options = "serde";
         if !options.is_empty() {

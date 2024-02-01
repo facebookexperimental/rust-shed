@@ -44,6 +44,8 @@ members = [
   "shed/hostname",
   "shed/justknobs_stub",
   "shed/justknobs_stub/cached_config_thrift_struct",
+  "shed/justknobs_stub/cached_config_thrift_struct/clients",
+  "shed/justknobs_stub/cached_config_thrift_struct/services",
   "shed/justknobs_stub/cached_config_thrift_struct/types",
   "shed/limited_async_read",
   "shed/lock_ext",
