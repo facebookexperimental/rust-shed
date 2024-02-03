@@ -197,11 +197,15 @@ impl Config {
         }
         for lib_include_src in &self.lib_include_srcs {
             println!("cargo:rerun-if-changed={lib_include_src}");
-            fs::copy(lib_include_src, out.join(lib_include_src))?;
+            if let GenContext::Lib = self.gen_context {
+                fs::copy(lib_include_src, out.join(lib_include_src))?;
+            }
         }
         for types_include_src in &self.types_include_srcs {
             println!("cargo:rerun-if-changed={types_include_src}");
-            fs::copy(types_include_src, out.join(types_include_src))?;
+            if let GenContext::Types = self.gen_context {
+                fs::copy(types_include_src, out.join(types_include_src))?;
+            }
         }
 
         if let [(_name, file)] = &input[..] {
