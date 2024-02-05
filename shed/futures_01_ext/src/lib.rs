@@ -13,29 +13,19 @@
 //! Crate extending functionality of [`futures`] crate
 
 use std::fmt::Debug;
-use std::io as std_io;
 
-use bytes_old::Bytes;
 use futures::future;
 use futures::stream;
 use futures::sync::mpsc;
 use futures::sync::oneshot;
 use futures::try_ready;
 use futures::Async;
-use futures::AsyncSink;
 use futures::Future;
 use futures::Poll;
 use futures::Sink;
 use futures::Stream;
-use tokio_io::codec::Decoder;
-use tokio_io::codec::Encoder;
-use tokio_io::AsyncWrite;
 
-mod bytes_stream;
-pub mod decode;
-pub mod encode;
 mod futures_ordered;
-pub mod io;
 mod select_all;
 mod split_err;
 mod stream_wrappers;
@@ -45,8 +35,6 @@ mod streamfork;
 // what "futures" means.
 pub use futures as futures_reexport;
 
-pub use crate::bytes_stream::BytesStream;
-pub use crate::bytes_stream::BytesStreamFuture;
 pub use crate::futures_ordered::futures_ordered;
 pub use crate::futures_ordered::FuturesOrdered;
 pub use crate::select_all::select_all;
@@ -309,15 +297,6 @@ pub trait StreamExt: Stream {
         stream_wrappers::collect_no_consume::new(self)
     }
 
-    /// A shorthand for [encode::encode]
-    fn encode<Enc>(self, encoder: Enc) -> encode::LayeredEncoder<Self, Enc>
-    where
-        Self: Sized,
-        Enc: Encoder<Item = Self::Item>,
-    {
-        encode::encode(self, encoder)
-    }
-
     /// Similar to [std::iter::Iterator::enumerate], returns a Stream that yields
     /// `(usize, Self::Item)` where the first element of tuple is the iteration
     /// count.
@@ -498,29 +477,6 @@ where
         } else {
             Ok(Async::NotReady)
         }
-    }
-}
-
-/// Trait that provides a function for making a decoding layer on top of Stream of Bytes
-pub trait StreamLayeredExt: Stream<Item = Bytes> {
-    /// Returnes a Stream that will yield decoded chunks of Bytes as they come
-    /// using provided [Decoder]
-    fn decode<Dec>(self, decoder: Dec) -> decode::LayeredDecode<Self, Dec>
-    where
-        Self: Sized,
-        Dec: Decoder;
-}
-
-impl<T> StreamLayeredExt for T
-where
-    T: Stream<Item = Bytes>,
-{
-    fn decode<Dec>(self, decoder: Dec) -> decode::LayeredDecode<Self, Dec>
-    where
-        Self: Sized,
-        Dec: Decoder,
-    {
-        decode::decode(self, decoder)
     }
 }
 
@@ -770,66 +726,6 @@ macro_rules! try_left_future {
     };
 }
 
-/// Simple adapter from `Sink` interface to `AsyncWrite` interface.
-/// It can be useful to convert from the interface that supports only AsyncWrite, and get
-/// Stream as a result.
-pub struct SinkToAsyncWrite<S> {
-    sink: S,
-}
-
-impl<S> SinkToAsyncWrite<S> {
-    /// Return an instance of [SinkToAsyncWrite] wrapping a Sink
-    pub fn new(sink: S) -> Self {
-        SinkToAsyncWrite { sink }
-    }
-}
-
-fn create_std_error<E: Debug>(err: E) -> std_io::Error {
-    std_io::Error::new(std_io::ErrorKind::Other, format!("{err:?}"))
-}
-
-impl<E, S> std_io::Write for SinkToAsyncWrite<S>
-where
-    S: Sink<SinkItem = Bytes, SinkError = E>,
-    E: Debug,
-{
-    fn write(&mut self, buf: &[u8]) -> ::std::io::Result<usize> {
-        let bytes = Bytes::from(buf);
-        match self.sink.start_send(bytes) {
-            Ok(AsyncSink::Ready) => Ok(buf.len()),
-            Ok(AsyncSink::NotReady(_)) => Err(std_io::Error::new(
-                std_io::ErrorKind::WouldBlock,
-                "channel is busy",
-            )),
-            Err(err) => Err(create_std_error(err)),
-        }
-    }
-
-    fn flush(&mut self) -> std_io::Result<()> {
-        match self.sink.poll_complete() {
-            Ok(Async::Ready(())) => Ok(()),
-            Ok(Async::NotReady) => Err(std_io::Error::new(
-                std_io::ErrorKind::WouldBlock,
-                "channel is busy",
-            )),
-            Err(err) => Err(create_std_error(err)),
-        }
-    }
-}
-
-impl<E, S> AsyncWrite for SinkToAsyncWrite<S>
-where
-    S: Sink<SinkItem = Bytes, SinkError = E>,
-    E: Debug,
-{
-    fn shutdown(&mut self) -> Poll<(), std_io::Error> {
-        match self.sink.close() {
-            Ok(res) => Ok(res),
-            Err(err) => Err(create_std_error(err)),
-        }
-    }
-}
-
 /// It's a combinator that converts `Stream<A>` into `Stream<Vec<A>>`.
 /// So interface is similar to `.chunks()` method, but there's an important difference:
 /// BatchStream won't wait until the whole batch fills up i.e. as soon as underlying stream
@@ -905,7 +801,6 @@ mod test {
     use futures::future::ok;
     use futures::stream;
     use futures::sync::mpsc;
-    use futures::IntoFuture;
     use futures::Stream;
     use futures03::compat::Future01CompatExt;
     use tokio::runtime::Runtime;
@@ -1055,77 +950,6 @@ mod test {
         );
 
         assert_matches!(res, Ok(()));
-    }
-
-    fn assert_flush<E, S>(sink: &mut SinkToAsyncWrite<S>)
-    where
-        S: Sink<SinkItem = Bytes, SinkError = E>,
-        E: Debug,
-    {
-        use std::io::Write;
-        loop {
-            let flush_res = sink.flush();
-            if flush_res.is_ok() {
-                break;
-            }
-            if let Err(ref e) = flush_res {
-                assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
-            }
-        }
-    }
-
-    fn assert_shutdown<E, S>(sink: &mut SinkToAsyncWrite<S>)
-    where
-        S: Sink<SinkItem = Bytes, SinkError = E>,
-        E: Debug,
-    {
-        loop {
-            let shutdown_res = sink.shutdown();
-            if shutdown_res.is_ok() {
-                break;
-            }
-            if let Err(ref e) = shutdown_res {
-                assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
-            }
-        }
-    }
-
-    #[test]
-    fn sink_to_async_write() {
-        use std::io::Write;
-
-        use futures::sync::mpsc;
-        let rt = tokio::runtime::Runtime::new().unwrap();
-
-        let (tx, rx) = mpsc::channel::<Bytes>(1);
-
-        let messages_num = 10;
-
-        rt.spawn(
-            Ok::<_, ()>(())
-                .into_future()
-                .map(move |()| {
-                    let mut async_write = SinkToAsyncWrite::new(tx);
-                    for i in 0..messages_num {
-                        loop {
-                            let res = async_write.write(format!("{i}").as_bytes());
-                            if let Err(ref e) = res {
-                                assert_eq!(e.kind(), std_io::ErrorKind::WouldBlock);
-                                assert_flush(&mut async_write);
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-
-                    assert_flush(&mut async_write);
-                    assert_shutdown(&mut async_write);
-                })
-                .compat(),
-        );
-
-        let res = rt.block_on(rx.collect().compat()).unwrap();
-        assert_eq!(res.len(), messages_num);
     }
 
     #[test]
