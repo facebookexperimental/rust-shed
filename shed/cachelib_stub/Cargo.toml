@@ -14,4 +14,3 @@ license = "MIT OR Apache-2.0"
 abomonation = { version = "0.7", features = ["smallvec"] }
 anyhow = "1.0.75"
 bytes = { version = "1.1", features = ["serde"] }
-futures_ext = { package = "futures_01_ext", version = "0.1.0", path = "../futures_01_ext" }
