@@ -180,6 +180,29 @@ impl Config {
         self
     }
 
+    /// Transform a relative path so leading "../"'s are replaced with "_t".
+    pub fn remap_to_out_dir(&self, path: &str) -> PathBuf {
+        let mut rem = path;
+        let mut parts = vec![];
+        while let Some(p) = rem.strip_prefix("../") {
+            rem = p;
+            parts.push("_t");
+        }
+        Path::new(&parts.join("/")).join(rem)
+    }
+
+    /// Map `remap_to_out_dir` over the given paths and join the result with
+    /// ":".
+    pub fn include_srcs_arg(&self, ps: &[String]) -> String {
+        ps.iter()
+            .map(|p| self.remap_to_out_dir(p))
+            .collect::<Vec<PathBuf>>()
+            .iter()
+            .map(|p| p.to_str().unwrap())
+            .collect::<Vec<&str>>()
+            .join(":")
+    }
+
     /// Run the compiler on the input files. As a result a `lib.rs` file will be
     /// generated inside the output dir. The contents of the `lib.rs` can vary
     /// according to the generation context (e.g. for a given thrift library,
@@ -198,13 +221,17 @@ impl Config {
         for lib_include_src in &self.lib_include_srcs {
             println!("cargo:rerun-if-changed={lib_include_src}");
             if let GenContext::Lib = self.gen_context {
-                fs::copy(lib_include_src, out.join(lib_include_src))?;
+                let out_path = self.remap_to_out_dir(lib_include_src);
+                fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
+                fs::copy(lib_include_src, out.join(out_path))?;
             }
         }
         for types_include_src in &self.types_include_srcs {
             println!("cargo:rerun-if-changed={types_include_src}");
             if let GenContext::Types = self.gen_context {
-                fs::copy(types_include_src, out.join(types_include_src))?;
+                let out_path = self.remap_to_out_dir(types_include_src);
+                fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
+                fs::copy(types_include_src, out.join(out_path))?;
             }
         }
 
@@ -440,13 +467,13 @@ impl Config {
             if !self.lib_include_srcs.is_empty() {
                 args.push(format!(
                     "lib_include_srcs={}",
-                    self.lib_include_srcs.join(":")
+                    self.include_srcs_arg(&self.lib_include_srcs)
                 ));
             }
             if !self.types_include_srcs.is_empty() {
                 args.push(format!(
                     "types_include_srcs={}",
-                    self.types_include_srcs.join(":")
+                    self.include_srcs_arg(&self.types_include_srcs)
                 ));
             }
             if let Some(options) = &self.options {
