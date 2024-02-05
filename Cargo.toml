@@ -13,10 +13,8 @@ quickcheck = { git = "https://github.com/jakoschiko/quickcheck", rev = "6ecdf5bb
 [workspace]
 members = [
   "shed/ascii_ext",
-  "shed/async_compression",
   "shed/async_once_cell",
   "shed/borrowed",
-  "shed/bytes_ext",
   "shed/cached_config",
   "shed/cachelib_stub",
   "shed/chrome_trace",
@@ -47,7 +45,6 @@ members = [
   "shed/justknobs_stub/cached_config_thrift_struct/clients",
   "shed/justknobs_stub/cached_config_thrift_struct/services",
   "shed/justknobs_stub/cached_config_thrift_struct/types",
-  "shed/limited_async_read",
   "shed/lock_ext",
   "shed/memcache_stub",
   "shed/memcache_stub/common",
