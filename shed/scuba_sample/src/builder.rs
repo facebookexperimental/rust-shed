@@ -175,22 +175,31 @@ impl ScubaSampleBuilder {
     /// Log the internally built sample to the previously configured log file while overriding its
     /// timestamp to the current time. Returns whether the sample passed sampling.
     pub fn log(&mut self) -> bool {
+        match self.try_log() {
+            Ok(passed_sampling) => passed_sampling,
+            Err(..) => true,
+        }
+    }
+
+    /// Log the internally built sample to the previously configured log file while overriding its
+    /// timestamp to the current time. Returns whether the sample passed sampling.
+    pub fn try_log(&mut self) -> std::io::Result<bool> {
         self.sample.set_time_now();
         self.next_seq();
 
         if let ShouldLog::DoNotLog = self.sampling.apply(&mut self.sample) {
-            return false;
+            return Ok(false);
         }
 
         if let Some(ref log_file) = self.log_file {
             if let Ok(sample) = self.to_json() {
                 let mut log_file = log_file.lock().expect("Poisoned lock");
-                let _ = log_file.write_all(sample.to_string().as_bytes());
-                let _ = log_file.write_all(b"\n");
+                log_file.write_all(sample.to_string().as_bytes())?;
+                log_file.write_all(b"\n")?;
             }
         }
 
-        true
+        Ok(true)
     }
 
     /// Log the internally built sample to the previously configured log file while overriding its
@@ -217,11 +226,19 @@ impl ScubaSampleBuilder {
     /// Either flush the configured client with the provided timeout or flush
     /// the configured log file making sure all the logged samples have been
     /// written to it. The timeout is used only in fbcode builds.
-    pub fn flush(&self, _timeout: Duration) {
+    pub fn flush(&self, timeout: Duration) {
+        let _ = self.try_flush(timeout);
+    }
+
+    /// Either flush the configured client with the provided timeout or flush
+    /// the configured log file making sure all the logged samples have been
+    /// written to it. The timeout is used only in fbcode builds.
+    pub fn try_flush(&self, _timeout: Duration) -> std::io::Result<()> {
         if let Some(ref log_file) = self.log_file {
             let mut log_file = log_file.lock().expect("Poisoned lock");
-            let _ = log_file.flush();
+            log_file.flush()?;
         }
+        Ok(())
     }
 
     /// Return a json serialized sample
