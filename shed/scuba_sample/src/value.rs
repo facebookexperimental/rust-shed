@@ -282,7 +282,9 @@ macro_rules! from_int_types {
     };
 }
 
-from_int_types!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+from_int_types!(
+    i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+);
 
 impl From<bool> for ScubaValue {
     fn from(value: bool) -> Self {
@@ -462,11 +464,13 @@ mod tests {
         fn from_i16(n: i16) -> bool { test_from_int!(n) }
         fn from_i32(n: i32) -> bool { test_from_int!(n) }
         fn from_i64(n: i64) -> bool { test_from_int!(n) }
+        fn from_i128(n: i128) -> bool { test_from_int!(n) }
         fn from_isize(n: isize) -> bool { test_from_int!(n) }
         fn from_u8(n: u8) -> bool { test_from_int!(n) }
         fn from_u16(n: u16) -> bool { test_from_int!(n) }
         fn from_u32(n: u32) -> bool { test_from_int!(n) }
         fn from_u64(n: u64) -> bool { test_from_int!(n) }
+        fn from_u128(n: u128) -> bool { test_from_int!(n) }
         fn from_usize(n: usize) -> bool { test_from_int!(n) }
         fn from_f32(n: f32) -> bool { test_from_float!(n) }
         fn from_f64(n: f64) -> bool { test_from_float!(n) }
@@ -624,7 +628,9 @@ mod tests {
 
     #[test]
     fn from_option_int() {
-        test_option_int!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+        test_option_int!(
+            i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+        );
     }
 
     #[test]
@@ -765,7 +771,9 @@ mod tests {
     fn deserialize() {
         use serde_json::from_str;
 
-        test_deserialize_int!(i8, i16, i32, i64, isize, u8, u16, u32, u64, usize);
+        test_deserialize_int!(
+            i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+        );
 
         assert_eq!(
             from_str::<'_, ScubaValue>(&json!(1.5_f32).to_string()).unwrap(),
