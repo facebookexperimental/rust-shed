@@ -229,7 +229,7 @@ mod tests {
         let output = proc_macro2::TokenStream::from_str(stringify! {
             impl quickcheck::Arbitrary for Foo {
                 fn arbitrary(g: &mut quickcheck::Gen) -> Self {
-                    match g.choose((0..4).collect::<Vec<_>>().as_slice()) {
+                    match g.choose((0..4).collect:: <Vec<_>>().as_slice()) {
                         Some(&0) => Self::Foo{foo: quickcheck::Arbitrary::arbitrary(g), bar: quickcheck::Arbitrary::arbitrary(g),},
                         Some(&1) => Self::Bar{hello: quickcheck::Arbitrary::arbitrary(g),},
                         Some(&2) => Self::Baz(quickcheck::Arbitrary::arbitrary(g),),
