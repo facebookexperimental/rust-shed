@@ -141,14 +141,9 @@ fn main() {
     check_ds_like(&ns);
     check_ds_like(&ds);
 
-    // This is a test and these are from the same compilation unit, so the
-    // vtable address ought to match.
-    #[allow(clippy::vtable_address_comparisons)]
-    {
-        // Note that `DelegateStruct` has two `dyn One` facets, but they are the
-        // same object.
-        use std::sync::Arc;
-        assert_eq!(Arc::strong_count(&ds.one), 2);
-        assert!(Arc::ptr_eq(&ds.one, &ds.normal_struct.one));
-    }
+    // Note that `DelegateStruct` has two `dyn One` facets, but they are the
+    // same object.
+    use std::sync::Arc;
+    assert_eq!(Arc::strong_count(&ds.one), 2);
+    assert!(Arc::ptr_eq(&ds.one, &ds.normal_struct.one));
 }
