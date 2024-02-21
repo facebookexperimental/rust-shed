@@ -11,12 +11,17 @@ use ::scuba_sample::ScubaSample;
 use ::scuba_sample::ScubaValue;
 use ::scuba_sample::StructuredSample;
 
+struct SomeUnserializeableType;
+
 #[derive(StructuredSample)]
-struct Customized {
+struct Customized<'a> {
     foo: i32,
     #[scuba(name = "bar2")]
     bar: String,
+    baz: &'a str,
     fizz: bool,
+    #[scuba(skip)]
+    skipped: SomeUnserializeableType,
 }
 
 #[test]
@@ -24,7 +29,9 @@ fn test_customized() {
     let sample: ScubaSample = Customized {
         foo: 5,
         bar: "fizzbuzz".into(),
+        baz: "baz",
         fizz: false,
+        skipped: SomeUnserializeableType,
     }
     .into();
 
@@ -37,4 +44,5 @@ fn test_customized() {
         sample.get("fizz"),
         Some(ScubaValue::Normal("false".into())).as_ref()
     );
+    assert_eq!(sample.get("skipped"), None)
 }

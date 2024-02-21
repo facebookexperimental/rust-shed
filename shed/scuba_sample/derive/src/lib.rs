@@ -11,11 +11,13 @@ use darling::FromField;
 use itertools::Either;
 use itertools::Itertools;
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::Data;
 use syn::DataStruct;
 use syn::Fields;
+use syn::Lifetime;
 
 #[proc_macro_derive(StructuredSample, attributes(scuba))]
 pub fn structured_sample_derive(input: TokenStream) -> TokenStream {
@@ -55,7 +57,15 @@ fn impl_structured_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream
     let mut error_collector = darling::Error::accumulator();
     let (fields, field_parse_errors): (Vec<SampleField>, Vec<darling::Error>) = fields
         .into_iter()
-        .map(SampleField::from_field)
+        .filter_map(|f| {
+            let field = SampleField::from_field(f);
+            if let Ok(pfield) = &field {
+                if pfield.skip {
+                    return None;
+                }
+            }
+            Some(field)
+        })
         .partition_map(|f| match f {
             Ok(v) => Either::Left(v),
             Err(v) => Either::Right(v),
@@ -94,11 +104,16 @@ fn impl_structured_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream
     }
 
     error_collector.finish()?;
+    let mut new_gen = ast.generics.clone();
+    new_gen
+        .lifetimes_mut()
+        .for_each(|lf| lf.lifetime = Lifetime::new("'_", Span::call_site()));
+    let (_, ty_gen, _) = new_gen.split_for_impl();
     let gen = quote! {
-        impl ::scuba_sample::StructuredSample for #name {}
+        impl ::scuba_sample::StructuredSample for #name #ty_gen {}
 
-        impl From<#name> for ::scuba_sample::ScubaSample {
-            fn from(thingy: #name) -> Self {
+        impl From<#name #ty_gen> for ::scuba_sample::ScubaSample {
+            fn from(thingy: #name #ty_gen) -> Self {
                 let mut sample = ::scuba_sample::ScubaSample::new();
                 #(
                     sample.add(#field_renames, thingy.#field_name);
@@ -115,6 +130,8 @@ fn impl_structured_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream
 struct SampleField {
     ident: Option<syn::Ident>,
     name: Option<String>,
+    #[darling(default)]
+    skip: bool,
 }
 
 impl SampleField {
