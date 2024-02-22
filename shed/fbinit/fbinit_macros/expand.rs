@@ -29,6 +29,7 @@ mod kw {
     syn::custom_keyword!(none);
     syn::custom_keyword!(sigterm_only);
     syn::custom_keyword!(all);
+    syn::custom_keyword!(worker_threads);
 }
 
 pub enum DisableFatalSignals {
@@ -43,6 +44,11 @@ pub enum Arg {
         kw_token: kw::disable_fatal_signals,
         eq_token: Token![=],
         value: DisableFatalSignals,
+    },
+    TokioWorkers {
+        kw_token: kw::worker_threads,
+        eq_token: Token![=],
+        workers: syn::LitInt,
     },
 }
 
@@ -71,6 +77,15 @@ impl Parse for Arg {
                 eq_token,
                 value,
             })
+        } else if lookahead.peek(kw::worker_threads) {
+            let kw_token = input.parse()?;
+            let eq_token = input.parse()?;
+            let workers = input.parse()?;
+            Ok(Self::TokioWorkers {
+                kw_token,
+                eq_token,
+                workers,
+            })
         } else {
             Err(lookahead.error())
         }
@@ -85,9 +100,11 @@ pub fn expand(
     let mut disable_fatal_signals =
         DisableFatalSignals::Default(syn::parse2(quote! { default }).expect("This always parses"));
 
+    let mut tokio_workers: usize = 0;
     for arg in args {
         match arg {
             Arg::DisableFatalSignals { value, .. } => disable_fatal_signals = value,
+            Arg::TokioWorkers { workers, .. } => tokio_workers = workers.base10_parse()?,
         }
     }
 
@@ -124,7 +141,7 @@ pub fn expand(
             fbinit_tokio::tokio_test(async #block )
         },
         (true, Mode::Main) => quote! {
-            fbinit_tokio::tokio_main(async #block )
+            fbinit_tokio::tokio_main(#tokio_workers, async #block )
         },
         (false, _) => {
             let stmts = block.stmts;
