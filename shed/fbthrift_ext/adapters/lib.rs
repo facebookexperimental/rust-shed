@@ -31,7 +31,6 @@
 //! thrift_library(
 //!     name = "api",
 //!     languages = ["rust"],
-//!     rust_crate_name = "api",
 //!     rust_deps = [
 //!         // The target in which exports your adapter.
 //!         "//common/rust/shed/fbthrift_ext:adapters",
