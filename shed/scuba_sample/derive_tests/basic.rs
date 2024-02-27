@@ -10,8 +10,9 @@
 use ::scuba_sample::ScubaSample;
 use ::scuba_sample::ScubaValue;
 use ::scuba_sample::StructuredSample;
+use ::scuba_sample::TryFromSample;
 
-#[derive(StructuredSample)]
+#[derive(StructuredSample, TryFromSample, PartialEq, Debug, Clone)]
 struct Basic {
     foo: i32,
     bar: String,
@@ -20,12 +21,12 @@ struct Basic {
 
 #[test]
 fn test_basic() {
-    let sample: ScubaSample = Basic {
+    let basic = Basic {
         foo: 5,
         bar: "fizzbuzz".into(),
         fizz: false,
-    }
-    .into();
+    };
+    let sample: ScubaSample = basic.clone().into();
 
     assert_eq!(sample.get("foo"), Some(ScubaValue::Int(5)).as_ref());
     assert_eq!(
@@ -36,4 +37,7 @@ fn test_basic() {
         sample.get("fizz"),
         Some(ScubaValue::Normal("false".into())).as_ref()
     );
+
+    let converted_basic: Basic = sample.try_into().unwrap();
+    assert_eq!(converted_basic, basic);
 }

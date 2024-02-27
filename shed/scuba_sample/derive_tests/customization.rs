@@ -7,9 +7,12 @@
  * of this source tree.
  */
 
+use std::collections::HashMap;
+
 use ::scuba_sample::ScubaSample;
 use ::scuba_sample::ScubaValue;
 use ::scuba_sample::StructuredSample;
+use ::scuba_sample::TryFromSample;
 
 struct SomeUnserializeableType;
 
@@ -44,5 +47,39 @@ fn test_customized() {
         sample.get("fizz"),
         Some(ScubaValue::Normal("false".into())).as_ref()
     );
-    assert_eq!(sample.get("skipped"), None)
+
+    assert_eq!(sample.get("skipped"), None);
+}
+
+fn my_custom_parser(data: String) -> Result<HashMap<String, String>, serde_json::Error> {
+    serde_json::from_str(&data)
+}
+
+#[derive(TryFromSample, PartialEq, Debug, Clone)]
+struct CustomizedParsing {
+    foo: i32,
+    #[scuba(name = "bar2")]
+    bar: String,
+    fizz: bool,
+    #[scuba(name = "map2", custom_parser = "my_custom_parser")]
+    map: HashMap<String, String>,
+}
+
+#[test]
+fn test_customized_parser() {
+    let mut sample = ScubaSample::new();
+    sample.add("foo", 5);
+    sample.add("bar2", "fizzbuzz");
+    sample.add("fizz", false);
+    sample.add("map2", r#"{"a": "b"}"#);
+    let expected = CustomizedParsing {
+        foo: 5,
+        bar: "fizzbuzz".into(),
+        fizz: false,
+        map: vec![("a".to_owned(), "b".to_owned())].into_iter().collect(),
+    };
+
+    let actual: CustomizedParsing = sample.try_into().unwrap();
+
+    assert_eq!(actual, expected);
 }

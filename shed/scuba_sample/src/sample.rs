@@ -115,6 +115,11 @@ impl ScubaSample {
         self
     }
 
+    /// Remove and return the provided key from the sample data.
+    pub fn retrieve<K: Into<String>>(&mut self, key: K) -> Option<ScubaValue> {
+        self.values.remove(&key.into())
+    }
+
     /// Return reference to the sample data under the provided key or None if not
     /// present in the dataset.
     pub fn get<K: Into<String>>(&self, key: K) -> Option<&ScubaValue> {
@@ -274,6 +279,23 @@ pub enum Error {
 /// let sample: ScubaSample = Foo { bar: 4 }.into();
 /// ```
 pub trait StructuredSample {}
+
+/// A trait that allows for deriving `TryFrom<ScubaSample>` for some struct.
+///
+/// ```
+/// use scuba_sample::ScubaSample;
+/// use scuba_sample::TryFromSample;
+///
+/// #[derive(TryFromSample)]
+/// struct Foo {
+///     bar: i32,
+/// }
+///
+/// let mut sample = ScubaSample::new();
+/// sample.add("bar", 4);
+/// let foo: Foo = sample.try_into().unwrap();
+/// ```
+pub trait TryFromSample {}
 
 #[cfg(test)]
 mod tests {
