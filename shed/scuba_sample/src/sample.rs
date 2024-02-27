@@ -14,10 +14,11 @@ use std::collections::hash_map::HashMap;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 
-use serde_json::Error;
+use serde_json::Error as SerdeError;
 use serde_json::Map;
 use serde_json::Number;
 use serde_json::Value;
+use thiserror::Error;
 
 use crate::value::NullScubaValue;
 use crate::value::ScubaValue;
@@ -152,7 +153,7 @@ impl ScubaSample {
     }
 
     /// Serialize the sample into json compatible with Scuba format.
-    pub fn to_json(&self) -> Result<Value, Error> {
+    pub fn to_json(&self) -> Result<Value, SerdeError> {
         let mut json = Map::new();
 
         // Insert all of the values for this sample into the appropriate sections of
@@ -241,6 +242,23 @@ impl<'a> IntoIterator for &'a mut ScubaSample {
     fn into_iter(self) -> Self::IntoIter {
         self.values.iter_mut()
     }
+}
+
+/// An error returned when attempting to do RFE to ScubaSample conversions.
+#[derive(Error, Debug)]
+pub enum Error {
+    /// column expected but not found in scuba query results
+    #[error("column expected but not found in scuba query results")]
+    MissingColumn(String),
+    /// got null value where a value was expected to be present
+    #[error("got null value where a value was expected to be present")]
+    UnexpectedNull(String),
+    /// result type and expected type mismatched
+    #[error("result type and expected type mismatched")]
+    InvalidTypeConversion(String),
+    /// error while using custom parse function
+    #[error("error while using custom parse function")]
+    CustomParseError(String),
 }
 
 /// A trait that allows for deriving `From<T>` for [ScubaSample].

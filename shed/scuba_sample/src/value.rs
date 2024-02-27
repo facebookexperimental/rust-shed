@@ -29,6 +29,8 @@ use serde::ser::Serializer;
 use serde_json::Number;
 use serde_json::Value;
 
+use crate::sample::Error;
+
 /// A typed version of the Null value - used in serialization to understand the
 /// type of the value that is not set in this sample.
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -427,10 +429,387 @@ impl<'a> From<BTreeSet<&'a str>> for ScubaValue {
     }
 }
 
+macro_rules! to_int_types {
+    ( $( $t:ty ),* ) => {
+        $(
+            impl TryFrom<ScubaValue> for $t {
+    type Error = Error;
+
+                fn try_from(value: ScubaValue) -> Result<Self, Error> {
+                    match value {
+                        ScubaValue::Int(v) => Ok(v as $t),
+                        #[allow(deprecated)]
+                        ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<$t>().map_err(|e| Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}. Details: {}.", v, stringify!($t), e))),
+                        ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!("Expected {} value for ScubaValue but got null: {:?}", stringify!($t), value))),
+                        _ => Err(Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}", value, stringify!($t)))),
+                    }
+                }
+            }
+
+            impl TryFrom<ScubaValue> for Option<$t> {
+    type Error = Error;
+
+                fn try_from(value: ScubaValue) -> Result<Self, Error> {
+                    match value {
+                        ScubaValue::Int(v) => Ok(Some(v as $t)),
+                        #[allow(deprecated)]
+                        ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<$t>().map(|v| Some(v)).map_err(|e| Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}. Details: {}.", v, stringify!($t), e))),
+                        ScubaValue::Null(_) => Ok(None),
+                        _ => Err(Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}", value, stringify!($t)))),
+                    }
+                }
+            }
+        )*
+    };
+}
+
+macro_rules! to_float_types {
+    ( $( $t:ty ),* ) => {
+        $(
+            impl TryFrom<ScubaValue> for $t {
+                type Error = Error;
+
+                fn try_from(value: ScubaValue) -> Result<Self, Error> {
+                    match value {
+                        ScubaValue::Int(v) => Ok(v as $t),
+                        ScubaValue::Double(v) => Ok(v as $t),
+                        #[allow(deprecated)]
+                        ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<$t>().map_err(|e| Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}. Details: {}.", v, stringify!($t), e))),
+                        ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!("Expected {} value for ScubaValue but got null: {:?}", stringify!($t), value))),
+                        _ => Err(Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}", value, stringify!($t)))),
+                    }
+                }
+            }
+
+            impl TryFrom<ScubaValue> for Option<$t> {
+                type Error = Error;
+
+                fn try_from(value: ScubaValue) -> Result<Self, Error> {
+                    match value {
+                        ScubaValue::Int(v) => Ok(Some(v as $t)),
+                        ScubaValue::Double(v) => Ok(Some(v as $t)),
+                        #[allow(deprecated)]
+                        ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<$t>().map(|v| Some(v)).map_err(|e| Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}. Details: {}.", v, stringify!($t), e))),
+                        ScubaValue::Null(_) => Ok(None),
+                        _ => Err(Error::InvalidTypeConversion(format!("ScubaValue: {:?} expected to be {}", value, stringify!($t)))),
+                    }
+                }
+            }
+        )*
+    };
+}
+
+to_int_types!(
+    i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
+);
+to_float_types!(f32, f64);
+
+impl TryFrom<ScubaValue> for bool {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<bool>().map_err(|e| {
+                Error::InvalidTypeConversion(format!(
+                    "ScubaValue: {:?} expected to be bool. Details: {}.",
+                    v, e
+                ))
+            }),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected bool value for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be bool",
+                value
+            ))),
+        }
+    }
+}
+
+impl TryFrom<ScubaValue> for Option<bool> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => {
+                v.parse::<bool>().map(Some).map_err(|e| {
+                    Error::InvalidTypeConversion(format!(
+                        "ScubaValue: {:?} expected to be Option<bool>. Details: {}.",
+                        v, e
+                    ))
+                })
+            }
+            ScubaValue::Null(_) => Ok(None),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be Option<bool>",
+                value
+            ))),
+        }
+    }
+}
+
+impl TryFrom<ScubaValue> for String {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(v),
+            ScubaValue::Int(v) => Ok(v.to_string()),
+            ScubaValue::Double(v) => Ok(v.to_string()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected String value for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be String",
+                value
+            ))),
+        }
+    }
+}
+
+impl TryFrom<ScubaValue> for Option<String> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(Some(v)),
+            ScubaValue::Int(v) => Ok(Some(v.to_string())),
+            ScubaValue::Double(v) => Ok(Some(v.to_string())),
+            ScubaValue::Null(_) => Ok(None),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be Option<String>",
+                value
+            ))),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a ScubaValue> for Option<&'a String> {
+    type Error = Error;
+
+    fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(Some(v)),
+            ScubaValue::Null(_) => Ok(None),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be Option<String>",
+                value
+            ))),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a ScubaValue> for &'a str {
+    type Error = Error;
+
+    fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(v.as_str()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected &str value for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be &str",
+                value
+            ))),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a ScubaValue> for Option<&'a str> {
+    type Error = Error;
+
+    fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
+        match value {
+            #[allow(deprecated)]
+            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(Some(v.as_str())),
+            ScubaValue::Null(_) => Ok(None),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be &str",
+                value
+            ))),
+        }
+    }
+}
+
+impl<T: From<String>> TryFrom<ScubaValue> for Vec<T> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::NormVector(v) => Ok(v.into_iter().map(T::from).collect()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected Vec for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a Vec",
+                value
+            ))),
+        }
+    }
+}
+
+impl<T: From<String> + std::hash::Hash + std::cmp::Eq> TryFrom<ScubaValue> for HashSet<T> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::TagSet(v) => Ok(v.into_iter().map(T::from).collect()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected Set for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a Set",
+                value
+            ))),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a ScubaValue> for HashSet<&'a str> {
+    type Error = Error;
+
+    fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::TagSet(ref v) => Ok(v.iter().map(|v| v.as_str()).collect()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected Set for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a Set",
+                value
+            ))),
+        }
+    }
+}
+
+impl<T: From<String> + std::cmp::Ord> TryFrom<ScubaValue> for BTreeSet<T> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::TagSet(v) => Ok(v.into_iter().map(T::from).collect()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected Set for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a Set",
+                value
+            ))),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a ScubaValue> for BTreeSet<&'a str> {
+    type Error = Error;
+
+    fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::TagSet(ref v) => Ok(v.iter().map(|v| v.as_str()).collect()),
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected Set for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a Set",
+                value
+            ))),
+        }
+    }
+}
+
+impl<K: From<String> + std::hash::Hash + std::cmp::Eq, V: From<String>> TryFrom<ScubaValue>
+    for HashMap<K, V>
+{
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::NormVector(v) => {
+                v.into_iter()
+                    .map(|v| {
+                        let mut iter = v.splitn(2, ':');
+                        let key = iter.next().map(|v| v.to_string()).ok_or(
+                            Error::InvalidTypeConversion(format!(
+                                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
+                                v
+                            )),
+                        )?;
+                        let value = iter.next().map(|v| v.to_string()).ok_or(
+                            Error::InvalidTypeConversion(format!(
+                                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
+                                v
+                            )),
+                        )?;
+                        Ok((K::from(key), V::from(value)))
+                    })
+                    .collect()
+            }
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected HashMap encoded in norm vector for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
+                value
+            ))),
+        }
+    }
+}
+
+impl<K: From<String> + std::cmp::Ord, V: From<String>> TryFrom<ScubaValue> for BTreeMap<K, V> {
+    type Error = Error;
+
+    fn try_from(value: ScubaValue) -> Result<Self, Error> {
+        match value {
+            ScubaValue::NormVector(v) => {
+                v.into_iter()
+                    .map(|v| {
+                        let mut iter = v.splitn(2, ':');
+                        let key = iter.next().map(|v| v.to_string()).ok_or(
+                            Error::InvalidTypeConversion(format!(
+                                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
+                                v
+                            )),
+                        )?;
+                        let value = iter.next().map(|v| v.to_string()).ok_or(
+                            Error::InvalidTypeConversion(format!(
+                                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
+                                v
+                            )),
+                        )?;
+                        Ok((K::from(key), V::from(value)))
+                    })
+                    .collect()
+            }
+            ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
+                "Expected BTreeMap encoded in norm vector for ScubaValue but got null: {:?}",
+                value
+            ))),
+            _ => Err(Error::InvalidTypeConversion(format!(
+                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
+                value
+            ))),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    #![allow(deprecated)]
-
+    #[allow(deprecated)]
     use assert_matches::assert_matches;
     use quickcheck::quickcheck;
     use serde_json::json;
@@ -438,45 +817,60 @@ mod tests {
 
     use super::*;
 
-    macro_rules! test_from_int {
+    macro_rules! test_int_conv {
         ( $x:expr ) => {
-            match ScubaValue::from($x) {
-                ScubaValue::Int(v) => v == ($x as i64),
+            let value = ScubaValue::from($x);
+
+            let correct_from = match &value {
+                ScubaValue::Int(v) => *v == ($x as i64),
                 _ => false,
-            }
+            };
+
+            let correct_into = TryInto::<i64>::try_into(value).unwrap() == ($x as i64);
+
+            return correct_from && correct_into;
         };
     }
 
-    macro_rules! test_from_float {
+    macro_rules! test_float_conv {
         ( $x:expr ) => {
             #[allow(clippy::float_cmp)]
             {
-                match ScubaValue::from($x) {
+                let value = ScubaValue::from($x);
+
+                let correct_from = match ScubaValue::from($x) {
                     ScubaValue::Double(v) => v == ($x as f64) || (v.is_nan() && $x.is_nan()),
                     _ => false,
-                }
+                };
+
+                let converted_value = TryInto::<f64>::try_into(value).unwrap();
+                let correct_into =
+                    (converted_value == ($x as f64)) || (converted_value.is_nan() && $x.is_nan());
+
+                return correct_from && correct_into;
             }
         };
     }
 
     quickcheck! {
-        fn from_i8(n: i8) -> bool { test_from_int!(n) }
-        fn from_i16(n: i16) -> bool { test_from_int!(n) }
-        fn from_i32(n: i32) -> bool { test_from_int!(n) }
-        fn from_i64(n: i64) -> bool { test_from_int!(n) }
-        fn from_i128(n: i128) -> bool { test_from_int!(n) }
-        fn from_isize(n: isize) -> bool { test_from_int!(n) }
-        fn from_u8(n: u8) -> bool { test_from_int!(n) }
-        fn from_u16(n: u16) -> bool { test_from_int!(n) }
-        fn from_u32(n: u32) -> bool { test_from_int!(n) }
-        fn from_u64(n: u64) -> bool { test_from_int!(n) }
-        fn from_u128(n: u128) -> bool { test_from_int!(n) }
-        fn from_usize(n: usize) -> bool { test_from_int!(n) }
-        fn from_f32(n: f32) -> bool { test_from_float!(n) }
-        fn from_f64(n: f64) -> bool { test_from_float!(n) }
+        fn from_i8(n: i8) -> bool { test_int_conv!(n); }
+        fn from_i16(n: i16) -> bool { test_int_conv!(n); }
+        fn from_i32(n: i32) -> bool { test_int_conv!(n); }
+        fn from_i64(n: i64) -> bool { test_int_conv!(n); }
+        fn from_i128(n: i128) -> bool { test_int_conv!(n); }
+        fn from_isize(n: isize) -> bool { test_int_conv!(n); }
+        fn from_u8(n: u8) -> bool { test_int_conv!(n); }
+        fn from_u16(n: u16) -> bool { test_int_conv!(n); }
+        fn from_u32(n: u32) -> bool { test_int_conv!(n); }
+        fn from_u64(n: u64) -> bool { test_int_conv!(n); }
+        fn from_u128(n: u128) -> bool { test_int_conv!(n); }
+        fn from_usize(n: usize) -> bool { test_int_conv!(n); }
+        fn from_f32(n: f32) -> bool { test_float_conv!(n); }
+        fn from_f64(n: f64) -> bool { test_float_conv!(n); }
     }
 
     #[test]
+    #[allow(deprecated)]
     fn to_string() {
         assert_eq!(format!("{}", ScubaValue::from(6)), "6");
         assert_eq!(format!("{}", ScubaValue::from(888.8)), "888.8");
@@ -522,6 +916,15 @@ mod tests {
     }
 
     #[test]
+    fn conv_to_string() {
+        assert_eq!(String::try_from(ScubaValue::from("test")).unwrap(), "test");
+        assert_eq!(
+            String::try_from(ScubaValue::from("test".to_string())).unwrap(),
+            "test"
+        );
+    }
+
+    #[test]
     fn from_vec() {
         let str_vec = vec!["a", "b", "c"];
         let string_vec = vec!["a".to_string(), "b".to_string(), "c".to_string()];
@@ -533,6 +936,21 @@ mod tests {
         assert_matches!(
             ScubaValue::from(string_vec.clone()),
             ScubaValue::NormVector(ref v) if *v == string_vec
+        );
+    }
+
+    #[test]
+    fn to_vec() {
+        let str_vec = vec!["a", "b", "c"];
+        let string_vec = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+
+        assert_eq!(
+            Vec::<String>::try_from(ScubaValue::from(str_vec.clone())).unwrap(),
+            str_vec
+        );
+        assert_eq!(
+            Vec::<String>::try_from(ScubaValue::from(string_vec.clone())).unwrap(),
+            string_vec
         );
     }
 
@@ -554,10 +972,34 @@ mod tests {
     }
 
     #[test]
+    fn to_set() {
+        let str_vec = vec!["a", "b", "c"];
+        let string_vec = vec!["a".to_string(), "b".to_string(), "c".to_string()];
+        let str_set = str_vec.into_iter().collect::<HashSet<_>>();
+        let string_set = string_vec.into_iter().collect::<HashSet<_>>();
+
+        assert_eq!(
+            HashSet::<String>::try_from(ScubaValue::from(str_set.clone())).unwrap(),
+            string_set
+        );
+        assert_eq!(
+            HashSet::<String>::try_from(ScubaValue::from(string_set.clone())).unwrap(),
+            string_set
+        );
+    }
+
+    #[test]
     fn from_iter() {
         let vec = vec!["a", "b", "c"];
         let value = vec.iter().cloned().collect::<ScubaValue>();
         assert_matches!(value, ScubaValue::NormVector(ref v) if *v == vec);
+    }
+
+    #[test]
+    fn to_iter() {
+        let vec = vec!["a", "b", "c"];
+        let value = vec.iter().cloned().collect::<ScubaValue>();
+        assert_eq!(Vec::<String>::try_from(value).unwrap(), vec);
     }
 
     #[test]
@@ -587,6 +1029,41 @@ mod tests {
     }
 
     #[test]
+    fn to_option_string() {
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(Some("str")))
+                .unwrap()
+                .unwrap(),
+            "str"
+        );
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(Some("str".to_string())))
+                .unwrap()
+                .unwrap(),
+            "str"
+        );
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(Some(&"str".to_string())))
+                .unwrap()
+                .unwrap(),
+            "str"
+        );
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(None::<String>)).unwrap(),
+            None
+        );
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(None::<&'static str>)).unwrap(),
+            None
+        );
+        // Option<bool>
+        assert_eq!(
+            Option::<String>::try_from(ScubaValue::from(None::<bool>)).unwrap(),
+            None
+        );
+    }
+
+    #[test]
     fn from_hashmap_string() {
         let mut input = HashMap::new();
         input.insert("foo", "bar");
@@ -597,6 +1074,18 @@ mod tests {
         assert_matches!(
             ScubaValue::from(input),
             ScubaValue::NormVector(ref actual) if *actual == expected
+        );
+    }
+
+    #[test]
+    fn to_hashmap_string() {
+        let mut input = HashMap::new();
+        input.insert("foo".to_string(), "bar".to_string());
+        input.insert("bar".to_string(), "10".to_string());
+
+        assert_eq!(
+            HashMap::<String, String>::try_from(ScubaValue::from(input.clone())).unwrap(),
+            input
         );
     }
 
@@ -614,6 +1103,18 @@ mod tests {
         );
     }
 
+    #[test]
+    fn to_btree_map_string() {
+        let mut input = BTreeMap::new();
+        input.insert("foo".to_string(), "bar".to_string());
+        input.insert("bar".to_string(), "10".to_string());
+
+        assert_eq!(
+            BTreeMap::<String, String>::try_from(ScubaValue::from(input.clone())).unwrap(),
+            input
+        );
+    }
+
     macro_rules! test_option_int {
         ( $( $t:ty ),* ) => {
             $(
@@ -622,29 +1123,52 @@ mod tests {
                     ScubaValue::from(None::<$t>),
                     ScubaValue::Null(NullScubaValue::Int)
                 );
+
+                assert_eq!(Option::<$t>::try_from(ScubaValue::from(Some(1))).unwrap().unwrap(), 1);
+                assert_eq!(Option::<$t>::try_from(ScubaValue::from(None::<$t>)).unwrap(), None);
             )*
         };
     }
 
     #[test]
-    fn from_option_int() {
+    fn converting_option_int() {
         test_option_int!(
             i8, i16, i32, i64, i128, isize, u8, u16, u32, u64, u128, usize
         );
     }
 
     #[test]
-    fn from_option_float() {
+    fn converting_option_float() {
         assert_matches!(ScubaValue::from(Some(1f32)), ScubaValue::Double(_));
+        assert_eq!(
+            Option::<f32>::try_from(ScubaValue::from(Some(1f32)))
+                .unwrap()
+                .unwrap(),
+            1f32
+        );
         assert_matches!(ScubaValue::from(Some(1f64)), ScubaValue::Double(_));
+        assert_eq!(
+            Option::<f64>::try_from(ScubaValue::from(Some(1f64)))
+                .unwrap()
+                .unwrap(),
+            1f64
+        );
 
         assert_matches!(
             ScubaValue::from(None::<f32>),
             ScubaValue::Null(NullScubaValue::Double)
         );
+        assert_eq!(
+            Option::<f32>::try_from(ScubaValue::from(None::<f32>)).unwrap(),
+            None
+        );
         assert_matches!(
             ScubaValue::from(None::<f64>),
             ScubaValue::Null(NullScubaValue::Double)
+        );
+        assert_eq!(
+            Option::<f64>::try_from(ScubaValue::from(None::<f64>)).unwrap(),
+            None
         );
     }
 
@@ -689,6 +1213,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(deprecated)]
     fn serialize() {
         use serde_json::to_value;
         assert_eq!(to_value(ScubaValue::Int(123)).unwrap(), json!(123),);
