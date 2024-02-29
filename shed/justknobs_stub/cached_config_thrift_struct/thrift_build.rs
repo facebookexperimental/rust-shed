@@ -15,7 +15,7 @@ fn main() {
     let out_dir: &Path = out_dir.as_ref();
     fs::write(
         out_dir.join("cratemap"),
-        "just_knobs crate",
+        "just_knobs crate //common/rust/shed/justknobs_stub/cached_config_thrift_struct:just_knobs_struct-rust",
     ).expect("Failed to write cratemap");
 
     let conf = {
