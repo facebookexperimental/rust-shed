@@ -93,3 +93,29 @@ pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
     .unwrap_or_else(|err| err.to_compile_error())
     .into()
 }
+
+// Similar to #[fbinit::test], but allows for nesting with other test attributes (e.g. #[rstest]) that wraps #[test].
+//
+//     #[rstest]
+//     #[fbinit::nested_test]
+//     fn name_of_test(fb: FacebookInit, some_fixture: u32) {
+//         ...
+//     }
+//
+// to:
+//
+//     #[rstest]
+//     fn name_of_test(some_fixture: u32) {
+//         let fb: FacebookInit = fbinit::perform_init();
+//         ...
+//     }
+#[proc_macro_attribute]
+pub fn nested_test(args: TokenStream, input: TokenStream) -> TokenStream {
+    expand(
+        Mode::NestedTest,
+        parse_macro_input!(args with Punctuated::parse_terminated),
+        parse_macro_input!(input),
+    )
+    .unwrap_or_else(|err| err.to_compile_error())
+    .into()
+}

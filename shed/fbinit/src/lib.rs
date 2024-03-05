@@ -20,6 +20,7 @@
 mod oss;
 
 pub use fbinit_macros::main;
+pub use fbinit_macros::nested_test;
 pub use fbinit_macros::test;
 #[cfg(not(fbcode_build))]
 pub use oss::*;

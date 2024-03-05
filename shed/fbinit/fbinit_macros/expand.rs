@@ -22,6 +22,7 @@ use syn::Token;
 pub enum Mode {
     Main,
     Test,
+    NestedTest,
 }
 
 mod kw {
@@ -108,10 +109,10 @@ pub fn expand(
         }
     }
 
-    if function.sig.inputs.len() > 1 {
+    if mode != Mode::NestedTest && function.sig.inputs.len() > 1 {
         return Err(Error::new_spanned(
             function.sig,
-            "expected one argument of type fbinit::FacebookInit",
+            "expected one argument of type fbinit::FacebookInit unless #[fbinit::nested_test] is used",
         ));
     }
 
@@ -128,16 +129,24 @@ pub fn expand(
                 panic!("fbinit must be performed in the crate root on the main function");
             }
         }),
-        Mode::Test => None,
+        _ => None,
     };
 
     let assignment = function.sig.inputs.first().map(|arg| quote!(let #arg =));
-    function.sig.inputs = Punctuated::new();
+    match mode {
+        Mode::NestedTest => {
+            // remove the first input (fb: FacebookInit) from function signature
+            function.sig.inputs = function.sig.inputs.into_iter().skip(1).collect();
+        }
+        _ => {
+            function.sig.inputs = Punctuated::new();
+        }
+    }
 
     let block = function.block;
 
     let body = match (function.sig.asyncness.is_some(), mode) {
-        (true, Mode::Test) => quote! {
+        (true, Mode::Test | Mode::NestedTest) => quote! {
             fbinit_tokio::tokio_test(async #block )
         },
         (true, Mode::Main) => quote! {
