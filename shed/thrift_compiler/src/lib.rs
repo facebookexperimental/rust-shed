@@ -76,7 +76,6 @@ pub struct Config {
     clients_crate: Option<String>,
     services_crate: Option<String>,
     options: Option<String>,
-    lib_include_srcs: Vec<String>, // src to include in the primary crate
     types_include_srcs: Vec<String>, // src to include in the -types sub-crate
 }
 
@@ -97,7 +96,6 @@ impl Config {
             clients_crate: None,
             services_crate: None,
             options: None,
-            lib_include_srcs: vec![],
             types_include_srcs: vec![],
         })
     }
@@ -168,12 +166,6 @@ impl Config {
         self
     }
 
-    /// Set extra srcs to be available in the generated primary crate.
-    pub fn lib_include_srcs(&mut self, value: Vec<String>) -> &mut Self {
-        self.lib_include_srcs = value;
-        self
-    }
-
     /// Set extra srcs to be available in the generated types sub-crate.
     pub fn types_include_srcs(&mut self, value: Vec<String>) -> &mut Self {
         self.types_include_srcs = value;
@@ -217,14 +209,6 @@ impl Config {
 
         for input in &input {
             println!("cargo:rerun-if-changed={}", input.1.as_ref().display());
-        }
-        for lib_include_src in &self.lib_include_srcs {
-            println!("cargo:rerun-if-changed={lib_include_src}");
-            if let GenContext::Lib = self.gen_context {
-                let out_path = self.remap_to_out_dir(lib_include_src);
-                fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
-                fs::copy(lib_include_src, out.join(out_path))?;
-            }
         }
         for types_include_src in &self.types_include_srcs {
             println!("cargo:rerun-if-changed={types_include_src}");
@@ -463,12 +447,6 @@ impl Config {
             }
             if let Some(services_crate) = &self.services_crate {
                 args.push(format!("services_crate={}", services_crate));
-            }
-            if !self.lib_include_srcs.is_empty() {
-                args.push(format!(
-                    "lib_include_srcs={}",
-                    self.include_srcs_arg(&self.lib_include_srcs)
-                ));
             }
             if !self.types_include_srcs.is_empty() {
                 args.push(format!(
