@@ -27,7 +27,7 @@ struct Compiler {
     use_environment: bool,
 
     /// Generation context
-    #[arg(long = "context", short = 'g', default_value_t = GenContext::Lib)]
+    #[arg(long = "context", short = 'g', default_value_t = GenContext::Types)]
     gen_context: GenContext,
 
     /// Paths to .thrift files

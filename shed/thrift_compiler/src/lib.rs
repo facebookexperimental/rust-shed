@@ -34,21 +34,21 @@ use serde::Deserialize;
 use which::which;
 
 /// A thrift library 'foo' (say) results in several crates, including 'foo' and
-/// 'foo_types'. We arrange that the thrift compiler wrapper be invoked from the
-/// build of all. The behavior of the wrapper is sensitive to the invocation
-/// context ('foo' vs 'foo-types') and this type is used to disambiguate.
+/// 'foo_clients'. We arrange that the thrift compiler wrapper be invoked from
+/// the build of all. The behavior of the wrapper is sensitive to the invocation
+/// context ('foo' vs 'foo-clients') and this type is used to disambiguate.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, ValueEnum)]
 pub enum GenContext {
-    /// 'lib' crate generation context (e.g. 'foo').
-    #[serde(rename = "lib")]
+    // FIXME(dtolnay): remove GenContext::Lib
+    /// Obsolete
     Lib,
-    /// 'types' crate generation context (e.g. 'foo_types').
-    #[serde(rename = "types")]
+    /// 'types' crate generation context (crate 'foo').
+    #[serde(rename = "types", alias = "lib")]
     Types,
-    /// 'clients' crate generation context (e.g. 'foo_clients').
+    /// 'clients' crate generation context (crate 'foo_clients').
     #[serde(rename = "clients")]
     Clients,
-    /// 'services' crate generation context (e.g. 'foo_services').
+    /// 'services' crate generation context (crate 'foo_services').
     #[serde(rename = "services")]
     Services,
 }
@@ -56,8 +56,7 @@ pub enum GenContext {
 impl fmt::Display for GenContext {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let t = match self {
-            GenContext::Lib => "lib",
-            GenContext::Types => "types",
+            GenContext::Types | GenContext::Lib => "types",
             GenContext::Clients => "clients",
             GenContext::Services => "services",
         };
@@ -212,7 +211,7 @@ impl Config {
         }
         for types_include_src in &self.types_include_srcs {
             println!("cargo:rerun-if-changed={types_include_src}");
-            if let GenContext::Types = self.gen_context {
+            if let GenContext::Types | GenContext::Lib = self.gen_context {
                 let out_path = self.remap_to_out_dir(types_include_src);
                 fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
                 fs::copy(types_include_src, out.join(out_path))?;
@@ -221,31 +220,10 @@ impl Config {
 
         if let [(_name, file)] = &input[..] {
             match self.gen_context {
-                GenContext::Lib => {
-                    // The primary crate.
-
-                    self.run_compiler(&thrift_bin, out, file)?;
-
-                    // These files are not of interest here.
-                    fs::remove_file(out.join("client.rs"))?;
-                    fs::remove_file(out.join("consts.rs"))?;
-                    fs::remove_file(out.join("errors.rs"))?;
-                    fs::remove_file(out.join("mock.rs"))?;
-                    fs::remove_file(out.join("server.rs"))?;
-                    fs::remove_file(out.join("services.rs"))?;
-                    fs::remove_file(out.join("types.rs"))?;
-
-                    // 'lib.rs' together with the remaining files have the
-                    // content we want.
-                    { /* nothing to do */ }
-                }
-                GenContext::Types => {
-                    // The -types sub-crate.
-
+                GenContext::Types | GenContext::Lib => {
                     self.run_compiler(&thrift_bin, out, file)?;
 
                     // These files are not of interest here (for now).
-                    fs::remove_file(out.join("lib.rs"))?;
                     fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
                     fs::remove_file(out.join("mock.rs"))?;
@@ -262,7 +240,6 @@ impl Config {
 
                     fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
-                    fs::remove_file(out.join("lib.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
@@ -277,7 +254,6 @@ impl Config {
                     fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
-                    fs::remove_file(out.join("lib.rs"))?;
                     fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
@@ -287,39 +263,13 @@ impl Config {
             }
         } else {
             match self.gen_context {
-                GenContext::Lib => {
-                    // The primary crate.
-
+                GenContext::Types | GenContext::Lib => {
                     for (name, file) in &input {
                         let submod = out.join(name);
                         fs::create_dir_all(&submod)?;
                         self.run_compiler(&thrift_bin, &submod, file)?;
 
                         // These files are not of interest here.
-                        fs::remove_file(submod.join("client.rs"))?;
-                        fs::remove_file(submod.join("consts.rs"))?;
-                        fs::remove_file(submod.join("errors.rs"))?;
-                        fs::remove_file(submod.join("mock.rs"))?;
-                        fs::remove_file(submod.join("server.rs"))?;
-                        fs::remove_file(submod.join("services.rs"))?;
-                        fs::remove_file(submod.join("types.rs"))?;
-
-                        // 'lib.rs' (together with the remaining files) has the
-                        // content we want (but the file needs renaming to
-                        // 'mod.rs').
-                        fs::rename(submod.join("lib.rs"), submod.join("mod.rs"))?;
-                    }
-                }
-                GenContext::Types => {
-                    // The -types sub-crate.
-
-                    for (name, file) in &input {
-                        let submod = out.join(name);
-                        fs::create_dir_all(&submod)?;
-                        self.run_compiler(&thrift_bin, &submod, file)?;
-
-                        // These files are not of interest here.
-                        fs::remove_file(submod.join("lib.rs"))?;
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
                         fs::remove_file(submod.join("mock.rs"))?;
@@ -340,7 +290,6 @@ impl Config {
 
                         fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
-                        fs::remove_file(submod.join("lib.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
@@ -359,7 +308,6 @@ impl Config {
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
-                        fs::remove_file(submod.join("lib.rs"))?;
                         fs::remove_file(submod.join("mock.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
