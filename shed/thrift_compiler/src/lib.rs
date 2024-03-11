@@ -39,9 +39,6 @@ use which::which;
 /// context ('foo' vs 'foo-clients') and this type is used to disambiguate.
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, ValueEnum)]
 pub enum GenContext {
-    // FIXME(dtolnay): remove GenContext::Lib
-    /// Obsolete
-    Lib,
     /// 'types' crate generation context (crate 'foo').
     #[serde(rename = "types", alias = "lib")]
     Types,
@@ -56,7 +53,7 @@ pub enum GenContext {
 impl fmt::Display for GenContext {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         let t = match self {
-            GenContext::Types | GenContext::Lib => "types",
+            GenContext::Types => "types",
             GenContext::Clients => "clients",
             GenContext::Services => "services",
         };
@@ -211,7 +208,7 @@ impl Config {
         }
         for types_include_src in &self.types_include_srcs {
             println!("cargo:rerun-if-changed={types_include_src}");
-            if let GenContext::Types | GenContext::Lib = self.gen_context {
+            if let GenContext::Types = self.gen_context {
                 let out_path = self.remap_to_out_dir(types_include_src);
                 fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
                 fs::copy(types_include_src, out.join(out_path))?;
@@ -220,7 +217,7 @@ impl Config {
 
         if let [(_name, file)] = &input[..] {
             match self.gen_context {
-                GenContext::Types | GenContext::Lib => {
+                GenContext::Types => {
                     self.run_compiler(&thrift_bin, out, file)?;
 
                     // These files are not of interest here (for now).
@@ -263,7 +260,7 @@ impl Config {
             }
         } else {
             match self.gen_context {
-                GenContext::Types | GenContext::Lib => {
+                GenContext::Types => {
                     for (name, file) in &input {
                         let submod = out.join(name);
                         fs::create_dir_all(&submod)?;
