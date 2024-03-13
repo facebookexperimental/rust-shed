@@ -370,7 +370,7 @@ impl Config {
         thrift_bin: &OsStr,
         out: impl AsRef<Path>,
         input: impl AsRef<Path>,
-    ) -> Result<String> {
+    ) -> Result<()> {
         let mut cmd = Command::new(thrift_bin);
 
         let args = {
@@ -431,18 +431,7 @@ impl Config {
             )
         );
 
-        let out_file = out.as_ref().join("lib.rs");
-        ensure!(
-            out_file.is_file(),
-            format!(
-                "Thrift has successfully run, but the resulting '{}' file is missing, command: '{:#?}'",
-                out_file.display(),
-                cmd,
-            )
-        );
-
-        fs::read_to_string(&out_file)
-            .with_context(|| format!("Failed to read content of file '{}'", out_file.display()))
+        Ok(())
     }
 }
 
