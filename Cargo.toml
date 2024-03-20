@@ -73,6 +73,7 @@ members = [
   "shed/stats/traits",
   "shed/thrift_compiler",
   "shed/time_ext",
+  "shed/tokio-detectors",
   "shed/tokio-uds-compat",
 ]
 resolver = "2"
