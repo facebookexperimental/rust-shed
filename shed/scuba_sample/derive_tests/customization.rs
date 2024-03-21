@@ -23,6 +23,7 @@ struct Customized<'a> {
     bar: String,
     baz: &'a str,
     fizz: bool,
+    #[allow(dead_code)]
     #[scuba(skip)]
     skipped: SomeUnserializeableType,
 }
