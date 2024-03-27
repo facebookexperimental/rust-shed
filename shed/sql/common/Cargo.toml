@@ -17,7 +17,7 @@ path = "lib.rs"
 anyhow = "1.0.75"
 async-trait = "0.1.71"
 cloned = { version = "0.1.0", path = "../../cloned" }
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
+futures = { version = "0.3.30", features = ["async-await", "compat"] }
 futures_stats = { version = "0.1.0", path = "../../futures_stats" }
 itertools = "0.11.0"
 mysql_async = "0.31.2"

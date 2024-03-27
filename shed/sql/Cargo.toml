@@ -14,8 +14,8 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.75"
 cloned = { version = "0.1.0", path = "../cloned" }
 frunk = "0.4.2"
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
-futures-util = "0.3.7"
+futures = { version = "0.3.30", features = ["async-await", "compat"] }
+futures-util = "0.3.30"
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
 mysql_async = "0.31.2"
 mysql_common = { version = "0.29.0", features = ["chrono", "default"] }

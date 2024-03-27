@@ -17,5 +17,5 @@ futures = "0.1.31"
 anyhow = "1.0.75"
 assert_matches = "1.5"
 cloned = { version = "0.1.0", path = "../cloned" }
-futures03 = { package = "futures", version = "0.3.28", features = ["async-await", "compat"] }
+futures03 = { package = "futures", version = "0.3.30", features = ["async-await", "compat"] }
 tokio = { version = "1.36.0", features = ["full", "test-util", "tracing"] }

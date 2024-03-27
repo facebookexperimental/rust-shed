@@ -49,7 +49,7 @@ path = "test/tuple_struct_test.rs"
 anyhow = "1.0.75"
 async-trait = "0.1.71"
 facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
+futures = { version = "0.3.30", features = ["async-await", "compat"] }
 thiserror = "1.0.49"
 trait-set = "0.3.0"
 

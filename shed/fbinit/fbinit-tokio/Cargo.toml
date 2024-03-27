@@ -13,5 +13,5 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-futures = { version = "0.3.28", features = ["async-await", "compat"] }
+futures = { version = "0.3.30", features = ["async-await", "compat"] }
 tokio = { version = "1.36.0", features = ["full", "test-util", "tracing"] }
