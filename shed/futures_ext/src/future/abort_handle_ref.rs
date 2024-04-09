@@ -37,7 +37,10 @@ where
 /// A handle that can abort the spawned task that it is associated with aborted. The underlying
 /// task also gets aborted when there are no more handles referencing it.
 #[derive(Clone, Debug)]
-pub struct ControlledHandle(Arc<Inner>);
+pub struct ControlledHandle(
+    #[allow(dead_code)] // Used for Inner's Drop implementation.
+    Arc<Inner>,
+);
 
 impl ControlledHandle {
     fn new(abort_handle: AbortHandle) -> Self {
