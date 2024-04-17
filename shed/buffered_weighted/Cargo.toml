@@ -11,8 +11,10 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+anyhow = "1.0.75"
 futures-util = "0.3.30"
 pin-project = "0.4.30"
+procfs = "0.15.1"
 
 [dev-dependencies]
 futures = { version = "0.3.30", features = ["async-await", "compat"] }

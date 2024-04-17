@@ -91,6 +91,7 @@
 
 mod buffered_weighted_stream;
 mod global_weight;
+mod memory_bound;
 mod peekable_fused;
 #[cfg(test)]
 mod tests;
@@ -111,7 +112,7 @@ use futures_util::Stream;
 impl<T: ?Sized> StreamExt for T where T: Stream {}
 
 /// An extension trait for `Stream`s that provides
-/// [`buffered_weighted`](StreamExt::buffered_weighted).
+/// [`buffered_weighted`](StreamExt::buffered_weighted) and [`buffered_weighted_bounded`](StreamExt::buffered_weighted_bounded).
 pub trait StreamExt: Stream {
     /// An adaptor for creating an ordered queue of pending futures, where each future has a
     /// different weight.
@@ -139,7 +140,28 @@ pub trait StreamExt: Stream {
         Self: Sized + Stream<Item = (usize, Fut)>,
         Fut: Future,
     {
-        assert_stream::<Fut::Output, _>(BufferedWeighted::new(self, max_weight))
+        assert_stream::<Fut::Output, _>(BufferedWeighted::new(self, max_weight, None))
+    }
+
+    /// An adaptor for creating an ordered queue of pending futures, where each future has a
+    /// different weight.
+    ///
+    /// This stream must return values of type `(usize, impl Future)`, where the `usize` indicates
+    /// the weight of each future. This adaptor will buffer futures up to weight `max_weight`, and
+    /// then return the outputs in the order in which they complete. In addition to the constraint of
+    /// `max_weight`, this adaptor will also enforce a memory bound before scheduling any new future for
+    /// execution. The memory bound serves as a free memory limit that the combinator must honor while
+    /// scheduling new futures in the stream.
+    fn buffered_weighted_bounded<Fut>(
+        self,
+        max_weight: usize,
+        memory_bound: u64,
+    ) -> BufferedWeighted<Self>
+    where
+        Self: Sized + Stream<Item = (usize, Fut)>,
+        Fut: Future,
+    {
+        assert_stream::<Fut::Output, _>(BufferedWeighted::new(self, max_weight, Some(memory_bound)))
     }
 }
 

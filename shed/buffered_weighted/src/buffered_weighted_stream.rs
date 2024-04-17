@@ -20,6 +20,7 @@ use futures_util::StreamExt as _;
 use pin_project::pin_project;
 
 use crate::global_weight::GlobalWeight;
+use crate::memory_bound::MemoryBound;
 use crate::peekable_fused::PeekableFused;
 
 /// Stream for the [`buffered_weighted`](crate::StreamExt::buffered_weighted) method.
@@ -34,6 +35,7 @@ where
     stream: PeekableFused<Fuse<St>>,
     in_progress_queue: FuturesOrdered<FutureWithWeight<<St::Item as WeightedFuture>::Future>>,
     global_weight: GlobalWeight,
+    bound: MemoryBound,
 }
 
 impl<St> fmt::Debug for BufferedWeighted<St>
@@ -46,6 +48,7 @@ where
             .field("stream", &self.stream)
             .field("in_progress_queue", &self.in_progress_queue)
             .field("global_weight", &self.global_weight)
+            .field("bound", &self.bound)
             .finish()
     }
 }
@@ -55,11 +58,12 @@ where
     St: Stream,
     St::Item: WeightedFuture,
 {
-    pub(crate) fn new(stream: St, max_weight: usize) -> Self {
+    pub(crate) fn new(stream: St, max_weight: usize, bound: Option<u64>) -> Self {
         Self {
             stream: PeekableFused::new(stream.fuse()),
             in_progress_queue: FuturesOrdered::new(),
             global_weight: GlobalWeight::new(max_weight),
+            bound: MemoryBound::new(bound),
         }
     }
 
@@ -119,9 +123,14 @@ where
         // First up, try to spawn off as many futures as possible by filling up
         // our queue of futures.
         while let Poll::Ready(Some(weighted_future)) = this.stream.as_mut().poll_peek(cx) {
-            if !this.global_weight.has_space_for(weighted_future.weight()) {
-                // Global limits would be exceeded, break out of the loop. Consider this
-                // item next time.
+            if !this.global_weight.has_space_for(weighted_future.weight())
+                || !this.bound.within_bound(weighted_future.weight())
+                    && !this.in_progress_queue.is_empty()
+            {
+                // Global limits would be exceeded so lets break out of the loop and consider this item next time.
+                // OR Adding this future might make us dip below our specified memory bound. We want to honor the
+                // memory bound but if the queue has 0 items, we can ignore it since we want to make atleast some
+                // progress instead of completely stalling.
                 break;
             }
 
