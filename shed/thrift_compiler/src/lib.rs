@@ -226,6 +226,7 @@ impl Config {
 
                     // These files are not of interest here (for now).
                     fs::remove_file(out.join("client.rs"))?;
+                    fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("mock_impl.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
 
@@ -241,6 +242,7 @@ impl Config {
 
                     fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
@@ -255,6 +257,7 @@ impl Config {
                     fs::remove_file(out.join("client.rs"))?;
                     fs::remove_file(out.join("consts.rs"))?;
                     fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("mock_impl.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
                     fs::remove_file(out.join("types.rs"))?;
@@ -287,6 +290,7 @@ impl Config {
 
                         // These files are not of interest here.
                         fs::remove_file(submod.join("client.rs"))?;
+                        fs::remove_file(submod.join("mock.rs"))?;
                         fs::remove_file(submod.join("mock_impl.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
 
@@ -306,6 +310,7 @@ impl Config {
 
                         fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("mock.rs"))?;
                         fs::remove_file(submod.join("server.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;
@@ -324,6 +329,7 @@ impl Config {
                         fs::remove_file(submod.join("client.rs"))?;
                         fs::remove_file(submod.join("consts.rs"))?;
                         fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("mock.rs"))?;
                         fs::remove_file(submod.join("mock_impl.rs"))?;
                         fs::remove_file(submod.join("services.rs"))?;
                         fs::remove_file(submod.join("types.rs"))?;

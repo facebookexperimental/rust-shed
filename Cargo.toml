@@ -47,6 +47,7 @@ members = [
   "shed/justknobs_stub",
   "shed/justknobs_stub/cached_config_thrift_struct",
   "shed/justknobs_stub/cached_config_thrift_struct/clients",
+  "shed/justknobs_stub/cached_config_thrift_struct/mocks",
   "shed/justknobs_stub/cached_config_thrift_struct/services",
   "shed/lock_ext",
   "shed/memcache_stub",
