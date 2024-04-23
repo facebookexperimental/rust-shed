@@ -48,6 +48,9 @@ pub enum GenContext {
     /// 'services' crate generation context (crate 'foo_services').
     #[serde(rename = "services")]
     Services,
+    /// 'mocks' crate generation context (crate 'foo_mocks').
+    #[serde(rename = "mocks")]
+    Mocks,
 }
 
 impl fmt::Display for GenContext {
@@ -56,6 +59,7 @@ impl fmt::Display for GenContext {
             GenContext::Types => "types",
             GenContext::Clients => "clients",
             GenContext::Services => "services",
+            GenContext::Mocks => "mocks",
         };
         fmt.write_str(t)
     }
@@ -257,6 +261,21 @@ impl Config {
 
                     fs::rename(out.join("server.rs"), out.join("lib.rs"))?;
                 }
+                GenContext::Mocks => {
+                    // The -mocks sub-crate.
+
+                    self.run_compiler(&thrift_bin, out, file)?;
+
+                    fs::remove_file(out.join("client.rs"))?;
+                    fs::remove_file(out.join("consts.rs"))?;
+                    fs::remove_file(out.join("errors.rs"))?;
+                    fs::remove_file(out.join("mock_impl.rs"))?;
+                    fs::remove_file(out.join("server.rs"))?;
+                    fs::remove_file(out.join("services.rs"))?;
+                    fs::remove_file(out.join("types.rs"))?;
+
+                    fs::rename(out.join("mock.rs"), out.join("lib.rs"))?;
+                }
             }
         } else {
             match self.gen_context {
@@ -310,6 +329,25 @@ impl Config {
                         fs::remove_file(submod.join("types.rs"))?;
 
                         fs::rename(submod.join("server.rs"), submod.join("mod.rs"))?;
+                    }
+                }
+                GenContext::Mocks => {
+                    // The -mocks sub-crate.
+
+                    for (name, file) in &input {
+                        let submod = out.join(name);
+                        fs::create_dir_all(&submod)?;
+                        self.run_compiler(&thrift_bin, &submod, file)?;
+
+                        fs::remove_file(submod.join("client.rs"))?;
+                        fs::remove_file(submod.join("consts.rs"))?;
+                        fs::remove_file(submod.join("errors.rs"))?;
+                        fs::remove_file(submod.join("mock_impl.rs"))?;
+                        fs::remove_file(submod.join("server.rs"))?;
+                        fs::remove_file(submod.join("services.rs"))?;
+                        fs::remove_file(submod.join("types.rs"))?;
+
+                        fs::rename(submod.join("mock.rs"), submod.join("mod.rs"))?;
                     }
                 }
             }
