@@ -167,8 +167,8 @@ impl Config {
     }
 
     /// Set extra srcs to be available in the generated types sub-crate.
-    pub fn types_include_srcs(&mut self, value: Vec<String>) -> &mut Self {
-        self.types_include_srcs = value;
+    pub fn types_include_srcs(&mut self, value: impl IntoIterator<Item = String>) -> &mut Self {
+        self.types_include_srcs.extend(value);
         self
     }
 
