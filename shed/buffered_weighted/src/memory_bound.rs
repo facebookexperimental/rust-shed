@@ -8,6 +8,7 @@
  */
 
 use anyhow::Ok;
+#[cfg(target_os = "linux")]
 use procfs::process::Process;
 
 /// A memory bound that serves as the upper bound for the RSS bytes of a process that
@@ -24,6 +25,7 @@ impl MemoryBound {
 
     /// Returns true if the RSS bytes of the process would still remain within
     /// the `bound` after scheduling the future of `weight` bytes.
+    #[cfg(target_os = "linux")]
     pub(crate) fn within_bound(&self, weight: usize) -> bool {
         self.bound
             .map_or(Ok(true), |bound| {
@@ -34,5 +36,11 @@ impl MemoryBound {
                 Ok(next_rss_bytes < bound)
             })
             .unwrap_or(true)
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    pub(crate) fn within_bound(&self, weight: usize) -> bool {
+        // Memory bound not supported on this platform.
+        true
     }
 }

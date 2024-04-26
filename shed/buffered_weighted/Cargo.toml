@@ -14,7 +14,6 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.75"
 futures-util = "0.3.30"
 pin-project = "0.4.30"
-procfs = "0.15.1"
 
 [dev-dependencies]
 futures = { version = "0.3.30", features = ["async-await", "compat"] }
@@ -22,3 +21,6 @@ proptest = "1.0"
 proptest-derive = "0.3"
 tokio = { version = "1.37.0", features = ["full", "test-util", "tracing"] }
 tokio-stream = { version = "0.1.14", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.15.1"
