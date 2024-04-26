@@ -1,0 +1,188 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbcode_macros//build_defs/lib:rust_oss.bzl", "rust_oss")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "sql",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "extra_buck_dependencies": {
+                "dependencies": [
+                    "fbsource//third-party/rust:mysql_common",
+                ],
+            },
+            "features": {
+                "default": [
+                    "mysql_common/chrono",
+                    "mysql_common/default",
+                ],
+            },
+            "package": {
+                "description": "Crate for accessing sql databases",
+            },
+        },
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    doctests = False,  # FIXME
+    test_deps = [
+        "fbsource//third-party/rust:tokio",
+        ":sql_tests_lib",
+        "//common/rust/mysql:mysql_client",
+    ] + ([] if rust_oss.is_oss_build() else [
+        # buildifier: keep sorted
+        "//common/rust/shed/fbinit:fbinit",
+        "//common/rust/shed/fbinit:fbinit-tokio",
+    ]),
+    test_labels = [
+        "exclude_from_coverage",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:frunk",
+        "fbsource//third-party/rust:futures",
+        "fbsource//third-party/rust:futures-util",
+        "fbsource//third-party/rust:mysql_async",
+        "fbsource//third-party/rust:rusqlite",
+        ":sql_common",
+        "//common/rust/shed/cloned:cloned",
+        "//common/rust/shed/futures_ext:futures_ext",
+    ],
+)
+
+rust_library(
+    name = "sql_common",
+    srcs = glob(["common/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "extra_buck_dependencies": {
+                "dependencies": [
+                    "fbsource//third-party/rust:thiserror",
+                ],
+                "dev-dependencies": [
+                    ":sql",  # Used in docs
+                    ":sql_tests_lib",  # Used in docs
+                ],
+            },
+            "features": {
+                "default": ["rusqlite/bundled"],
+            },
+            "package": {
+                "description": "Common definitions for sql crate",
+                "readme": "../../../README.md",
+            },
+        },
+        "cargo_toml_dir": "common",
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    doctests = False,  # FIXME
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:async-trait",
+        "fbsource//third-party/rust:futures",
+        "fbsource//third-party/rust:itertools",
+        "fbsource//third-party/rust:mysql_async",
+        "fbsource//third-party/rust:rusqlite",
+        "fbsource//third-party/rust:vec1",
+        ":mysql_derive",
+        "//common/rust/mysql:mysql_client",
+        "//common/rust/shed/stats:stats",
+    ] + ([
+        "fbsource//third-party/rust:thiserror",
+    ] if rust_oss.is_oss_build() else [
+        # buildifier: keep sorted
+        "fbsource//third-party/rust:tokio",
+        "//common/rust/shed/cloned:cloned",
+        "//common/rust/shed/futures_stats:futures_stats",
+        "//common/rust/shed/time_ext:time_ext",
+    ]),
+)
+
+rust_library(
+    name = "mysql_derive",
+    srcs = glob(["derive/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "proc macro for sql_common::mysql",
+                "readme": "../../../README.md",
+            },
+        },
+        "cargo_toml_dir": "derive",
+    },
+    crate_root = "derive/lib.rs",
+    proc_macro = True,
+    deps = [
+        "fbsource//third-party/rust:quote",
+        "fbsource//third-party/rust:syn1",
+    ],
+)
+
+rust_library(
+    name = "sql_facebook",
+    srcs = glob(["facebook/src/**/*.rs"]),
+    allow_oss_build = False,
+    autocargo = {"ignore_rule": True},
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    test_deps = [
+        "fbsource//third-party/rust:rand",
+        ":sql_tests_lib",
+        "//common/rust/shed/fbinit:fbinit-tokio",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        ":db-bridge",
+        ":sql_common",
+        "//common/rust/mysql:mysql_client",
+        "//common/rust/shed/fbinit:fbinit",
+    ],
+)
+
+rust_library(
+    name = "sql_tests_lib",
+    srcs = glob(["tests_lib/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Test library for sql crate",
+                "readme": "../../../README.md",
+            },
+        },
+        "cargo_toml_dir": "tests_lib",
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    deps = [
+        "fbsource//third-party/rust:chrono",
+        "fbsource//third-party/rust:rand",
+        ":sql",
+    ],
+)
+
+rust_library(
+    name = "db-bridge",
+    srcs = ["facebook/sys/db.rs"],
+    allow_oss_build = False,
+    autocargo = {"ignore_rule": True},
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    crate_root = "facebook/sys/db.rs",
+    named_deps = {
+        "mysql_client": "//common/db/lang:client-rs_bindings",
+        "mysql_test_db": "//common/db/lang:test_db-rs_bindings",
+        "mysql_types": "//common/db/lang:db-rust",
+    },
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+    ],
+)

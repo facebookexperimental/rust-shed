@@ -1,0 +1,71 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbcode_macros//build_defs:rust_unittest.bzl", "rust_unittest")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "scuba_sample",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Helps build scuba samples",
+            },
+        },
+    },
+    test_deps = [
+        "fbsource//third-party/rust:assert_matches",
+        "fbsource//third-party/rust:nonzero_ext",
+        "fbsource//third-party/rust:quickcheck",
+        "fbsource//third-party/rust:rand_chacha",
+    ],
+    deps = [
+        "fbsource//third-party/rust:rand",
+        "fbsource//third-party/rust:serde",
+        "fbsource//third-party/rust:serde_json",
+        "fbsource//third-party/rust:thiserror",
+        ":scuba_sample_derive",
+        "//common/rust/shed/fbinit:fbinit",
+    ],
+)
+
+rust_library(
+    name = "scuba_sample_derive",
+    srcs = glob(["derive/src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Provides derive(StructuredSample)",
+            },
+        },
+        "cargo_toml_dir": "derive/",
+    },
+    proc_macro = True,
+    unittests = False,
+    deps = [
+        "fbsource//third-party/rust:darling",
+        "fbsource//third-party/rust:itertools",
+        "fbsource//third-party/rust:proc-macro2",
+        "fbsource//third-party/rust:quote",
+        "fbsource//third-party/rust:syn1",
+    ],
+)
+
+rust_unittest(
+    name = "scuba_sample_derive_test",
+    srcs = glob(["derive_tests/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Tests derive(StructuredSample)",
+            },
+        },
+        "cargo_toml_dir": "derive_tests/",
+    },
+    crate_root = "derive_tests/test.rs",
+    deps = [
+        "fbsource//third-party/rust:serde_json",
+        ":scuba_sample",
+    ],
+)
