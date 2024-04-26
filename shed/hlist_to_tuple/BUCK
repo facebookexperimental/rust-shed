@@ -1,0 +1,18 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+
+oncall("source_control")
+
+rust_library(
+    name = "hlist_to_tuple",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Crate for converting HList to tuple",
+            },
+        },
+    },
+    deps = [
+        "fbsource//third-party/rust:frunk",
+    ],
+)

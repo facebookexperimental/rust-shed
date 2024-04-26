@@ -1,0 +1,89 @@
+load("@fbcode_macros//build_defs:cpp_binary.bzl", "cpp_binary")
+load("@fbcode_macros//build_defs:rust_binary.bzl", "rust_binary")
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbsource//tools/build_defs:cram_test.bzl", "cram_test")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "slog_glog_fmt",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "slog Drain for glog-formatted logs",
+            },
+        },
+    },
+    os_deps = [
+        (
+            "linux",
+            [
+                "fbsource//third-party/rust:nix",
+            ],
+        ),
+        (
+            "macos",
+            [
+                "fbsource//third-party/rust:nix",
+            ],
+        ),
+    ],
+    test_deps = [
+        "fbsource//third-party/rust:once_cell",
+        "fbsource//third-party/rust:rand",
+        "fbsource//third-party/rust:regex",
+        "fbsource//third-party/rust:thiserror",
+    ],
+    tests = [
+        ":rust-slog-glog-comparison",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:chrono",
+        "fbsource//third-party/rust:hostname",
+        "fbsource//third-party/rust:itertools",
+        "fbsource//third-party/rust:slog",
+        "fbsource//third-party/rust:slog-term",
+        "//common/rust/shed/failure_ext:failure_ext",
+    ],
+)
+
+rust_binary(
+    name = "slog_glog_fmt_example",
+    srcs = glob(["example/**/*.rs"]),
+    crate = "slog_glog_fmt_example",
+    deps = [
+        "fbsource//third-party/rust:slog",
+        ":slog_glog_fmt",
+    ],
+)
+
+cpp_binary(
+    name = "rust_slog_glog_cmp_cpp",
+    srcs = ["facebook/RustSlogGlogCmp.cpp"],
+    deps = ["//common/init:light"],
+    external_deps = ["glog"],
+)
+
+rust_binary(
+    name = "rust_slog_glog_cmp_rust",
+    srcs = ["facebook/rust_slog_glog_cmp.rs"],
+    autocargo = {"ignore_rule": True},
+    crate_root = "facebook/rust_slog_glog_cmp.rs",
+    deps = [
+        "fbsource//third-party/rust:slog",
+        "//common/rust/shed/slog_glog_fmt:slog_glog_fmt",
+    ],
+)
+
+# buck run :rust-slog-glog-comparison-cram -- test-rust-slog-glog-comparison.t -iy
+cram_test(
+    name = "rust-slog-glog-comparison",
+    srcs = ["facebook/test-rust-slog-glog-comparison.t"],
+    env = {
+        "RUST_SLOG_GLOG_CMP_CPP": "$(location :rust_slog_glog_cmp_cpp)",
+        "RUST_SLOG_GLOG_CMP_RUST": "$(location :rust_slog_glog_cmp_rust)",
+    },
+)

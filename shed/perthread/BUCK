@@ -1,0 +1,22 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "perthread",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Provides ThreadMap structure for accessing PerThread thread local variables form a static context",
+            },
+        },
+    },
+    doc_deps = [
+        "fbsource//third-party/rust:once_cell",
+    ],
+    test_deps = [
+        "fbsource//third-party/rust:once_cell",
+    ],
+)

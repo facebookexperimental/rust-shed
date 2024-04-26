@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbcode_macros//build_defs/lib:rust_oss.bzl", "rust_oss")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "secure_utils",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Crate with useful security utilities",
+            },
+        },
+    },
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:openssl",
+        "fbsource//third-party/rust:slog",
+    ] + ([
+    ] if rust_oss.is_oss_build() else [
+        # buildifier: keep sorted
+        "fbsource//third-party/rust:hex",
+        "fbsource//third-party/rust:libc",
+        "fbsource//third-party/rust:openssl-sys",
+        "fbsource//third-party/rust:serde",
+        "fbsource//third-party/rust:serde_json",
+    ]),
+)

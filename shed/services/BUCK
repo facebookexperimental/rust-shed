@@ -1,0 +1,59 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbcode_macros//build_defs/lib:rust_oss.bzl", "rust_oss")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "services",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "extra_buck_dependencies": {
+                "dependencies": [
+                    ":services_common",
+                    "//common/rust/shed/fbinit:fbinit",
+                ],
+            },
+            "package": {
+                "description": "Stubs for facebook services",
+            },
+        },
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    named_deps = {
+        "fb_services": "//common/rust/services:services",
+    },
+    deps = [] + ([
+        # buildifier: keep sorted
+        ":services_common",
+        "//common/rust/shed/fbinit:fbinit",
+    ] if rust_oss.is_oss_build() else []),
+)
+
+rust_library(
+    name = "services_common",
+    srcs = glob(["common/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Common code for stubbed facebook services",
+                "homepage": "https://github.com/facebookexperimental/rust-shed/",
+                "readme": "../../README.md",
+                "repository": "https://github.com/facebookexperimental/rust-shed/",
+            },
+        },
+        "cargo_toml_dir": "common",
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    deps = [
+        "fbsource//third-party/rust:cxx",
+        "fbsource//third-party/rust:thiserror",
+    ] + ([] if rust_oss.is_oss_build() else [
+        "//common/fb303/if:fb303-rust",
+    ]),
+)

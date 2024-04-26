@@ -1,0 +1,32 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbsource//tools/build_defs:glob_defs.bzl", "glob")
+
+oncall("autocargo")
+
+rust_library(
+    name = "buffered_weighted",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Ordered stream implementation that allows for concurrent polling constrained by the weight of the futures",
+            },
+        },
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    test_deps = [
+        "fbsource//third-party/rust:futures",
+        "fbsource//third-party/rust:proptest",
+        "fbsource//third-party/rust:proptest-derive",
+        "fbsource//third-party/rust:tokio",
+        "fbsource//third-party/rust:tokio-stream",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:futures-util",
+        "fbsource//third-party/rust:pin-project",
+        "fbsource//third-party/rust:procfs",
+    ],
+)
