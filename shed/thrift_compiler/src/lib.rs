@@ -226,6 +226,7 @@ impl Config {
 
                     // These files are not of interest here (for now).
                     fs::remove_file(out.join("client.rs"))?;
+                    fs::remove_file(out.join("errors.rs"))?;
                     fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
 
@@ -240,7 +241,6 @@ impl Config {
                     self.run_compiler(&thrift_bin, out, file)?;
 
                     fs::remove_file(out.join("consts.rs"))?;
-                    fs::remove_file(out.join("errors.rs"))?;
                     fs::remove_file(out.join("mock.rs"))?;
                     fs::remove_file(out.join("server.rs"))?;
                     fs::remove_file(out.join("services.rs"))?;
