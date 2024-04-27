@@ -76,7 +76,7 @@ pub struct Config {
     clients_crate: Option<String>,
     services_crate: Option<String>,
     options: Option<String>,
-    types_include_srcs: Vec<String>, // src to include in the -types sub-crate
+    include_srcs: Vec<String>,
 }
 
 impl Config {
@@ -96,7 +96,7 @@ impl Config {
             clients_crate: None,
             services_crate: None,
             options: None,
-            types_include_srcs: vec![],
+            include_srcs: vec![],
         })
     }
 
@@ -166,9 +166,9 @@ impl Config {
         self
     }
 
-    /// Set extra srcs to be available in the generated types sub-crate.
-    pub fn types_include_srcs(&mut self, value: impl IntoIterator<Item = String>) -> &mut Self {
-        self.types_include_srcs.extend(value);
+    /// Set extra srcs to be included into the generated crate.
+    pub fn include_srcs(&mut self, value: impl IntoIterator<Item = String>) -> &mut Self {
+        self.include_srcs.extend(value);
         self
     }
 
@@ -210,12 +210,12 @@ impl Config {
         for input in &input {
             println!("cargo:rerun-if-changed={}", input.1.as_ref().display());
         }
-        for types_include_src in &self.types_include_srcs {
-            println!("cargo:rerun-if-changed={types_include_src}");
+        for include_src in &self.include_srcs {
+            println!("cargo:rerun-if-changed={include_src}");
             if let GenContext::Types = self.gen_context {
-                let out_path = self.remap_to_out_dir(types_include_src);
+                let out_path = self.remap_to_out_dir(include_src);
                 fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
-                fs::copy(types_include_src, out.join(out_path))?;
+                fs::copy(include_src, out.join(out_path))?;
             }
         }
 
@@ -431,11 +431,14 @@ impl Config {
             if let Some(services_crate) = &self.services_crate {
                 args.push(format!("services_crate={}", services_crate));
             }
-            if !self.types_include_srcs.is_empty() {
-                args.push(format!(
-                    "types_include_srcs={}",
-                    self.include_srcs_arg(&self.types_include_srcs)
-                ));
+            if !self.include_srcs.is_empty() {
+                let srcs = self.include_srcs_arg(&self.include_srcs);
+                match self.gen_context {
+                    GenContext::Types => args.push(format!("types_include_srcs={srcs}")),
+                    GenContext::Clients => args.push(format!("clients_include_srcs={srcs}")),
+                    GenContext::Services => args.push(format!("services_include_srcs={srcs}")),
+                    GenContext::Mocks => {}
+                }
             }
             if let Some(options) = &self.options {
                 args.push(options.to_owned());
