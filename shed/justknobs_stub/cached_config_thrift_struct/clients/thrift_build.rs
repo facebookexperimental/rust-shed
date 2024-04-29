@@ -28,7 +28,6 @@ fn main() {
     conf.base_path(base_path);
     conf.types_crate("just_knobs_struct__types");
     conf.clients_crate("just_knobs_struct__clients");
-    conf.services_crate("just_knobs_struct__services");
     conf.options("serde");
     let srcs = &["../just_knobs.thrift"];
     conf.run(srcs).expect("Failed while running thrift compilation");

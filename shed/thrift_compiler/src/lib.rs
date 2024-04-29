@@ -74,7 +74,6 @@ pub struct Config {
     crate_map: Option<PathBuf>,
     types_crate: Option<String>,
     clients_crate: Option<String>,
-    services_crate: Option<String>,
     options: Option<String>,
     include_srcs: Vec<String>,
 }
@@ -94,7 +93,6 @@ impl Config {
             crate_map: None,
             types_crate: None,
             clients_crate: None,
-            services_crate: None,
             options: None,
             include_srcs: vec![],
         })
@@ -149,13 +147,6 @@ impl Config {
     /// be able to generate things like `use ::foo__clients`).
     pub fn clients_crate(&mut self, value: impl Into<String>) -> &mut Self {
         self.clients_crate = Some(value.into());
-        self
-    }
-
-    /// Set the name of the services sub-crate needed by by the thrift-compiler (to
-    /// be able to generate things like `use ::foo__services`).
-    pub fn services_crate(&mut self, value: impl Into<String>) -> &mut Self {
-        self.services_crate = Some(value.into());
         self
     }
 
@@ -427,9 +418,6 @@ impl Config {
             }
             if let Some(clients_crate) = &self.clients_crate {
                 args.push(format!("clients_crate={}", clients_crate));
-            }
-            if let Some(services_crate) = &self.services_crate {
-                args.push(format!("services_crate={}", services_crate));
             }
             if !self.include_srcs.is_empty() {
                 let srcs = self.include_srcs_arg(&self.include_srcs);
