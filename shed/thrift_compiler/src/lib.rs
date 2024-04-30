@@ -409,7 +409,6 @@ impl Config {
                 args.push(format!("cratemap={}", crate_map.display()))
             }
             if let Some(base_path) = &self.base_path {
-                args.push(format!("include_prefix={}", base_path.display()));
                 cmd.arg("-I");
                 cmd.arg(base_path);
             }
