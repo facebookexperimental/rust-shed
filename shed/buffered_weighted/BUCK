@@ -16,6 +16,9 @@ rust_library(
     compatible_with = [
         "ovr_config//os:linux",
     ],
+    doc_deps = [
+        "fbsource//third-party/rust:futures",
+    ],
     os_deps = [
         (
             "linux",
