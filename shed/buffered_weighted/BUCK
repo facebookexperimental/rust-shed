@@ -16,6 +16,14 @@ rust_library(
     compatible_with = [
         "ovr_config//os:linux",
     ],
+    os_deps = [
+        (
+            "linux",
+            [
+                "fbsource//third-party/rust:procfs",
+            ],
+        ),
+    ],
     test_deps = [
         "fbsource//third-party/rust:futures",
         "fbsource//third-party/rust:proptest",
@@ -27,6 +35,5 @@ rust_library(
         "fbsource//third-party/rust:anyhow",
         "fbsource//third-party/rust:futures-util",
         "fbsource//third-party/rust:pin-project",
-        "fbsource//third-party/rust:procfs",
     ],
 )
