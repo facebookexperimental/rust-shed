@@ -36,7 +36,7 @@ where
     T: Ord,
 {
     /// Creates a new, empty SortedVectorSet.
-    pub fn new() -> SortedVectorSet<T> {
+    pub const fn new() -> SortedVectorSet<T> {
         SortedVectorSet(Vec::new())
     }
 

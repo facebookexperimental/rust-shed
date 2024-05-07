@@ -36,7 +36,7 @@ where
     K: Ord,
 {
     /// Creates a new, empty SortedVectorMap.
-    pub fn new() -> SortedVectorMap<K, V> {
+    pub const fn new() -> SortedVectorMap<K, V> {
         SortedVectorMap(Vec::new())
     }
 
