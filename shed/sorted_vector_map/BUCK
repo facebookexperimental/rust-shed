@@ -39,6 +39,7 @@ rust_library(
                 ],
                 "readme": "README.md",
                 "repository": "https://github.com/facebookexperimental/rust-shed",
+                "version": "0.2.0",
             },
         },
     },

@@ -2,7 +2,7 @@
 
 [package]
 name = "sorted_vector_map"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Facebook <opensource+crates-sorted-vector-map@fb.com>"]
 edition = "2021"
 description = "maps and sets backed by sorted vectors"
