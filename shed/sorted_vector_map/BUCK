@@ -22,6 +22,7 @@ rust_library(
                     "name": "set",
                 },
             ],
+            "dependencies_override": {"dev-dependencies": {"minibench": {"version": None}}},
             "extra_buck_dependencies": {
                 "dev-dependencies": [
                     "//eden/scm/lib/minibench:minibench",
