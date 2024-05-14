@@ -96,8 +96,8 @@ pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
 
 // Similar to #[fbinit::test], but allows for nesting with other test attributes (e.g. #[rstest]) that wraps #[test].
 //
-//     #[rstest]
 //     #[fbinit::nested_test]
+//     #[rstest]
 //     fn name_of_test(fb: FacebookInit, some_fixture: u32) {
 //         ...
 //     }
