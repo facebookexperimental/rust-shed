@@ -29,6 +29,6 @@ fn main() {
     conf.types_crate("just_knobs_struct__types");
     conf.clients_crate("just_knobs_struct__clients");
     conf.options("serde");
-    let srcs = &["just_knobs.thrift"];
+    let srcs: &[&str] = &["just_knobs.thrift"];
     conf.run(srcs).expect("Failed while running thrift compilation");
 }
