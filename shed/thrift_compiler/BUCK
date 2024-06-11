@@ -28,6 +28,7 @@ rust_library(
     deps = [
         "fbsource//third-party/rust:anyhow",
         "fbsource//third-party/rust:clap",
+        "fbsource//third-party/rust:dunce",
         "fbsource//third-party/rust:serde",
         "fbsource//third-party/rust:which",
     ],

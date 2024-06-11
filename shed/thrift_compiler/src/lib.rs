@@ -17,7 +17,6 @@
 
 use std::borrow::Cow;
 use std::env;
-use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::fmt;
 use std::fs;
@@ -346,26 +345,32 @@ impl Config {
         Ok(())
     }
 
-    fn resolve_thrift_bin(&self) -> Result<Cow<'_, OsString>> {
+    fn resolve_thrift_bin(&self) -> Result<PathBuf> {
         // Get raw location
-        let mut thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
+        let thrift_bin = if let Some(bin) = self.thrift_bin.as_ref() {
             Cow::Borrowed(bin)
         } else {
             Cow::Owned(self.infer_thrift_binary())
         };
         // Resolve based on PATH if needed
-        let thrift_bin_path: &Path = thrift_bin.as_ref().as_ref();
-        if thrift_bin_path.components().count() == 1 {
+        let thrift_bin_path = Path::new(&*thrift_bin);
+        let mut thrift_bin = if thrift_bin_path.components().count() == 1 {
             println!("cargo:rerun-if-env-changed=PATH");
-            let new_path = which(thrift_bin.as_ref()).with_context(|| {
+            which(thrift_bin_path).with_context(|| {
                 format!(
                     "Failed to resolve thrift binary `{}` to an absolute path",
                     thrift_bin.to_string_lossy()
                 )
-            })?;
-            thrift_bin = Cow::Owned(new_path.into_os_string())
-        }
+            })?
+        } else {
+            thrift_bin_path.to_owned()
+        };
         println!("cargo:rerun-if-changed={}", thrift_bin.to_string_lossy());
+        // Canonicalize so that it refers to the same path when run as a
+        // subprocess in a different current directory.
+        if self.base_path.is_some() {
+            thrift_bin = dunce::canonicalize(thrift_bin)?;
+        }
         Ok(thrift_bin)
     }
 
@@ -385,7 +390,7 @@ impl Config {
 
     fn run_compiler(
         &self,
-        thrift_bin: &OsStr,
+        thrift_bin: &Path,
         out: impl AsRef<Path>,
         input: impl AsRef<Path>,
     ) -> Result<()> {
@@ -395,6 +400,7 @@ impl Config {
             move || mem::replace(&mut separator, ",")
         };
         if let Some(crate_map) = &self.crate_map {
+            let crate_map = dunce::canonicalize(crate_map)?;
             mstch_rust_args.push(separator());
             mstch_rust_args.push("cratemap=");
             mstch_rust_args.push(crate_map);
@@ -431,14 +437,19 @@ impl Config {
         }
 
         let mut cmd = Command::new(thrift_bin);
+        cmd.arg("--gen").arg(mstch_rust_args);
+
+        let out = dunce::canonicalize(out)?;
+        cmd.arg("--out").arg(out);
+
         if let Some(base_path) = &self.base_path {
-            cmd.arg("-I").arg(base_path);
+            cmd.current_dir(base_path);
+            cmd.arg("-I");
+            cmd.arg(".");
+            cmd.arg(relative_path(base_path, input)?);
+        } else {
+            cmd.arg(input.as_ref());
         }
-        cmd.arg("--gen")
-            .arg(mstch_rust_args)
-            .arg("--out")
-            .arg(out.as_ref())
-            .arg(input.as_ref());
 
         let output = cmd.output().with_context(|| {
             format!(
@@ -480,4 +491,29 @@ fn name_and_path_from_input<T: AsRef<Path>>(
             ))
         })
         .collect()
+}
+
+fn relative_path(base: impl AsRef<Path>, destination: impl AsRef<Path>) -> Result<PathBuf> {
+    let base = dunce::canonicalize(base)?;
+    let destination = dunce::canonicalize(destination)?;
+
+    let mut common_prefix = base.as_path();
+    let mut upward = PathBuf::new();
+    loop {
+        if let Ok(relative) = destination.strip_prefix(common_prefix) {
+            return Ok(upward.join(relative));
+        } else {
+            upward.push("..");
+            common_prefix = common_prefix
+                .parent()
+                .with_context(|| {
+                    format!(
+                        "cannot express {} relative to {}",
+                        destination.display(),
+                        base.display(),
+                    )
+                })
+                .unwrap();
+        }
+    }
 }
