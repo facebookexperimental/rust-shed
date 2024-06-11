@@ -21,6 +21,7 @@ use std::ffi::OsString;
 use std::fmt;
 use std::fs;
 use std::mem;
+use std::path::Component;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -75,7 +76,7 @@ pub struct Config {
     types_crate: Option<String>,
     clients_crate: Option<String>,
     options: Option<String>,
-    include_srcs: Vec<String>,
+    include_srcs: Vec<PathBuf>,
 }
 
 impl Config {
@@ -158,20 +159,21 @@ impl Config {
     }
 
     /// Set extra srcs to be included into the generated crate.
-    pub fn include_srcs(&mut self, value: impl IntoIterator<Item = String>) -> &mut Self {
-        self.include_srcs.extend(value);
+    pub fn include_srcs(&mut self, value: impl IntoIterator<Item = impl AsRef<Path>>) -> &mut Self {
+        self.include_srcs
+            .extend(value.into_iter().map(|path| path.as_ref().to_owned()));
         self
     }
 
     /// Transform a relative path so leading "../"'s are replaced with "_t".
-    pub fn remap_to_out_dir(&self, path: &str) -> PathBuf {
+    pub fn remap_to_out_dir(&self, path: &Path) -> PathBuf {
         let mut rem = path;
-        let mut parts = vec![];
-        while let Some(p) = rem.strip_prefix("../") {
+        let mut parts = PathBuf::new();
+        while let Ok(p) = rem.strip_prefix(Component::ParentDir) {
             rem = p;
             parts.push("_t");
         }
-        Path::new(&parts.join("/")).join(rem)
+        parts.join(rem)
     }
 
     /// Run the compiler on the input files. As a result a `lib.rs` file will be
@@ -190,7 +192,7 @@ impl Config {
             println!("cargo:rerun-if-changed={}", input.1.as_ref().display());
         }
         for include_src in &self.include_srcs {
-            println!("cargo:rerun-if-changed={include_src}");
+            println!("cargo:rerun-if-changed={}", include_src.to_string_lossy());
             if let GenContext::Types = self.gen_context {
                 let out_path = self.remap_to_out_dir(include_src);
                 fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
