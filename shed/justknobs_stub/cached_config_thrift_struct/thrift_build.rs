@@ -6,7 +6,7 @@ use std::path::Path;
 use thrift_compiler::Config;
 use thrift_compiler::GenContext;
 const CRATEMAP: &str = "\
-just_knobs crate //common/rust/shed/justknobs_stub/cached_config_thrift_struct:just_knobs_struct-rust
+common/rust/shed/justknobs_stub/cached_config_thrift_struct/just_knobs.thrift crate //common/rust/shed/justknobs_stub/cached_config_thrift_struct:just_knobs_struct-rust
 ";
 #[rustfmt::skip]
 fn main() {
