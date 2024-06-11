@@ -21,6 +21,7 @@ use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::fmt;
 use std::fs;
+use std::mem;
 use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
@@ -172,18 +173,6 @@ impl Config {
             parts.push("_t");
         }
         Path::new(&parts.join("/")).join(rem)
-    }
-
-    /// Map `remap_to_out_dir` over the given paths and join the result with
-    /// ":".
-    pub fn include_srcs_arg(&self, ps: &[String]) -> String {
-        ps.iter()
-            .map(|p| self.remap_to_out_dir(p))
-            .collect::<Vec<PathBuf>>()
-            .iter()
-            .map(|p| p.to_str().unwrap())
-            .collect::<Vec<&str>>()
-            .join(":")
     }
 
     /// Run the compiler on the input files. As a result a `lib.rs` file will be
@@ -400,45 +389,53 @@ impl Config {
         out: impl AsRef<Path>,
         input: impl AsRef<Path>,
     ) -> Result<()> {
-        let mut cmd = Command::new(thrift_bin);
-
-        let args = {
-            let mut args = Vec::new();
-
-            if let Some(crate_map) = &self.crate_map {
-                args.push(format!("cratemap={}", crate_map.display()))
-            }
-            if let Some(base_path) = &self.base_path {
-                cmd.arg("-I");
-                cmd.arg(base_path);
-            }
-            if let Some(types_crate) = &self.types_crate {
-                args.push(format!("types_crate={}", types_crate));
-            }
-            if let Some(clients_crate) = &self.clients_crate {
-                args.push(format!("clients_crate={}", clients_crate));
-            }
-            if !self.include_srcs.is_empty() {
-                let srcs = self.include_srcs_arg(&self.include_srcs);
-                match self.gen_context {
-                    GenContext::Types => args.push(format!("types_include_srcs={srcs}")),
-                    GenContext::Clients => args.push(format!("clients_include_srcs={srcs}")),
-                    GenContext::Services => args.push(format!("services_include_srcs={srcs}")),
-                    GenContext::Mocks => {}
-                }
-            }
-            if let Some(options) = &self.options {
-                args.push(options.to_owned());
-            }
-            if args.is_empty() {
-                "".to_owned()
-            } else {
-                format!(":{}", args.join(","))
-            }
+        let mut mstch_rust_args = OsString::from("mstch_rust");
+        let mut separator = {
+            let mut separator = ":";
+            move || mem::replace(&mut separator, ",")
         };
+        if let Some(crate_map) = &self.crate_map {
+            mstch_rust_args.push(separator());
+            mstch_rust_args.push("cratemap=");
+            mstch_rust_args.push(crate_map);
+        }
+        if let Some(types_crate) = &self.types_crate {
+            mstch_rust_args.push(separator());
+            mstch_rust_args.push("types_crate=");
+            mstch_rust_args.push(types_crate);
+        }
+        if let Some(clients_crate) = &self.clients_crate {
+            mstch_rust_args.push(separator());
+            mstch_rust_args.push("clients_crate=");
+            mstch_rust_args.push(clients_crate);
+        }
+        if let Some(include_srcs_arg_name) = match self.gen_context {
+            _ if self.include_srcs.is_empty() => None,
+            GenContext::Types => Some("types_include_srcs="),
+            GenContext::Clients => Some("clients_include_srcs="),
+            GenContext::Services => Some("services_include_srcs="),
+            GenContext::Mocks => None,
+        } {
+            mstch_rust_args.push(separator());
+            mstch_rust_args.push(include_srcs_arg_name);
+            for (i, src) in self.include_srcs.iter().enumerate() {
+                if i != 0 {
+                    mstch_rust_args.push(":");
+                }
+                mstch_rust_args.push(self.remap_to_out_dir(src));
+            }
+        }
+        if let Some(options) = &self.options {
+            mstch_rust_args.push(separator());
+            mstch_rust_args.push(options);
+        }
 
+        let mut cmd = Command::new(thrift_bin);
+        if let Some(base_path) = &self.base_path {
+            cmd.arg("-I").arg(base_path);
+        }
         cmd.arg("--gen")
-            .arg(format!("mstch_rust{args}"))
+            .arg(mstch_rust_args)
             .arg("--out")
             .arg(out.as_ref())
             .arg(input.as_ref());
