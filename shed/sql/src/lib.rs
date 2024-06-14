@@ -428,7 +428,8 @@ macro_rules! _read_query_impl {
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.push_str(" # ");
+                        query.push_str(comment);
                     }
                     conn.read_query(query).map_err(Error::from).await
                 }
