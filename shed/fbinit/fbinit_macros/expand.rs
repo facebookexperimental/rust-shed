@@ -14,9 +14,8 @@ use syn::punctuated::Punctuated;
 use syn::Error;
 use syn::ItemFn;
 use syn::Result;
-use syn::Token;
 
-use crate::args::Arg;
+use crate::args::Args;
 use crate::args::DisableFatalSignals;
 
 #[derive(Copy, Clone, PartialEq)]
@@ -26,22 +25,7 @@ pub enum Mode {
     NestedTest,
 }
 
-pub fn expand(
-    mode: Mode,
-    args: Punctuated<Arg, Token![,]>,
-    mut function: ItemFn,
-) -> Result<TokenStream> {
-    let mut disable_fatal_signals =
-        DisableFatalSignals::Default(syn::parse2(quote! { default }).expect("This always parses"));
-
-    let mut tokio_workers: usize = 0;
-    for arg in args {
-        match arg {
-            Arg::DisableFatalSignals { value, .. } => disable_fatal_signals = value,
-            Arg::TokioWorkers { workers, .. } => tokio_workers = workers.base10_parse()?,
-        }
-    }
-
+pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStream> {
     if mode != Mode::NestedTest && function.sig.inputs.len() > 1 {
         return Err(Error::new_spanned(
             function.sig,
@@ -82,35 +66,38 @@ pub fn expand(
         (true, Mode::Test | Mode::NestedTest) => quote! {
             fbinit_tokio::tokio_test(async #block )
         },
-        (true, Mode::Main) => quote! {
-            fbinit_tokio::tokio_main(#tokio_workers, async #block )
-        },
+        (true, Mode::Main) => {
+            let tokio_workers = args.tokio_workers;
+            quote! {
+                fbinit_tokio::tokio_main(#tokio_workers, async #block )
+            }
+        }
         (false, _) => {
             let stmts = block.stmts;
             quote! { #(#stmts)* }
         }
     };
 
-    let perform_init = match disable_fatal_signals {
-        DisableFatalSignals::Default(_) => {
+    let perform_init = match args.disable_fatal_signals {
+        DisableFatalSignals::Default => {
             // 8002 is 1 << 15 (SIGTERM) | 1 << 2 (SIGINT)
             quote! {
                 fbinit::internal::perform_init_with_disable_signals(0x8002)
             }
         }
-        DisableFatalSignals::All(_) => {
+        DisableFatalSignals::All => {
             // ffff is a mask of all 1's
             quote! {
                 fbinit::internal::perform_init_with_disable_signals(0xffff)
             }
         }
-        DisableFatalSignals::SigtermOnly(_) => {
+        DisableFatalSignals::SigtermOnly => {
             // 8000 is 1 << 15 (SIGTERM)
             quote! {
                 fbinit::internal::perform_init_with_disable_signals(0x8000)
             }
         }
-        DisableFatalSignals::None(_) => {
+        DisableFatalSignals::None => {
             quote! {
                 fbinit::perform_init()
             }

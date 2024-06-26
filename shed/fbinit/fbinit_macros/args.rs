@@ -7,76 +7,50 @@
  * of this source tree.
  */
 
-use syn::parse::Parse;
-use syn::parse::ParseStream;
+use syn::meta::ParseNestedMeta;
+use syn::parse::Error;
 use syn::parse::Result;
+use syn::Ident;
 use syn::LitInt;
-use syn::Token;
 
-mod kw {
-    syn::custom_keyword!(disable_fatal_signals);
-    syn::custom_keyword!(none);
-    syn::custom_keyword!(sigterm_only);
-    syn::custom_keyword!(all);
-    syn::custom_keyword!(worker_threads);
+#[derive(Default)]
+pub struct Args {
+    pub disable_fatal_signals: DisableFatalSignals,
+    pub tokio_workers: usize,
 }
 
-pub enum Arg {
-    DisableFatalSignals {
-        kw_token: kw::disable_fatal_signals,
-        eq_token: Token![=],
-        value: DisableFatalSignals,
-    },
-    TokioWorkers {
-        kw_token: kw::worker_threads,
-        eq_token: Token![=],
-        workers: LitInt,
-    },
-}
-
+#[derive(Default)]
 pub enum DisableFatalSignals {
-    Default(Token![default]),
-    None(kw::none),
-    SigtermOnly(kw::sigterm_only),
-    All(kw::all),
+    #[default]
+    Default,
+    None,
+    SigtermOnly,
+    All,
 }
 
-impl Parse for Arg {
-    fn parse(input: ParseStream) -> Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::disable_fatal_signals) {
-            let kw_token = input.parse()?;
-            let eq_token = input.parse()?;
-
-            let lookahead = input.lookahead1();
-            let value = if lookahead.peek(kw::none) {
-                DisableFatalSignals::None(input.parse()?)
-            } else if lookahead.peek(Token![default]) {
-                DisableFatalSignals::Default(input.parse()?)
-            } else if lookahead.peek(kw::all) {
-                DisableFatalSignals::All(input.parse()?)
-            } else if lookahead.peek(kw::sigterm_only) {
-                DisableFatalSignals::SigtermOnly(input.parse()?)
-            } else {
-                return Err(lookahead.error());
+impl Args {
+    pub fn parse(&mut self, meta: ParseNestedMeta) -> Result<()> {
+        if meta.path.is_ident("disable_fatal_signals") {
+            let ident: Ident = meta.value()?.parse()?;
+            self.disable_fatal_signals = match ident.to_string().as_str() {
+                "none" => DisableFatalSignals::None,
+                "default" => DisableFatalSignals::Default,
+                "sigterm_only" => DisableFatalSignals::SigtermOnly,
+                "all" => DisableFatalSignals::All,
+                _ => {
+                    return Err(Error::new(
+                        ident.span(),
+                        "expected `none`, `default`, `sigterm_only`, or `all`",
+                    ));
+                }
             };
-
-            Ok(Self::DisableFatalSignals {
-                kw_token,
-                eq_token,
-                value,
-            })
-        } else if lookahead.peek(kw::worker_threads) {
-            let kw_token = input.parse()?;
-            let eq_token = input.parse()?;
-            let workers = input.parse()?;
-            Ok(Self::TokioWorkers {
-                kw_token,
-                eq_token,
-                workers,
-            })
+            Ok(())
+        } else if meta.path.is_ident("worker_threads") {
+            let lit: LitInt = meta.value()?.parse()?;
+            self.tokio_workers = lit.base10_parse()?;
+            Ok(())
         } else {
-            Err(lookahead.error())
+            Err(meta.error("unrecognized fbinit attribute"))
         }
     }
 }

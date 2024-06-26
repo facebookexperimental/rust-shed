@@ -18,8 +18,9 @@ mod expand;
 use proc_macro::TokenStream;
 use syn::parse::Error;
 use syn::parse_macro_input;
-use syn::punctuated::Punctuated;
+use syn::ItemFn;
 
+use crate::args::Args;
 use crate::expand::expand;
 use crate::expand::Mode;
 
@@ -105,8 +106,11 @@ pub fn nested_test(attr: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 fn do_expand(mode: Mode, attr: TokenStream, input: TokenStream) -> TokenStream {
-    let args = parse_macro_input!(attr with Punctuated::parse_terminated);
-    let input = parse_macro_input!(input);
+    let mut args = Args::default();
+    let attr_parser = syn::meta::parser(|meta| args.parse(meta));
+    parse_macro_input!(attr with attr_parser);
+
+    let input = parse_macro_input!(input as ItemFn);
 
     expand(mode, args, input)
         .unwrap_or_else(Error::into_compile_error)
