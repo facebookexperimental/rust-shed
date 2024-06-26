@@ -16,7 +16,7 @@ use syn::LitInt;
 #[derive(Default)]
 pub struct Args {
     pub disable_fatal_signals: DisableFatalSignals,
-    pub tokio_workers: usize,
+    pub tokio_workers: Option<usize>,
 }
 
 #[derive(Default)]
@@ -47,7 +47,8 @@ impl Args {
             Ok(())
         } else if meta.path.is_ident("worker_threads") {
             let lit: LitInt = meta.value()?.parse()?;
-            self.tokio_workers = lit.base10_parse()?;
+            let tokio_workers: usize = lit.base10_parse()?;
+            self.tokio_workers = Some(tokio_workers);
             Ok(())
         } else {
             Err(meta.error("unrecognized fbinit attribute"))

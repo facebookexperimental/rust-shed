@@ -20,23 +20,13 @@ where
         .block_on(f)
 }
 
-pub fn tokio_main<F>(tokio_workers: usize, f: F) -> <F as Future>::Output
+pub fn tokio_main<F>(tokio_workers: Option<usize>, f: F) -> <F as Future>::Output
 where
     F: Future,
 {
-    // Trying to make this an Option<usize> is complicated :/
-    if tokio_workers != 0 {
-        tokio::runtime::Builder::new_multi_thread()
-            .worker_threads(tokio_workers)
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(f)
-    } else {
-        tokio::runtime::Builder::new_multi_thread()
-            .enable_all()
-            .build()
-            .unwrap()
-            .block_on(f)
+    let mut runtime = tokio::runtime::Builder::new_multi_thread();
+    if let Some(tokio_workers) = tokio_workers {
+        runtime.worker_threads(tokio_workers);
     }
+    runtime.enable_all().build().unwrap().block_on(f)
 }

@@ -67,7 +67,10 @@ pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStrea
             fbinit_tokio::tokio_test(async #block )
         },
         (true, Mode::Main) => {
-            let tokio_workers = args.tokio_workers;
+            let tokio_workers = match args.tokio_workers {
+                Some(tokio_workers) => quote!(::std::option::Option::Some(#tokio_workers)),
+                None => quote!(::std::option::Option::None),
+            };
             quote! {
                 fbinit_tokio::tokio_main(#tokio_workers, async #block )
             }
