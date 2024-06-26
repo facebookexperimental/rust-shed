@@ -13,7 +13,6 @@ use itertools::Itertools;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use proc_macro2::TokenStream as TokenStream2;
-use quote::format_ident;
 use quote::quote;
 use syn::Data;
 use syn::DataStruct;
@@ -70,75 +69,34 @@ pub fn structured_sample_derive(input: TokenStream) -> TokenStream {
 ///     fn try_from(
 ///         mut sample: ::scuba_sample::ScubaSample,
 ///     ) -> ::core::result::Result<Self, ::scuba_sample::Error> {
-///         struct FooBuilder {
-///             bar: ::core::option::Option<i32>,
-///             map: ::core::option::Option<HashMap<String, String>>,
-///         }
-///         impl FooBuilder {
-///             pub fn new() -> Self {
-///                 Self {
-///                     bar: None,
-///                     map: None,
-///                 }
-///             }
-///             pub fn bar(&mut self, value: i32) -> &mut Self {
-///                 self.bar = Some(value);
-///                 self
-///             }
-///             pub fn map(&mut self, value: HashMap<String, String>) -> &mut Self {
-///                 self.map = Some(value);
-///                 self
-///             }
-///             pub fn build(self) -> ::core::result::Result<Foo, ::scuba_sample::Error> {
-///                 let bar = self.bar.ok_or(::scuba_sample::Error::MissingColumn({
-///                     let res = ::alloc::fmt::format(format_args!(
-///                         "Column {0} missing from ScubaSample",
-///                         "bar"
-///                     ));
-///                     res
-///                 }))?;
-///                 let map = self.map.ok_or(::scuba_sample::Error::MissingColumn({
-///                     let res = ::alloc::fmt::format(format_args!(
-///                         "Column {0} missing from ScubaSample",
-///                         "map"
-///                     ));
-///                     res
-///                 }))?;
-///                 ::core::result::Result::Ok(Foo { bar, map })
-///             }
-///         }
-///
-///         let mut builder = FooBuilder::new();
 ///         let bar = sample
 ///             .retrieve("bar")
-///             .ok_or(::scuba_sample::Error::MissingColumn({
+///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn({
 ///                 let res = ::alloc::fmt::format(format_args!(
 ///                     "Could not find {0} in ScubaSample {1:?}",
 ///                     "\"bar\"", sample
 ///                 ));
 ///                 res
 ///             }))?;
-///         builder.bar(<::scuba_sample::ScubaValue as ::core::convert::TryInto<
-///             i32,
-///         >>::try_into(bar)?);
-///
 ///         let map = sample
 ///             .retrieve("foo")
-///             .ok_or(::scuba_sample::Error::MissingColumn({
+///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn({
 ///                 let res = ::alloc::fmt::format(format_args!(
 ///                     "Could not find {0} in ScubaSample {1:?}",
 ///                     "\"foo\"", sample
 ///                 ));
 ///                 res
 ///             }))?;
-///         builder.map(my_custom_parser(map.try_into()?).map_err(|e| {
-///             ::scuba_sample::Error::CustomParseError({
-///                 let res =
-///                     ::alloc::fmt::format(format_args!("Error from custom parser: {0:?}", e));
-///                 res
-///             })
-///         })?);
-///         builder.build()
+///         ::core::result::Result::Ok(Foo {
+///             bar: <::scuba_sample::ScubaValue as ::core::convert::TryInto<i32>>::try_into(bar)?,
+///             map: my_custom_parser(map.try_into()?).map_err(|e| {
+///                 ::scuba_sample::Error::CustomParseError({
+///                     let res =
+///                         ::alloc::fmt::format(format_args!("Error from custom parser: {0:?}", e));
+///                     res
+///                 })
+///             })?,
+///         })
 ///     }
 /// }
 /// ```
@@ -209,10 +167,6 @@ fn impl_try_from_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream2>
         .map(|field| field.get_parser())
         .collect::<Vec<_>>();
 
-    let sample_ident = syn::Ident::new("sample", proc_macro2::Span::call_site());
-    let builder_ident = format_ident!("{}Builder", name);
-    let builder_contents = get_builder(name, &builder_ident, &fields);
-
     // check for duplicate names
     check_unique(&fields, &field_renames, &mut error_collector);
 
@@ -223,15 +177,23 @@ fn impl_try_from_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream2>
         impl ::core::convert::TryFrom<::scuba_sample::ScubaSample> for #name {
             type Error = ::scuba_sample::Error;
 
-            fn try_from(mut #sample_ident: ::scuba_sample::ScubaSample) -> ::core::result::Result<Self, ::scuba_sample::Error> {
-                #builder_contents
-
-                let mut builder = #builder_ident::new();
+            fn try_from(mut sample: ::scuba_sample::ScubaSample) -> ::core::result::Result<Self, ::scuba_sample::Error> {
                 #(
-                    let #field_name = #sample_ident.retrieve(#field_renames).ok_or(::scuba_sample::Error::MissingColumn(::std::format!("Could not find {} in ScubaSample {:?}", ::core::stringify!(#field_renames), #sample_ident)))?;
-                    builder.#field_name(#field_parsers);
+                    let #field_name = sample
+                        .retrieve(#field_renames)
+                        .ok_or_else(|| ::scuba_sample::Error::MissingColumn(
+                            ::std::format!(
+                                "Could not find {} in ScubaSample {:?}",
+                                ::core::stringify!(#field_renames),
+                                sample,
+                            ),
+                        ))?;
                 )*
-                builder.build()
+                ::core::result::Result::Ok(#name {
+                    #(
+                        #field_name: #field_parsers,
+                    )*
+                })
             }
         }
     };
@@ -325,68 +287,6 @@ fn get_lifetime(ast: &syn::DeriveInput) -> TokenStream2 {
         .for_each(|lf| lf.lifetime = Lifetime::new("'_", Span::call_site()));
     let (_, ty_gen, _) = new_gen.split_for_impl();
     quote! {#ty_gen}
-}
-
-fn get_builder(
-    struct_name: &syn::Ident,
-    builder_ident: &syn::Ident,
-    fields: &[SampleField],
-) -> TokenStream2 {
-    let field_names = fields
-        .iter()
-        .map(|field| {
-            let name = field.ident.as_ref().unwrap();
-            quote! {#name}
-        })
-        .collect::<Vec<_>>();
-
-    let builder_fields = fields
-        .iter()
-        .map(|field| {
-            let field_name = &field.ident;
-            let ty = &field.ty;
-            quote! {
-                #field_name: ::core::option::Option<#ty>
-            }
-        })
-        .collect::<Vec<_>>();
-
-    let builder_methods = fields
-        .iter()
-        .map(|field| {
-            let field_name = &field.ident;
-            let ty = &field.ty;
-            quote! {
-                pub fn #field_name(&mut self, value: #ty) -> &mut Self {
-                    self.#field_name = Some(value);
-                    self
-                }
-            }
-        })
-        .collect::<Vec<_>>();
-
-    quote! {
-        struct #builder_ident {
-            #(#builder_fields,)*
-        }
-
-        impl #builder_ident {
-            pub fn new() -> Self {
-                Self {
-                    #(#field_names: None,)*
-                }
-            }
-
-            #(#builder_methods)*
-
-            pub fn build(self) -> ::core::result::Result<#struct_name, ::scuba_sample::Error> {
-                #(let #field_names = self.#field_names.ok_or(::scuba_sample::Error::MissingColumn(::std::format!("Column {} missing from ScubaSample", ::core::stringify!(#field_names))))?;)*
-                ::core::result::Result::Ok(#struct_name {
-                    #(#field_names,)*
-                })
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, FromField)]
