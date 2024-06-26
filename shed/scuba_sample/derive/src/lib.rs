@@ -7,6 +7,8 @@
  * of this source tree.
  */
 
+use std::collections::HashSet;
+
 use darling::FromField;
 use itertools::Either;
 use itertools::Itertools;
@@ -129,7 +131,7 @@ fn impl_structured_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream
     let field_renames = get_field_renames(&fields);
 
     // check for duplicate names
-    check_unique(&fields, &field_renames, &mut error_collector);
+    check_unique(&fields, &mut error_collector);
     let ty_gen = get_lifetime(ast);
 
     error_collector.finish()?;
@@ -168,7 +170,7 @@ fn impl_try_from_sample(ast: &syn::DeriveInput) -> darling::Result<TokenStream2>
         .collect::<Vec<_>>();
 
     // check for duplicate names
-    check_unique(&fields, &field_renames, &mut error_collector);
+    check_unique(&fields, &mut error_collector);
 
     error_collector.finish()?;
     let gen = quote! {
@@ -252,30 +254,18 @@ fn get_field_renames(fields: &[SampleField]) -> Vec<String> {
         .collect::<Vec<_>>()
 }
 
-fn check_unique(
-    fields: &[SampleField],
-    field_renames: &[String],
-    error_collector: &mut darling::error::Accumulator,
-) {
-    let unique = field_renames.iter().cloned().unique().collect::<Vec<_>>();
-    if unique.len() != field_renames.len() {
-        // determine which fields are duplicates.
-        let mut fields_dup = Vec::from_iter(fields);
-        for uf in unique {
-            let index = fields_dup
-                .iter()
-                .position(|x| *x.scuba_column_name() == *uf)
-                .unwrap();
-            fields_dup.remove(index);
-        }
-        for f in fields_dup {
+fn check_unique(fields: &[SampleField], error_collector: &mut darling::error::Accumulator) {
+    let mut unique = HashSet::new();
+    for field in fields {
+        let rename = field.scuba_column_name();
+        if !unique.insert(rename) {
             error_collector.push(
                 darling::Error::custom(format!(
                     "duplicate scuba column name: {}",
-                    f.scuba_column_name()
+                    field.scuba_column_name()
                 ))
-                .with_span(&f.ident.as_ref().unwrap().span()),
-            )
+                .with_span(&field.ident.as_ref().unwrap().span()),
+            );
         }
     }
 }
