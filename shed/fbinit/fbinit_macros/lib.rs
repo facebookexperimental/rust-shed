@@ -12,14 +12,16 @@
 #[allow(unused_extern_crates)]
 extern crate proc_macro;
 
+mod args;
 mod expand;
 
 use proc_macro::TokenStream;
+use syn::parse::Error;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
 
-use self::expand::expand;
-use self::expand::Mode;
+use crate::expand::expand;
+use crate::expand::Mode;
 
 // Expand from:
 //
@@ -50,14 +52,8 @@ use self::expand::Mode;
 // - `all`: disables ALL signals
 // - `sigterm_only`: disabled SIGTERM
 #[proc_macro_attribute]
-pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
-    expand(
-        Mode::Main,
-        parse_macro_input!(args with Punctuated::parse_terminated),
-        parse_macro_input!(input),
-    )
-    .unwrap_or_else(|err| err.to_compile_error())
-    .into()
+pub fn main(attr: TokenStream, input: TokenStream) -> TokenStream {
+    do_expand(Mode::Main, attr, input)
 }
 
 // Same thing, expand:
@@ -84,14 +80,8 @@ pub fn main(args: TokenStream, input: TokenStream) -> TokenStream {
 //
 //      #[fbinit::main(disable_fatal_signals = 0x8000)
 #[proc_macro_attribute]
-pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
-    expand(
-        Mode::Test,
-        parse_macro_input!(args with Punctuated::parse_terminated),
-        parse_macro_input!(input),
-    )
-    .unwrap_or_else(|err| err.to_compile_error())
-    .into()
+pub fn test(attr: TokenStream, input: TokenStream) -> TokenStream {
+    do_expand(Mode::Test, attr, input)
 }
 
 // Similar to #[fbinit::test], but allows for nesting with other test attributes (e.g. #[rstest]) that wraps #[test].
@@ -110,12 +100,15 @@ pub fn test(args: TokenStream, input: TokenStream) -> TokenStream {
 //         ...
 //     }
 #[proc_macro_attribute]
-pub fn nested_test(args: TokenStream, input: TokenStream) -> TokenStream {
-    expand(
-        Mode::NestedTest,
-        parse_macro_input!(args with Punctuated::parse_terminated),
-        parse_macro_input!(input),
-    )
-    .unwrap_or_else(|err| err.to_compile_error())
-    .into()
+pub fn nested_test(attr: TokenStream, input: TokenStream) -> TokenStream {
+    do_expand(Mode::NestedTest, attr, input)
+}
+
+fn do_expand(mode: Mode, attr: TokenStream, input: TokenStream) -> TokenStream {
+    let args = parse_macro_input!(attr with Punctuated::parse_terminated);
+    let input = parse_macro_input!(input);
+
+    expand(mode, args, input)
+        .unwrap_or_else(Error::into_compile_error)
+        .into()
 }

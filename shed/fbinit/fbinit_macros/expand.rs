@@ -9,8 +9,6 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::parse::Parse;
-use syn::parse::ParseStream;
 use syn::parse_quote;
 use syn::punctuated::Punctuated;
 use syn::Error;
@@ -18,79 +16,14 @@ use syn::ItemFn;
 use syn::Result;
 use syn::Token;
 
+use crate::args::Arg;
+use crate::args::DisableFatalSignals;
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum Mode {
     Main,
     Test,
     NestedTest,
-}
-
-mod kw {
-    syn::custom_keyword!(disable_fatal_signals);
-    syn::custom_keyword!(none);
-    syn::custom_keyword!(sigterm_only);
-    syn::custom_keyword!(all);
-    syn::custom_keyword!(worker_threads);
-}
-
-pub enum DisableFatalSignals {
-    Default(Token![default]),
-    None(kw::none),
-    SigtermOnly(kw::sigterm_only),
-    All(kw::all),
-}
-
-pub enum Arg {
-    DisableFatalSignals {
-        kw_token: kw::disable_fatal_signals,
-        eq_token: Token![=],
-        value: DisableFatalSignals,
-    },
-    TokioWorkers {
-        kw_token: kw::worker_threads,
-        eq_token: Token![=],
-        workers: syn::LitInt,
-    },
-}
-
-impl Parse for Arg {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        let lookahead = input.lookahead1();
-        if lookahead.peek(kw::disable_fatal_signals) {
-            let kw_token = input.parse()?;
-            let eq_token = input.parse()?;
-
-            let lookahead = input.lookahead1();
-            let value = if lookahead.peek(kw::none) {
-                DisableFatalSignals::None(input.parse()?)
-            } else if lookahead.peek(Token![default]) {
-                DisableFatalSignals::Default(input.parse()?)
-            } else if lookahead.peek(kw::all) {
-                DisableFatalSignals::All(input.parse()?)
-            } else if lookahead.peek(kw::sigterm_only) {
-                DisableFatalSignals::SigtermOnly(input.parse()?)
-            } else {
-                return Err(lookahead.error());
-            };
-
-            Ok(Self::DisableFatalSignals {
-                kw_token,
-                eq_token,
-                value,
-            })
-        } else if lookahead.peek(kw::worker_threads) {
-            let kw_token = input.parse()?;
-            let eq_token = input.parse()?;
-            let workers = input.parse()?;
-            Ok(Self::TokioWorkers {
-                kw_token,
-                eq_token,
-                workers,
-            })
-        } else {
-            Err(lookahead.error())
-        }
-    }
 }
 
 pub fn expand(
