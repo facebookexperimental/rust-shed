@@ -53,6 +53,18 @@ where
             service: Arc::new(Mutex::new(Client::new(FramedTransport.framed(stream)))),
         }
     }
+
+    pub fn new_with_error_handler(
+        stream: T,
+        on_error: impl FnOnce(anyhow::Error) + Send + 'static,
+    ) -> Self {
+        SocketTransport {
+            service: Arc::new(Mutex::new(Client::with_error_handler(
+                FramedTransport.framed(stream),
+                on_error,
+            ))),
+        }
+    }
 }
 
 impl<T> Framing for SocketTransport<T>
