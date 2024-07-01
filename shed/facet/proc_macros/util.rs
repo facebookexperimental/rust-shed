@@ -20,8 +20,8 @@ pub(crate) enum Asyncness {
     Asynchronous,
 }
 
-impl From<Option<&Token![async]>> for Asyncness {
-    fn from(asy: Option<&Token![async]>) -> Asyncness {
+impl From<Option<Token![async]>> for Asyncness {
+    fn from(asy: Option<Token![async]>) -> Asyncness {
         match asy {
             Some(_) => Asyncness::Asynchronous,
             None => Asyncness::Synchronous,
@@ -31,7 +31,7 @@ impl From<Option<&Token![async]>> for Asyncness {
 
 impl Asyncness {
     pub(crate) fn any<'a>(iter: impl IntoIterator<Item = &'a Asyncness>) -> Asyncness {
-        if iter.into_iter().any(|asy| asy.is_async()) {
+        if iter.into_iter().any(Asyncness::is_async) {
             Asyncness::Asynchronous
         } else {
             Asyncness::Synchronous

@@ -12,8 +12,8 @@ use quote::format_ident;
 use quote::quote;
 use quote::ToTokens;
 use syn::parse_macro_input;
+use syn::parse_quote;
 use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
 use syn::Attribute;
 use syn::Error;
 use syn::Expr;
@@ -76,77 +76,62 @@ impl ContainerMembers {
         let mut delegate_facets = Vec::new();
         let container_type = match &mut container.fields {
             Fields::Named(named_fields) => {
-                for field in named_fields.named.iter_mut() {
-                    let mut attr_found = false;
-                    let mut new_attrs = Vec::new();
+                for field in &mut named_fields.named {
+                    let mut facet_container_attrs = Vec::new();
+                    let mut non_facet_attrs = Vec::new();
                     for attr in field.attrs.drain(..) {
-                        if attr.path.is_ident("init") {
-                            if attr_found {
-                                return Err(Error::new(
-                                    attr.span(),
-                                    concat!(
-                                        "facet::container field must have exactly one ",
-                                        "of 'init', 'facet' or 'delegate', found multiple"
-                                    ),
-                                ));
-                            }
-                            attr_found = true;
+                        if attr.path().is_ident("init") {
                             let expr: Expr = attr.parse_args()?;
                             field_idents
                                 .push(field.ident.clone().expect("named field must have a name"));
                             field_inits.push(expr);
-                        } else if attr.path.is_ident("facet") {
-                            if attr_found {
-                                return Err(Error::new(
-                                    attr.span(),
-                                    concat!(
-                                        "facet::container field must have exactly one ",
-                                        "of 'init', 'facet' or 'delegate', found multiple"
-                                    ),
-                                ));
-                            }
-                            attr_found = true;
+                            facet_container_attrs.push(attr);
+                        } else if attr.path().is_ident("facet") {
                             let mut facet_type = field.ty.clone();
                             if let Type::TraitObject(obj) = &mut facet_type {
-                                obj.bounds.push(syn::parse2(quote!(::std::marker::Send))?);
-                                obj.bounds.push(syn::parse2(quote!(::std::marker::Sync))?);
-                                obj.bounds.push(syn::parse2(quote!('static))?);
+                                obj.bounds.push(parse_quote!(::std::marker::Send));
+                                obj.bounds.push(parse_quote!(::std::marker::Sync));
+                                obj.bounds.push(parse_quote!('static));
                             }
-                            field.ty = syn::parse2(quote!(::std::sync::Arc<#facet_type>))?;
+                            field.ty = parse_quote!(::std::sync::Arc<#facet_type>);
                             facet_idents
                                 .push(field.ident.clone().expect("named field must have a name"));
                             facet_types.push(facet_type);
-                        } else if attr.path.is_ident("delegate") {
-                            if attr_found {
-                                return Err(Error::new(
-                                    attr.span(),
-                                    concat!(
-                                        "facet::container field must have exactly one ",
-                                        "of 'init', 'facet' or 'delegate', found multiple"
-                                    ),
-                                ));
-                            }
-                            attr_found = true;
+                            facet_container_attrs.push(attr);
+                        } else if attr.path().is_ident("delegate") {
                             let delegate_type = field.ty.clone();
                             let facets = extract_delegate_facets(&attr)?;
                             delegate_idents
                                 .push(field.ident.clone().expect("named field must have a name"));
                             delegate_types.push(delegate_type);
                             delegate_facets.push(facets);
+                            facet_container_attrs.push(attr);
                         } else {
-                            new_attrs.push(attr);
+                            non_facet_attrs.push(attr);
                         }
                     }
-                    if !attr_found {
-                        return Err(Error::new(
-                            field.span(),
-                            concat!(
-                                "facet::container field must have exactly one ",
-                                "of 'init', 'facet' or 'delegate', found none"
-                            ),
-                        ));
+                    match facet_container_attrs.as_slice() {
+                        [] => {
+                            return Err(Error::new_spanned(
+                                field,
+                                concat!(
+                                    "facet::container field must have exactly one ",
+                                    "of 'init', 'facet' or 'delegate', found none"
+                                ),
+                            ));
+                        }
+                        [_] => {}
+                        [_first, second, ..] => {
+                            return Err(Error::new_spanned(
+                                second,
+                                concat!(
+                                    "facet::container field must have exactly one ",
+                                    "of 'init', 'facet' or 'delegate', found multiple"
+                                ),
+                            ));
+                        }
                     }
-                    field.attrs = new_attrs;
+                    field.attrs = non_facet_attrs;
                 }
                 ContainerType::Named
             }
@@ -154,11 +139,11 @@ impl ContainerMembers {
                 for (index, field) in unnamed_fields.unnamed.iter_mut().enumerate() {
                     let mut facet_type = field.ty.clone();
                     if let Type::TraitObject(obj) = &mut facet_type {
-                        obj.bounds.push(syn::parse2(quote!(::std::marker::Send))?);
-                        obj.bounds.push(syn::parse2(quote!(::std::marker::Sync))?);
-                        obj.bounds.push(syn::parse2(quote!('static))?);
+                        obj.bounds.push(parse_quote!(::std::marker::Send));
+                        obj.bounds.push(parse_quote!(::std::marker::Sync));
+                        obj.bounds.push(parse_quote!('static));
                     }
-                    field.ty = syn::parse2(quote!(::std::sync::Arc<#facet_type>))?;
+                    field.ty = parse_quote!(::std::sync::Arc<#facet_type>);
                     facet_idents.push(format_ident!("_field{}", index));
                     facet_types.push(facet_type);
                 }
@@ -192,11 +177,9 @@ pub fn container(
     let _ = parse_macro_input!(attr as syn::parse::Nothing);
     let container = parse_macro_input!(item as ItemStruct);
 
-    match gen_container(container) {
-        Ok(output) => output,
-        Err(e) => e.to_compile_error(),
-    }
-    .into()
+    gen_container(container)
+        .unwrap_or_else(Error::into_compile_error)
+        .into()
 }
 
 fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
@@ -245,8 +228,9 @@ fn gen_buildable_impl(
 
     quote! {
         impl<B> ::#facet_crate::Buildable<B> for #container_name
-        where B: ::std::marker::Send + ::std::marker::Sync
-            #( + ::#facet_crate::Builder<::std::sync::Arc<#facet_types>> )*,
+        where
+            B: ::std::marker::Send + ::std::marker::Sync
+                #( + ::#facet_crate::Builder<::std::sync::Arc<#facet_types>> )*,
             #( #delegate_types: ::#facet_crate::Buildable<B>, )*
         {
            fn build(builder: &mut B) -> ::std::result::Result<Self, ::#facet_crate::FactoryError> {
@@ -289,9 +273,9 @@ fn gen_async_buildable_impl(
     let delegate_types = &members.delegate_types;
 
     let container_init = members.container_type.gen_init(quote! {
-            #( #delegate_idents, )*
-            #( #field_idents, )*
-            #( #facet_idents, )*
+        #( #delegate_idents, )*
+        #( #field_idents, )*
+        #( #facet_idents, )*
     });
     // Desugared async-trait so that the builder lifetime can be specified.
     quote! {
@@ -558,9 +542,9 @@ fn extract_delegate_facets(attr: &Attribute) -> Result<Vec<Type>, Error> {
     let args: Punctuated<Type, Token![,]> = attr.parse_args_with(Punctuated::parse_terminated)?;
     for mut arg in args {
         if let Type::TraitObject(obj) = &mut arg {
-            obj.bounds.push(syn::parse2(quote!(::std::marker::Send))?);
-            obj.bounds.push(syn::parse2(quote!(::std::marker::Sync))?);
-            obj.bounds.push(syn::parse2(quote!('static))?);
+            obj.bounds.push(parse_quote!(::std::marker::Send));
+            obj.bounds.push(parse_quote!(::std::marker::Sync));
+            obj.bounds.push(parse_quote!('static));
         }
         facets.push(arg);
     }

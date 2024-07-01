@@ -13,8 +13,6 @@
 //!
 //! See the crate-level documentation for the `facet` crate for details.
 
-extern crate proc_macro;
-
 use proc_macro_crate::crate_name;
 use proc_macro_crate::FoundCrate;
 

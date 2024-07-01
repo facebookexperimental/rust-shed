@@ -18,7 +18,6 @@ use syn::parse::Parse;
 use syn::parse::ParseStream;
 use syn::parse_macro_input;
 use syn::punctuated::Punctuated;
-use syn::spanned::Spanned;
 use syn::Error;
 use syn::FnArg;
 use syn::GenericArgument;
@@ -44,11 +43,9 @@ pub fn factory(
     let params = parse_macro_input!(attr as Params);
     let factory = parse_macro_input!(item as ItemImpl);
 
-    match gen_factory(params, factory) {
-        Ok(output) => output,
-        Err(e) => e.to_compile_error(),
-    }
-    .into()
+    gen_factory(params, factory)
+        .unwrap_or_else(Error::into_compile_error)
+        .into()
 }
 
 fn gen_factory(params: Params, mut factory_impl: ItemImpl) -> Result<TokenStream, Error> {
@@ -479,11 +476,11 @@ impl Parse for Params {
                         param_idents.push(pat_ident.ident);
                         param_types.push(*pat_type.ty);
                     }
-                    _ => return Err(Error::new(pat_type.pat.span(), "expected 'ident: Type'")),
+                    _ => return Err(Error::new_spanned(&pat_type.pat, "expected 'ident: Type'")),
                 },
                 FnArg::Receiver(r) => {
-                    return Err(Error::new(
-                        r.span(),
+                    return Err(Error::new_spanned(
+                        r,
                         "receivers not supported in factory parameters",
                     ));
                 }
@@ -524,13 +521,13 @@ impl Facets {
         let mut facet_asyncnesses = Vec::new();
         let mut facet_params = Vec::new();
         for item in &mut factory.items {
-            if let ImplItem::Method(method) = item {
+            if let ImplItem::Fn(method) = item {
                 let method_params = Self::extract_facet_params(params, &method.sig)?;
                 let (facet_ty, fallibility) = Self::extract_facet_return_type(&mut method.sig)?;
                 facet_idents.push(method.sig.ident.clone());
                 facet_types.push(facet_ty);
                 facet_fallibilities.push(fallibility);
-                facet_asyncnesses.push(method.sig.asyncness.as_ref().into());
+                facet_asyncnesses.push(method.sig.asyncness.into());
                 facet_params.push(method_params);
             }
         }
@@ -580,8 +577,8 @@ impl Facets {
                 }
             }
         }
-        Err(Error::new(
-            sig.span(),
+        Err(Error::new_spanned(
+            sig,
             concat!(
                 "invalid return type ",
                 "(note: factory methods must return either an ArcFacet alias or ",
@@ -601,7 +598,7 @@ impl FactoryParam {
     fn parse(params: &Params, pat_type: &PatType) -> Result<Self, Error> {
         let ident = match &*pat_type.pat {
             Pat::Ident(pat_ident) => strip_leading_underscore(&pat_ident.ident),
-            _ => return Err(Error::new(pat_type.span(), "expected 'ident: Type'")),
+            _ => return Err(Error::new_spanned(pat_type, "expected 'ident: Type'")),
         };
         match &*pat_type.ty {
             Type::Reference(_) => {
@@ -611,8 +608,8 @@ impl FactoryParam {
                     Ok(FactoryParam::Facet(ident))
                 }
             }
-            _ => Err(Error::new(
-                pat_type.span(),
+            _ => Err(Error::new_spanned(
+                pat_type,
                 concat!(
                     "factory methods must take a reference to a factory parameter ",
                     "or a reference to a facet"
@@ -628,8 +625,8 @@ fn extract_type_ident(ty: &Type) -> Result<Ident, Error> {
             return Ok(ident.clone());
         }
     }
-    Err(Error::new(
-        ty.span(),
+    Err(Error::new_spanned(
+        ty,
         "facet::factory impl must be for a local concrete type",
     ))
 }
