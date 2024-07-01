@@ -79,7 +79,7 @@ pub fn main(attr: TokenStream, input: TokenStream) -> TokenStream {
 // Argument must be an int literal that represents the signal bit mask. For
 // example, the following disables SIGTERM:
 //
-//      #[fbinit::main(disable_fatal_signals = 0x8000)
+//      #[fbinit::test(disable_fatal_signals = 0x8000)
 #[proc_macro_attribute]
 pub fn test(attr: TokenStream, input: TokenStream) -> TokenStream {
     do_expand(Mode::Test, attr, input)

@@ -9,15 +9,18 @@
 
 use futures::Future;
 
-pub fn tokio_test<F>(f: F) -> <F as Future>::Output
+pub fn tokio_test<F>(tokio_workers: Option<usize>, f: F) -> <F as Future>::Output
 where
     F: Future,
 {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .unwrap()
-        .block_on(f)
+    let mut builder = if let Some(workers) = tokio_workers {
+        let mut builder = tokio::runtime::Builder::new_multi_thread();
+        builder.worker_threads(workers);
+        builder
+    } else {
+        tokio::runtime::Builder::new_current_thread()
+    };
+    builder.enable_all().build().unwrap().block_on(f)
 }
 
 pub fn tokio_main<F>(tokio_workers: Option<usize>, f: F) -> <F as Future>::Output

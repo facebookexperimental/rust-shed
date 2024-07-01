@@ -63,9 +63,15 @@ pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStrea
     let block = function.block;
 
     let body = match (function.sig.asyncness.is_some(), mode) {
-        (true, Mode::Test | Mode::NestedTest) => quote! {
-            fbinit_tokio::tokio_test(async #block )
-        },
+        (true, Mode::Test | Mode::NestedTest) => {
+            let tokio_workers = match args.tokio_workers {
+                Some(tokio_workers) => quote!(::std::option::Option::Some(#tokio_workers)),
+                None => quote!(::std::option::Option::None),
+            };
+            quote! {
+                fbinit_tokio::tokio_test(#tokio_workers, async #block )
+            }
+        }
         (true, Mode::Main) => {
             let tokio_workers = match args.tokio_workers {
                 Some(tokio_workers) => quote!(::std::option::Option::Some(#tokio_workers)),
