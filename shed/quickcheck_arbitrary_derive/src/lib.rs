@@ -9,8 +9,8 @@
 
 //! A proc-macro to auto-derive the [`quickcheck::Arbitrary`](https://docs.rs/quickcheck/latest/quickcheck/trait.Arbitrary.html) trait.
 
-extern crate proc_macro;
-
+use quote::quote;
+use quote::quote_spanned;
 use syn::spanned::Spanned;
 use syn::DeriveInput;
 
@@ -83,7 +83,7 @@ fn derive_arbitrary(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream
     let implem = match data {
         syn::Data::Struct(data) => {
             let fields = generate_arbitrary_fields(data.fields);
-            quote::quote! { Self #fields }
+            quote! { Self #fields }
         }
         syn::Data::Enum(data) => {
             if data.variants.is_empty() {
@@ -92,12 +92,12 @@ fn derive_arbitrary(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream
             let arbitraries = data.variants.into_iter().map(|variant| {
                 let variant_ident = variant.ident;
                 let variant_fields = generate_arbitrary_fields(variant.fields);
-                quote::quote! { Self :: #variant_ident #variant_fields }
+                quote! { Self :: #variant_ident #variant_fields }
             });
 
             let variant_indices = (0..arbitraries.len()).map(syn::Index::from);
             let num_variants = syn::Index::from(arbitraries.len());
-            quote::quote! {
+            quote! {
                 match g.choose((0..#num_variants).collect::<Vec<_>>().as_slice()) {
                     #(Some(&#variant_indices) => #arbitraries,)*
                     _ => unreachable!("You encountered a bug within the `quickcheck_arbitrary_derive` crate. Please report it back to the maintainers. Thank you! :)"),
@@ -109,7 +109,7 @@ fn derive_arbitrary(input: proc_macro2::TokenStream) -> proc_macro2::TokenStream
         }
     };
 
-    quote::quote! {
+    quote! {
         impl #impl_generics quickcheck::Arbitrary for #ident #ty_generics #where_clause {
             fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                 #implem
@@ -124,38 +124,36 @@ fn generate_arbitrary_fields(fields: syn::Fields) -> proc_macro2::TokenStream {
             let arbitraries = fields.named.into_iter().map(|field| {
                 let field_span = field.span();
                 let ident = field.ident;
-                quote::quote_spanned! {field_span=> #ident: quickcheck::Arbitrary::arbitrary(g)}
+                quote_spanned! {field_span=> #ident: quickcheck::Arbitrary::arbitrary(g)}
             });
-            quote::quote! { { #(#arbitraries,)* } }
+            quote! { { #(#arbitraries,)* } }
         }
         syn::Fields::Unnamed(fields) => {
-            let arbitraries = fields.unnamed.into_iter().map(
-                |field| quote::quote_spanned! {field.span()=> quickcheck::Arbitrary::arbitrary(g)},
-            );
-            quote::quote! { (#(#arbitraries,)*) }
+            let arbitraries = fields
+                .unnamed
+                .into_iter()
+                .map(|field| quote_spanned! {field.span()=> quickcheck::Arbitrary::arbitrary(g)});
+            quote! { (#(#arbitraries,)*) }
         }
-        syn::Fields::Unit => quote::quote! {},
+        syn::Fields::Unit => quote! {},
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
 
     #[test]
     fn struct_named_fields() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             struct Foo {
                 bar: u8,
                 baz: String,
             }
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(stringify! {
+        let output = quote! {
             impl quickcheck::Arbitrary for Foo {
                 fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                     Self {
@@ -164,21 +162,19 @@ mod tests {
                     }
                 }
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
 
     #[test]
     fn struct_tuple() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             struct Foo(u8, String);
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(stringify! {
+        let output = quote! {
             impl quickcheck::Arbitrary for Foo {
                 fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                     Self(
@@ -187,35 +183,32 @@ mod tests {
                     )
                 }
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
 
     #[test]
     fn struct_unit() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             struct Foo;
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(stringify! {
+        let output = quote! {
             impl quickcheck::Arbitrary for Foo {
                 fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                     Self
                 }
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
 
     #[test]
     fn enum_all() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             enum Foo {
                 Foo {foo: String, bar: Vec<u8> },
@@ -223,10 +216,9 @@ mod tests {
                 Baz(u8),
                 Qux,
             }
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(stringify! {
+        let output = quote! {
             impl quickcheck::Arbitrary for Foo {
                 fn arbitrary(g: &mut quickcheck::Gen) -> Self {
                     match g.choose((0..4).collect:: <Vec<_>>().as_slice()) {
@@ -238,31 +230,28 @@ mod tests {
                     }
                 }
             }
-        })
-        .unwrap();
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
 
     #[test]
     fn enum_never() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             enum Foo{}
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(&format! {
-            "compile_error!{{\"{}\"}}", EMPTY_ENUMS_DISALLOWED
-        })
-        .unwrap();
+        let output = quote! {
+            ::core::compile_error! { #EMPTY_ENUMS_DISALLOWED }
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
 
     #[test]
     fn untagged_union() {
-        let input = proc_macro2::TokenStream::from_str(stringify! {
+        let input = quote! {
             #[derive(Arbitrary)]
             #[repr(C)]
             union Foo {
@@ -270,13 +259,11 @@ mod tests {
                 bar: i32,
                 baz: i32,
             }
-        })
-        .unwrap();
+        };
 
-        let output = proc_macro2::TokenStream::from_str(&format! {
-            "compile_error!{{\"{}\"}}", UNTAGGED_UNIONS_DISALLOWED
-        })
-        .unwrap();
+        let output = quote! {
+            ::core::compile_error! { #UNTAGGED_UNIONS_DISALLOWED }
+        };
 
         assert_eq!(derive_arbitrary(input).to_string(), output.to_string());
     }
