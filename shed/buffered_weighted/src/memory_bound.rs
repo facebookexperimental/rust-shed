@@ -14,19 +14,20 @@ use procfs::process::Process;
 /// A memory bound that serves as the upper bound for the RSS bytes of a process that
 /// should always be honored when scheduling new workload.
 #[derive(Debug)]
-pub(crate) struct MemoryBound {
+pub struct MemoryBound {
     bound: Option<u64>,
 }
 
 impl MemoryBound {
-    pub(crate) fn new(bound: Option<u64>) -> Self {
+    /// Creates a new memory bound.
+    pub fn new(bound: Option<u64>) -> Self {
         Self { bound }
     }
 
     /// Returns true if the RSS bytes of the process would still remain within
     /// the `bound` after scheduling the future of `weight` bytes.
     #[cfg(target_os = "linux")]
-    pub(crate) fn within_bound(&self, weight: usize) -> bool {
+    pub fn within_bound(&self, weight: usize) -> bool {
         self.bound
             .map_or(Ok(true), |bound| {
                 let stats = Process::myself()?.stat()?;
@@ -39,7 +40,7 @@ impl MemoryBound {
     }
 
     #[cfg(not(target_os = "linux"))]
-    pub(crate) fn within_bound(&self, weight: usize) -> bool {
+    pub fn within_bound(&self, weight: usize) -> bool {
         // Memory bound not supported on this platform.
         true
     }

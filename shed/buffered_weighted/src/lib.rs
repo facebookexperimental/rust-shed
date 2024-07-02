@@ -97,6 +97,7 @@ mod peekable_fused;
 mod tests;
 
 pub use crate::buffered_weighted_stream::BufferedWeighted;
+pub use crate::memory_bound::MemoryBound;
 
 /// Traits to aid in type definitions.
 ///
