@@ -45,6 +45,11 @@ where
         SortedVectorSet(Vec::with_capacity(capacity))
     }
 
+    /// Extracts the inner vector.
+    pub fn into_inner(self) -> Vec<T> {
+        self.0
+    }
+
     /// Clears the set, removing all elements.
     pub fn clear(&mut self) {
         self.0.clear()

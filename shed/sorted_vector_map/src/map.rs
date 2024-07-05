@@ -45,6 +45,11 @@ where
         SortedVectorMap(Vec::with_capacity(capacity))
     }
 
+    /// Extracts the inner vector.
+    pub fn into_inner(self) -> Vec<(K, V)> {
+        self.0
+    }
+
     /// Clears the map, removing all elements.
     pub fn clear(&mut self) {
         self.0.clear()
