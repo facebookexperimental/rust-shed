@@ -14,11 +14,16 @@ use std::path::PathBuf;
 /// This implements the logic recommended by
 /// https://www.internalfb.com/intern/wiki/?fbid=226405021435001.
 pub fn is_eden(dir: PathBuf) -> Result<bool, std::io::Error> {
-    is_eden_impl(dir)
+    find_eden_root(dir).map(|eden_root| eden_root.is_some())
+}
+
+/// Find the EdenFS root for the provided directory.
+pub fn find_eden_root(dir: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
+    find_eden_root_impl(dir)
 }
 
 #[cfg(windows)]
-fn is_eden_impl(mut dir: PathBuf) -> Result<bool, std::io::Error> {
+fn find_eden_root_impl(mut dir: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
     /// Implemented as described in
     /// https://docs.microsoft.com/en-us/windows/win32/fileio/determining-whether-a-directory-is-a-volume-mount-point
     fn is_mount_point(mut dir: PathBuf) -> Result<bool, std::io::Error> {
@@ -57,41 +62,45 @@ fn is_eden_impl(mut dir: PathBuf) -> Result<bool, std::io::Error> {
         }
     }
 
-    dir = std::fs::canonicalize(&dir)?;
+    dir = dunce::canonicalize(&dir)?;
     loop {
         dir.push(".eden");
         dir.push("config");
-        if std::fs::metadata(&dir).map_or(false, |metadata| metadata.is_file()) {
-            return Ok(true);
+        let is_confirmed_repo =
+            std::fs::metadata(&dir).map_or(false, |metadata| metadata.is_file());
+        dir.pop();
+        dir.pop();
+        if is_confirmed_repo {
+            return Ok(Some(dir));
         }
-        dir.pop();
-        dir.pop();
 
         dir.push(".hg");
         if std::fs::metadata(&dir).map_or(false, |metadata| metadata.is_file()) {
-            return Ok(false);
+            return Ok(None);
         }
         dir.pop();
 
         dir.push(".git");
         if std::fs::metadata(&dir).map_or(false, |metadata| metadata.is_file()) {
-            return Ok(false);
+            return Ok(None);
         }
         dir.pop();
 
         if is_mount_point(dir.clone())? {
-            return Ok(false);
+            return Ok(None);
         }
 
         if !dir.pop() {
-            return Ok(false);
+            return Ok(None);
         }
     }
 }
 
 #[cfg(not(windows))]
-fn is_eden_impl(mut dir: PathBuf) -> Result<bool, std::io::Error> {
+fn find_eden_root_impl(mut dir: PathBuf) -> Result<Option<PathBuf>, std::io::Error> {
     dir.push(".eden");
     dir.push("root");
-    Ok(std::fs::read_link(&dir).is_ok())
+    // The `canonicalize` is not strictly necessary on the non-windows path, but we do it on Windows
+    // and so this is more consistent.
+    Ok(std::fs::read_link(&dir).and_then(dunce::canonicalize).ok())
 }
