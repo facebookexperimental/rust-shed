@@ -176,7 +176,7 @@ mod tests {
 
     #[test]
     fn overflow() {
-        let big = Duration::from_secs(u64::max_value());
+        let big = Duration::from_secs(u64::MAX);
         let nanos = big.as_nanos_u64();
         assert!(nanos.is_err());
     }

@@ -18,8 +18,6 @@
 //! payload, followed by a ':', then the payload, and a terminating ','. There is no error
 //! checking or correction other than the requirement that the message be followed by a comma.
 
-#![deny(warnings)]
-
 use thiserror::Error;
 
 /// Errors that can originate from this crate

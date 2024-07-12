@@ -294,5 +294,6 @@ unsafe fn ssl_ctx_set_tlsext_ticket_key_cb(
     // with different function signatures. This is consistent with how rust-openssl bindings deal
     // with similar issues.
     #[allow(deprecated)]
+    #[allow(clippy::missing_transmute_annotations)]
     ffi::SSL_CTX_callback_ctrl(ctx, SSL_CTRL_SET_TLSEXT_TICKET_KEY_CB, mem::transmute(cb));
 }
