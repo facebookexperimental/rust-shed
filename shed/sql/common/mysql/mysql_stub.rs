@@ -11,16 +11,11 @@
 
 use std::fmt;
 use std::fmt::Display;
-use std::sync::Arc;
 
-use mysql_async::Conn as MysqlConnection;
-use mysql_async::Pool;
-use mysql_async::QueryResult;
-use mysql_async::TextProtocol;
 use thiserror::Error;
 
-use crate::mysql::ConnectionStats;
 use crate::mysql::IsolationLevel;
+use crate::mysql::TransactionResult;
 use crate::mysql::WriteResult;
 
 /// Error for Mysql client
@@ -33,57 +28,9 @@ impl Display for MysqlError {
     }
 }
 
-/// Value conversion error for Mysql client
-#[derive(Error, Debug)]
-pub struct ValueError;
-
-impl Display for ValueError {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "ValueError")
-    }
-}
-
-impl From<ValueError> for MysqlError {
-    fn from(_: ValueError) -> Self {
-        Self
-    }
-}
-
 /// Connection object.
 #[derive(Clone)]
 pub struct Connection;
-
-/// Connection object.
-#[derive(Clone)]
-pub struct OssConnection {
-    /// Connection pool
-    pub pool: Pool,
-    /// Stats struct for logging performance
-    pub stats: Arc<ConnectionStats>,
-}
-
-/// Transaction result object.
-#[allow(dead_code)]
-pub struct TransactionResult<T> {
-    results: T,
-}
-
-impl<T> TransactionResult<T> {
-    /// Get last inserted ids
-    pub fn last_insert_id(&self) -> &[u64] {
-        unimplemented!("This is a stub");
-    }
-
-    /// Get number of affected rows
-    pub fn rows_affected(&self) -> u64 {
-        unimplemented!("This is a stub");
-    }
-
-    /// Get query results.
-    pub fn results(&self) -> &T {
-        unimplemented!("This is a stub");
-    }
-}
 
 unsafe impl Send for Connection {}
 
@@ -123,40 +70,6 @@ impl Connection {
     }
 }
 
-unsafe impl Send for OssConnection {}
-
-impl OssConnection {
-    /// Checks out a connection from the pool while collecting stats
-    pub async fn get_conn_counted(
-        _pool: Pool,
-        _stats: &ConnectionStats,
-    ) -> Result<MysqlConnection, mysql_async::Error> {
-        unimplemented!("This is a stub");
-    }
-
-    /// Performs a given query and returns the result as a vector of rows.
-    pub async fn read_query<'a>(
-        &self,
-        _conn: &'a mut MysqlConnection,
-        _query: &'a str,
-    ) -> Result<QueryResult<'a, 'a, TextProtocol>, MysqlError> {
-        unimplemented!("This is a stub");
-    }
-
-    /// Performs a given query and returns the write result.
-    pub async fn write_query(&self, _query: String) -> Result<WriteResult, MysqlError> {
-        unimplemented!("This is a stub");
-    }
-
-    /// Begins trasaction and returns Transaction object.
-    pub async fn begin_transaction(
-        &self,
-        _tx_opts: mysql_async::TxOpts,
-    ) -> Result<mysql_async::Transaction<'static>, MysqlError> {
-        unimplemented!("This is a stub");
-    }
-}
-
 /// Transaction object.
 pub struct Transaction;
 
@@ -180,24 +93,4 @@ impl Transaction {
     pub async fn rollback(self) -> Result<(), MysqlError> {
         unimplemented!("This is a stub");
     }
-}
-
-/// Row field object.
-pub struct RowField;
-
-/// The trait you need to implement to be able to read a query result into the custom type.
-pub trait OptionalTryFromRowField: Sized {
-    /// Try to convert from row field.
-    fn try_from_opt(field: RowField) -> Result<Option<Self>, ValueError>;
-}
-
-/// The trait you need to implement to be able to read a query result into the custom type where NULL maps to Some
-pub trait TryFromRowField: Sized {
-    /// Try to convert from row field.
-    fn try_from(field: RowField) -> Result<Self, ValueError>;
-}
-
-/// The function converts RowField object into Rust type.
-pub fn opt_try_from_rowfield<T>(_field: RowField) -> Result<T, ValueError> {
-    unimplemented!("This is a stub");
 }

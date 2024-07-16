@@ -13,49 +13,27 @@
 mod facebook;
 #[cfg(not(fbcode_build))]
 mod mysql_stub;
-
-#[cfg(fbcode_build)]
-pub use facebook::opt_try_from_rowfield;
+mod ossmysql_wrapper;
 #[cfg(fbcode_build)]
 pub use facebook::Connection;
 #[cfg(fbcode_build)]
 pub use facebook::MysqlError;
 #[cfg(fbcode_build)]
-pub use facebook::OptionalTryFromRowField;
-#[cfg(fbcode_build)]
-pub use facebook::OssConnection;
-#[cfg(fbcode_build)]
-pub use facebook::RowField;
-#[cfg(fbcode_build)]
 pub use facebook::Transaction;
-#[cfg(fbcode_build)]
-pub use facebook::TransactionResult;
-#[cfg(fbcode_build)]
-pub use facebook::TryFromRowField;
-#[cfg(fbcode_build)]
-pub use facebook::ValueError;
+pub use mysql_client_traits::opt_try_from_rowfield;
+pub use mysql_client_traits::OptionalTryFromRowField;
+pub use mysql_client_traits::RowField;
+pub use mysql_client_traits::TryFromRowField;
+pub use mysql_client_traits::ValueError;
 pub use mysql_derive::OptTryFromRowField;
 pub use mysql_derive::TryFromRowField;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::opt_try_from_rowfield;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::Connection;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::MysqlError;
 #[cfg(not(fbcode_build))]
-pub use mysql_stub::OptionalTryFromRowField;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::OssConnection;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::RowField;
-#[cfg(not(fbcode_build))]
 pub use mysql_stub::Transaction;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::TransactionResult;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::TryFromRowField;
-#[cfg(not(fbcode_build))]
-pub use mysql_stub::ValueError;
+pub use ossmysql_wrapper::OssConnection;
 use stats::prelude::*;
 
 use super::WriteResult as SqlWriteResult;
@@ -180,5 +158,29 @@ impl WriteResult {
 impl From<WriteResult> for SqlWriteResult {
     fn from(result: WriteResult) -> Self {
         Self::new(Some(result.last_insert_id()), result.rows_affected())
+    }
+}
+
+/// Result returned from executing a transaction.
+pub struct TransactionResult<T> {
+    last_insert_ids: Vec<u64>,
+    rows_affected: u64,
+    results: T,
+}
+
+impl<T> TransactionResult<T> {
+    /// Get last inserted ids
+    pub fn last_insert_id(&self) -> &[u64] {
+        &self.last_insert_ids
+    }
+
+    /// Get number of affected rows
+    pub fn rows_affected(&self) -> u64 {
+        self.rows_affected
+    }
+
+    /// Get query results.
+    pub fn results(&self) -> &T {
+        &self.results
     }
 }

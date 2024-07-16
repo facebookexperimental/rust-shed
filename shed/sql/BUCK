@@ -90,17 +90,18 @@ rust_library(
         "fbsource//third-party/rust:mysql_async",
         "fbsource//third-party/rust:rusqlite",
         "fbsource//third-party/rust:vec1",
+        ":mysql_client_traits",
         ":mysql_derive",
         "//common/rust/mysql:mysql_client",
+        "//common/rust/shed/futures_stats:futures_stats",
         "//common/rust/shed/stats:stats",
+        "//common/rust/shed/time_ext:time_ext",
     ] + ([
         "fbsource//third-party/rust:thiserror",
     ] if rust_oss.is_oss_build() else [
         # buildifier: keep sorted
         "fbsource//third-party/rust:tokio",
         "//common/rust/shed/cloned:cloned",
-        "//common/rust/shed/futures_stats:futures_stats",
-        "//common/rust/shed/time_ext:time_ext",
     ]),
 )
 
