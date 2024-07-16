@@ -125,6 +125,19 @@ rust_library(
 )
 
 rust_library(
+    name = "mysql_client_traits",
+    srcs = glob(["mysql_client_traits/*.rs"]),
+    autocargo = {"cargo_toml_dir": "mysql_client_traits"},
+    crate_root = "mysql_client_traits/lib.rs",
+    deps = [
+        "fbsource//third-party/rust:chrono",
+        "fbsource//third-party/rust:mysql_common",
+        "fbsource//third-party/rust:seq-macro",
+        "fbsource//third-party/rust:thiserror",
+    ],
+)
+
+rust_library(
     name = "sql_facebook",
     srcs = glob(["facebook/src/**/*.rs"]),
     allow_oss_build = False,

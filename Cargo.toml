@@ -71,6 +71,7 @@ members = [
   "shed/sql",
   "shed/sql/common",
   "shed/sql/derive",
+  "shed/sql/mysql_client_traits",
   "shed/sql/tests_lib",
   "shed/stats",
   "shed/stats/traits",
