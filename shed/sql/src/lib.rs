@@ -428,8 +428,7 @@ macro_rules! _read_query_impl {
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
-                        query.push_str(" # ");
-                        query.push_str(comment);
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     conn.read_query(query).map_err(Error::from).await
                 }
@@ -490,7 +489,7 @@ macro_rules! _read_query_impl {
                 Transaction::Mysql(ref mut transaction) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
@@ -645,7 +644,7 @@ macro_rules! _write_query_impl {
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query(values, $( $pname ),*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
@@ -683,7 +682,7 @@ macro_rules! _write_query_impl {
                 Transaction::Mysql(ref mut transaction) => {
                     let mut query = mysql_query(values, $( $pname ),*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
@@ -848,7 +847,7 @@ macro_rules! _write_query_impl {
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let res = conn.write_query(query).map_err(Error::from).await?;
                     Ok(res.into())
@@ -882,7 +881,7 @@ macro_rules! _write_query_impl {
                 Transaction::Mysql(ref mut transaction) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
-                        query.push_str(&format!(" # {}", comment));
+                        query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
