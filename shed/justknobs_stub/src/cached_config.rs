@@ -54,7 +54,7 @@ enum KnobVal {
 }
 
 pub fn in_use() -> bool {
-    JUST_KNOBS_WORKER_STATE.get().is_some()
+    JUST_KNOBS_WORKER_STATE.get().is_some() || JUST_KNOBS.get().is_some()
 }
 
 pub fn just_knobs() -> &'static ArcSwap<JustKnobsInMemory> {
@@ -245,11 +245,7 @@ mod test {
         init_just_knobs(&logger, &config_handle)?;
         assert!(CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
 
-        // This is a problem: the public interface for interacting with this jk errs, despite being
-        // initialized with a static config handle that contains this justknob.
-        assert!(justknobs::eval("my/config:knob1", None, None).is_err());
-        // We should expect this to work:
-        //     assert!(justknobs::eval("my/config:knob1", None, None).unwrap());
+        assert!(justknobs::eval("my/config:knob1", None, None).unwrap());
         Ok(())
     }
 }
