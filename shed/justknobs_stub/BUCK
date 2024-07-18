@@ -20,6 +20,7 @@ rust_library(
     test_deps = [
         "fbsource//third-party/rust:maplit",
         "fbsource//third-party/rust:tokio",
+        "//common/rust/shed/fbinit:fbinit",
         "//common/rust/shed/slog_glog_fmt:slog_glog_fmt",
     ],
     deps = [

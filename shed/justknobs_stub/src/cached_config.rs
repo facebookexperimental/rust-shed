@@ -189,6 +189,7 @@ mod test {
     use tokio::runtime::Handle;
 
     use super::*;
+    use crate as justknobs;
     const SLEEP_TIME_MS: u64 = 50;
 
     #[tokio::test(start_paused = true)]
@@ -233,6 +234,22 @@ mod test {
             10
         );
         assert!(!CachedConfigJustKnobs::eval("my/config:knob3", None, None).unwrap());
+        Ok(())
+    }
+
+    #[cfg(fbcode_build)]
+    #[fbinit::test]
+    fn test_jk_loading_with_static_config_handle() -> Result<()> {
+        let config_handle = ConfigHandle::from_json(r#"{ "bools": {"my/config:knob1": true } }"#)?;
+        let logger = logger_that_can_work_in_tests().unwrap();
+        init_just_knobs(&logger, &config_handle)?;
+        assert!(CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
+
+        // This is a problem: the public interface for interacting with this jk errs, despite being
+        // initialized with a static config handle that contains this justknob.
+        assert!(justknobs::eval("my/config:knob1", None, None).is_err());
+        // We should expect this to work:
+        //     assert!(justknobs::eval("my/config:knob1", None, None).unwrap());
         Ok(())
     }
 }
