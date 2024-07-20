@@ -20,7 +20,6 @@ doc = false
 anyhow = "1.0.75"
 async-trait = "0.1.71"
 codegen_includer_proc_macro = { version = "0.1.0", path = "../../../codegen_includer_proc_macro" }
-const-cstr = "0.3.0"
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
 futures = { version = "0.3.30", features = ["async-await", "compat"] }
 just_knobs_struct__types = { package = "just_knobs_struct", version = "0.1.0", path = ".." }
