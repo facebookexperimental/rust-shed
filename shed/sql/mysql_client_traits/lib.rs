@@ -51,17 +51,17 @@ the Query whose results are held by `row`.
 macro_rules! sql_field {
     ($row:expr, $some_struct:ident, $field:expr) => {{
         TryFromRowField::try_from($row.get($field).map_err(|e| {
-            MysqlError::SchemaError(format!(
+            ::mysql_client::MysqlError::SchemaError(format!(
                 "Could not find column '{}' on struct '{}'. Perhaps a typo? Original Error: {}",
                 $field,
-                std::any::type_name::<$some_struct>(),
+                ::std::any::type_name::<$some_struct>(),
                 e.to_string(),
             ))
         })?)
         .map_err(|e| {
-            MysqlError::SchemaError(format!(
+            ::mysql_client::MysqlError::SchemaError(format!(
                 "{}.{} wrong type: {}",
-                std::any::type_name::<$some_struct>(),
+                ::std::any::type_name::<$some_struct>(),
                 $field,
                 e.to_string()
             ))
@@ -96,18 +96,18 @@ the Query whose results are held by `row`.
 #[macro_export]
 macro_rules! option_sql_field {
     ($row:expr, $some_struct:ident, $field:expr) => {{
-        OptionalTryFromRowField::try_from_opt($row.get($field).map_err(|e| {
-            MysqlError::SchemaError(format!(
+        $crate::OptionalTryFromRowField::try_from_opt($row.get($field).map_err(|e| {
+            ::mysql_client::MysqlError::SchemaError(format!(
                 "Could not find column '{}' on struct '{}'. Perhaps a typo? Original Error: {}",
                 $field,
-                std::any::type_name::<$some_struct>(),
+                ::std::any::type_name::<$some_struct>(),
                 e.to_string(),
             ))
         })?)
         .map_err(|e| {
-            MysqlError::SchemaError(format!(
+            ::mysql_client::MysqlError::SchemaError(format!(
                 "{}.{} wrong type: {}",
-                std::any::type_name::<$some_struct>(),
+                ::std::any::type_name::<$some_struct>(),
                 $field,
                 e.to_string()
             ))
