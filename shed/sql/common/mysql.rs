@@ -72,6 +72,12 @@ pub trait AsSql {
     fn as_sql(&self, no_backslash_escape: bool) -> String;
 }
 
+impl AsSql for MySqlQuery {
+    fn as_sql(&self, _no_backslash_escape: bool) -> String {
+        self.query.clone()
+    }
+}
+
 impl<T: mysql_async::prelude::ToValue> AsSql for T {
     fn as_sql(&self, no_backslash_escape: bool) -> String {
         mysql_async::prelude::ToValue::to_value(self).as_sql(no_backslash_escape)
