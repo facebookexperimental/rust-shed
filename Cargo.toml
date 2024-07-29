@@ -15,6 +15,7 @@ riscv = { git = "https://github.com/rust-embedded/riscv.git", rev = "28e9b02d458
 
 [workspace]
 members = [
+  "shed/abomonable_string",
   "shed/ascii_ext",
   "shed/async_once_cell",
   "shed/borrowed",
