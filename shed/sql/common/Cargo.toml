@@ -36,3 +36,6 @@ sql_tests_lib = { version = "0.1.0", path = "../tests_lib" }
 
 [features]
 default = ["rusqlite/bundled"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fbcode_build)'] }

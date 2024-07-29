@@ -13,3 +13,6 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.75"
 real_hostname = { package = "hostname", version = "0.3" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fbcode_build)'] }

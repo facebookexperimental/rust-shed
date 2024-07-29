@@ -13,3 +13,6 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.75"
 fbinit = { version = "0.1.2", path = "../fbinit" }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(fbcode_build)'] }
