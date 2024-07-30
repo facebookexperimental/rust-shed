@@ -58,7 +58,10 @@ trait JustKnobs {
 }
 
 /// For open-source for now we're using a stub implementation that always returns default.
+#[cfg(not(fbcode_build))]
 struct JustKnobsStub;
+
+#[cfg(not(fbcode_build))]
 impl JustKnobs for JustKnobsStub {
     fn eval(_name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
         Ok(false)
