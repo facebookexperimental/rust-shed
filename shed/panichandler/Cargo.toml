@@ -44,6 +44,7 @@ backtrace = "0.3"
 [dev-dependencies]
 anyhow = "1.0.75"
 assert_cmd = "2.0"
+buck-resources = "1"
 predicates = "1"
 
 [target.'cfg(target_os = "linux")'.dependencies]

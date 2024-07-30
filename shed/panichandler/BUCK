@@ -116,7 +116,7 @@ rust_unittest(
     deps = [
         "fbsource//third-party/rust:anyhow",
         "fbsource//third-party/rust:assert_cmd",
+        "fbsource//third-party/rust:buck-resources",
         "fbsource//third-party/rust:predicates",
-        "//common/rust/buck_resources:buck_resources",
     ],
 )
