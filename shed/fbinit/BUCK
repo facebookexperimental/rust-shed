@@ -52,6 +52,7 @@ rust_library(
         "cargo_toml_dir": "fbinit_macros",
     },
     crate_root = "fbinit_macros/lib.rs",
+    doctests = False,
     proc_macro = True,
     unittests = False,
     deps = [
