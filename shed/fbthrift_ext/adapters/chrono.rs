@@ -38,8 +38,10 @@ pub struct OutOfRangeError(i64);
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
 /// multiple reasons:
+///
 ///  1. All services should already be using `i64`s anyways for timestamps to
-/// avoid the integer overflow in 2038.
+///     avoid the integer overflow in 2038.
+///
 ///  2. The underlying type natively supports `i64`s.
 ///
 /// # Errors
@@ -77,8 +79,10 @@ pub struct UtcTimestampAdapter;
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
 /// multiple reasons:
+///
 ///  1. All services should already be using `i64`s anyways for timestamps to
-/// avoid the integer overflow in 2038.
+///     avoid the integer overflow in 2038.
+///
 ///  2. The underlying type natively supports `i64`s.
 ///
 /// # Errors
@@ -116,8 +120,10 @@ pub struct UtcMillisecondTimestampAdapter;
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
 /// multiple reasons:
+///
 ///  1. All services should already be using `i64`s anyways for timestamps to
-/// avoid the integer overflow in 2038.
+///     avoid the integer overflow in 2038.
+///
 ///  2. The underlying type natively supports `i64`s.
 ///
 /// # Errors

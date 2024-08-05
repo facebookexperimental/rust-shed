@@ -1222,11 +1222,11 @@ mod tests {
         assert_eq!(to_value(ScubaValue::Double(1.5)).unwrap(), json!(1.5),);
 
         assert_eq!(
-            to_value(&ScubaValue::Normal("abc".to_string())).unwrap(),
+            to_value(ScubaValue::Normal("abc".to_string())).unwrap(),
             json!("abc")
         );
         assert_eq!(
-            to_value(&ScubaValue::Denorm("abc".to_string())).unwrap(),
+            to_value(ScubaValue::Denorm("abc".to_string())).unwrap(),
             json!("abc")
         );
 
