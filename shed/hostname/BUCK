@@ -14,6 +14,14 @@ rust_library(
                     ("real_hostname", "fbsource//third-party/rust:hostname"),
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Crate for getting hostname",
             },

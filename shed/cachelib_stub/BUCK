@@ -16,6 +16,14 @@ rust_library(
                     "fbsource//third-party/rust:bytes",
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Cache library",
             },

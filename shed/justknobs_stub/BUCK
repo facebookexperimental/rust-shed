@@ -9,6 +9,14 @@ rust_library(
     srcs = glob(["src/*.rs"]),
     autocargo = {
         "cargo_toml_config": {
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Client for accessing JustKnobs. Noop crate for now",
             },

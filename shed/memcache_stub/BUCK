@@ -14,6 +14,14 @@ rust_library(
                     ":memcache_common",
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Client for accessing Memcache. Noop crate for now",
             },

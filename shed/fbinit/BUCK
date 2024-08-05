@@ -15,6 +15,14 @@ rust_library(
                     "fbsource//third-party/rust:quickcheck",
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Facebook init token",
                 "version": "0.1.2",

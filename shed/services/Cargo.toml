@@ -13,3 +13,6 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 fbinit = { version = "0.1.2", path = "../fbinit" }
 services_common = { version = "0.1.0", path = "common" }
+
+[lints]
+rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }

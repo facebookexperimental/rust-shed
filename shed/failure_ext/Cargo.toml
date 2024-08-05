@@ -17,3 +17,6 @@ slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 
 [dev-dependencies]
 thiserror = "1.0.49"
+
+[lints]
+rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }

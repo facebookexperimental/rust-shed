@@ -20,6 +20,14 @@ rust_library(
                     "mysql_common/default",
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Crate for accessing sql databases",
             },
@@ -70,6 +78,14 @@ rust_library(
             },
             "features": {
                 "default": ["rusqlite/bundled"],
+            },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
             },
             "package": {
                 "description": "Common definitions for sql crate",

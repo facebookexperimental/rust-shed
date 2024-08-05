@@ -15,6 +15,14 @@ rust_library(
                     "//common/rust/shed/fbinit:fbinit",
                 ],
             },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Stubs for facebook services",
             },
@@ -38,6 +46,14 @@ rust_library(
     srcs = glob(["common/**/*.rs"]),
     autocargo = {
         "cargo_toml_config": {
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
             "package": {
                 "description": "Common code for stubbed facebook services",
                 "homepage": "https://github.com/facebookexperimental/rust-shed/",
