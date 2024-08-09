@@ -48,7 +48,7 @@ use crate::expand::Mode;
 ///      #[fbinit::main(disable_fatal_signals = sigterm_only)
 ///
 /// - `default`: disables SIGTERM and SIGINT, and is also the default if `disable_fatal_signals`
-///  is not specified
+///   is not specified
 /// - `none`: disabled no signals, overrides the default
 /// - `all`: disables ALL signals
 /// - `sigterm_only`: disabled SIGTERM
