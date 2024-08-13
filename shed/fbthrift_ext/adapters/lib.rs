@@ -86,6 +86,7 @@
 pub mod chrono;
 pub mod duration;
 pub mod ipv4;
+pub mod ipv6;
 pub mod nonnegative;
 pub mod ordered_float;
 pub mod path;
@@ -97,6 +98,8 @@ pub mod uuid;
 pub use crate::duration::*;
 #[doc(inline)]
 pub use crate::ipv4::Ipv4AddressAdapter;
+#[doc(inline)]
+pub use crate::ipv6::Ipv6AddressAdapter;
 #[doc(inline)]
 pub use crate::nonnegative::NonNegativeAdapter;
 #[doc(inline)]
