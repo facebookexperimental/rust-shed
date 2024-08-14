@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.75"
 bytes = { version = "1.6.0", features = ["serde"] }
 chrono = { version = "0.4", features = ["clock", "serde", "std"], default-features = false }
-fbinit = { version = "0.1.2", path = "../fbinit" }
+fbinit = { version = "0.2.0", path = "../fbinit" }
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
 serde_json = { version = "1.0.100", features = ["float_roundtrip", "unbounded_depth"] }

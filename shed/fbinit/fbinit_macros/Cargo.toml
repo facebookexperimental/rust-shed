@@ -2,7 +2,7 @@
 
 [package]
 name = "fbinit_macros"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2021"
 description = "Facebook init token macros"

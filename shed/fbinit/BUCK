@@ -25,7 +25,7 @@ rust_library(
             },
             "package": {
                 "description": "Facebook init token",
-                "version": "0.1.2",
+                "version": "0.2.0",
             },
         },
     },
@@ -54,7 +54,7 @@ rust_library(
             "package": {
                 "description": "Facebook init token macros",
                 "readme": "../../../README.md",
-                "version": "0.1.2",
+                "version": "0.2.0",
             },
         },
         "cargo_toml_dir": "fbinit_macros",

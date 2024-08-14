@@ -11,7 +11,7 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-fbinit = { version = "0.1.2", path = "../fbinit" }
+fbinit = { version = "0.2.0", path = "../fbinit" }
 futures = { version = "0.3.30", features = ["async-await", "compat"] }
 once_cell = "1.12"
 perthread = { version = "0.1.0", path = "../perthread" }

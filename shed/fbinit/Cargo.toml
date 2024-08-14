@@ -2,7 +2,7 @@
 
 [package]
 name = "fbinit"
-version = "0.1.2"
+version = "0.2.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2021"
 description = "Facebook init token"
@@ -19,7 +19,7 @@ name = "fbinit_test"
 path = "test/fbinit_test.rs"
 
 [dependencies]
-fbinit_macros = { version = "0.1.2", path = "fbinit_macros" }
+fbinit_macros = { version = "0.2.0", path = "fbinit_macros" }
 quickcheck = "1.0"
 
 [dev-dependencies]
