@@ -69,7 +69,7 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
         #facet
 
         #[doc = #trait_ref_doc]
-        #vis trait #trait_ref_name {
+        #vis trait #trait_ref_name: ::#facet_crate::FacetRef<#facet_ty> {
             #[doc = #trait_ref_doc]
             fn #trait_ref_method(&self) -> &(#facet_ty);
         }
@@ -85,7 +85,7 @@ fn gen_attribute(facet: Item) -> Result<TokenStream, Error> {
         }
 
         #[doc = #trait_arc_doc]
-        #vis trait #trait_arc_name: #trait_ref_name {
+        #vis trait #trait_arc_name: #trait_ref_name + ::#facet_crate::FacetArc<#facet_ty> + ::#facet_crate::FacetRef<#facet_ty> {
             #[doc = #trait_arc_doc]
             fn #trait_arc_method(&self) -> ::std::sync::Arc<#facet_ty>;
         }
