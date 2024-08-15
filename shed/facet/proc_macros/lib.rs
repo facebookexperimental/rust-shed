@@ -13,19 +13,23 @@
 //!
 //! See the crate-level documentation for the `facet` crate for details.
 
-use proc_macro_crate::crate_name;
-use proc_macro_crate::FoundCrate;
-
 mod container_impl;
 mod facet_impl;
 mod factory_impl;
 mod util;
 
 fn facet_crate_name() -> String {
-    match crate_name("facet") {
-        Ok(FoundCrate::Name(n)) => n,
-        _ => "facet".to_string(),
+    #[cfg(not(fb_buck_build))]
+    {
+        use proc_macro_crate::crate_name;
+        use proc_macro_crate::FoundCrate;
+
+        if let Ok(FoundCrate::Name(name)) = crate_name("facet") {
+            return name;
+        }
     }
+
+    "facet".to_string()
 }
 
 /// Mark a `struct` as a facet container.  See the crate-level documentation

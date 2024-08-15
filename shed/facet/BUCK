@@ -34,12 +34,28 @@ rust_library(
     name = "facet_proc_macros",
     srcs = glob(["proc_macros/*.rs"]),
     autocargo = {
+        "cargo_toml_config": {
+            "dependencies_override": {
+                "dependencies": {
+                    "proc-macro-crate": {
+                        "version": "1.1.0",
+                    },
+                },
+            },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fb_buck_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
+        },
         "cargo_toml_dir": "proc_macros",
     },
     crate_root = "proc_macros/lib.rs",
     proc_macro = True,
     deps = [
-        "fbsource//third-party/rust:proc-macro-crate",
         "fbsource//third-party/rust:proc-macro2",
         "fbsource//third-party/rust:quote",
         "fbsource//third-party/rust:syn",
