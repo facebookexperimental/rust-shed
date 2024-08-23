@@ -19,6 +19,7 @@ use anyhow::Result;
 use futures::future::poll_fn;
 use futures::Future;
 use futures::FutureExt;
+use just_knobs_struct::JustKnobs as JustKnobsStruct;
 
 use crate::JustKnobs;
 
@@ -35,7 +36,25 @@ impl JustKnobsInMemory {
     pub fn new(val: HashMap<String, KnobVal>) -> Self {
         JustKnobsInMemory(val)
     }
+
+    pub fn from_json(just_knobs_json: &str) -> Result<Self> {
+        let just_knobs_struct: JustKnobsStruct = serde_json::from_str(just_knobs_json)?;
+        Ok(Self::from(&just_knobs_struct))
+    }
 }
+
+impl From<&JustKnobsStruct> for JustKnobsInMemory {
+    fn from(jk: &JustKnobsStruct) -> Self {
+        Self(
+            jk.bools
+                .iter()
+                .map(|(k, v)| (k.clone(), KnobVal::Bool(*v)))
+                .chain(jk.ints.iter().map(|(k, v)| (k.clone(), KnobVal::Int(*v))))
+                .collect(),
+        )
+    }
+}
+
 #[derive(Copy, Clone)]
 pub enum KnobVal {
     Bool(bool),
