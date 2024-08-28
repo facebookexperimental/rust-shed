@@ -15,7 +15,7 @@ name = "justknobs_in_unnitest"
 path = "tests/justknobs_in_unittest.rs"
 
 [dependencies]
-anyhow = "1.0.75"
+anyhow = "1.0.86"
 arc-swap = "1.5"
 cached_config = { version = "0.1.0", path = "../cached_config" }
 futures = { version = "0.3.30", features = ["async-await", "compat"] }
