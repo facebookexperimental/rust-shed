@@ -36,7 +36,6 @@ pub mod test_helpers {
     pub use crate::thread_local_in_memory::override_just_knobs;
     pub use crate::thread_local_in_memory::with_just_knobs;
     pub use crate::thread_local_in_memory::with_just_knobs_async;
-    pub use crate::thread_local_in_memory::with_just_knobs_async_arc;
     pub use crate::thread_local_in_memory::JustKnobsInMemory;
     pub use crate::thread_local_in_memory::KnobVal;
 }
