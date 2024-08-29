@@ -68,7 +68,7 @@ impl JustKnobs for CachedConfigJustKnobs {
             .load()
             .0
             .get(name)
-            .unwrap_or(&KnobVal::Bool(false)));
+            .ok_or_else(|| anyhow!("Missing just knobs bool: {}", name))?);
 
         match value {
             KnobVal::Int(_v) => Err(anyhow!(
@@ -80,7 +80,11 @@ impl JustKnobs for CachedConfigJustKnobs {
     }
 
     fn get(name: &str, _switch_val: Option<&str>) -> Result<i64> {
-        let value = *(just_knobs().load().0.get(name).unwrap_or(&KnobVal::Int(0)));
+        let value = *(just_knobs()
+            .load()
+            .0
+            .get(name)
+            .ok_or_else(|| anyhow!("Missing just knobs int: {}", name))?);
 
         match value {
             KnobVal::Bool(_v) => Err(anyhow!(
@@ -233,7 +237,7 @@ mod test {
             CachedConfigJustKnobs::get("my/config:knob2", None).unwrap(),
             10
         );
-        assert!(!CachedConfigJustKnobs::eval("my/config:knob3", None, None).unwrap());
+        assert!(CachedConfigJustKnobs::eval("my/config:knob3", None, None).is_err());
         Ok(())
     }
 
@@ -244,8 +248,10 @@ mod test {
         let logger = logger_that_can_work_in_tests().unwrap();
         init_just_knobs(&logger, &config_handle)?;
         assert!(CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
+        assert!(CachedConfigJustKnobs::eval("my/config:knob2", None, None).is_err());
 
         assert!(justknobs::eval("my/config:knob1", None, None).unwrap());
+        assert!(justknobs::eval("my/config:knob2", None, None).is_err());
         Ok(())
     }
 }

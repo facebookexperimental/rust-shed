@@ -15,6 +15,7 @@ use std::sync::Arc;
 use std::thread_local;
 
 use anyhow::anyhow;
+use anyhow::bail;
 use anyhow::Result;
 use futures::future::poll_fn;
 use futures::Future;
@@ -65,9 +66,13 @@ pub(crate) struct ThreadLocalInMemoryJustKnobsImpl;
 impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
     fn eval(name: &str, _hash_val: Option<&str>, _switch_val: Option<&str>) -> Result<bool> {
         let value = JUST_KNOBS.with(|jk| match jk.borrow().deref() {
-            Some(jk) => *jk.0.get(name).unwrap_or(&KnobVal::Bool(false)),
-            None => KnobVal::Bool(false),
-        });
+            Some(jk) => {
+                jk.0.get(name)
+                    .copied()
+                    .ok_or_else(|| anyhow!("Missing just knobs bool: {}", name))
+            }
+            None => bail!("Thread local JUST_KNOBS is not set"),
+        })?;
 
         match value {
             KnobVal::Int(_v) => Err(anyhow!(
@@ -80,9 +85,13 @@ impl JustKnobs for ThreadLocalInMemoryJustKnobsImpl {
 
     fn get(name: &str, _switch_val: Option<&str>) -> Result<i64> {
         let value = JUST_KNOBS.with(|jk| match jk.borrow().deref() {
-            Some(jk) => *jk.0.get(name).unwrap_or(&KnobVal::Int(0)),
-            None => KnobVal::Int(0),
-        });
+            Some(jk) => {
+                jk.0.get(name)
+                    .copied()
+                    .ok_or_else(|| anyhow!("Missing just knobs int: {}", name))
+            }
+            None => bail!("Thread local JUST_KNOBS is not set"),
+        })?;
 
         match value {
             KnobVal::Bool(_b) => Err(anyhow!(
@@ -161,7 +170,7 @@ mod test {
 
     #[test]
     fn test_with_just_knobs() {
-        assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
+        assert!(ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).is_err());
 
         override_just_knobs(JustKnobsInMemory::new(hashmap! {
             "my/config:knob1".to_string() => KnobVal::Bool(false),
@@ -183,6 +192,14 @@ mod test {
                 assert!(
                     ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap(),
                 );
+                assert!(
+                    ThreadLocalInMemoryJustKnobsImpl::eval(
+                        "my/non_existing_config:knob1",
+                        None,
+                        None
+                    )
+                    .is_err(),
+                );
                 assert_eq!(
                     ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob2", None).unwrap(),
                     2
@@ -191,13 +208,17 @@ mod test {
                     ThreadLocalInMemoryJustKnobsImpl::get("my/config:knob3", None).unwrap(),
                     3
                 );
+                assert!(
+                    ThreadLocalInMemoryJustKnobsImpl::get("my/non_existing_config:knob2", None)
+                        .is_err(),
+                );
             },
         );
     }
 
     #[tokio::test]
     async fn test_with_just_knobs_async() {
-        assert!(!ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).unwrap());
+        assert!(ThreadLocalInMemoryJustKnobsImpl::eval("my/config:knob1", None, None).is_err());
 
         override_just_knobs(JustKnobsInMemory::new(hashmap! {
             "my/config:knob1".to_string() => KnobVal::Bool(false),
