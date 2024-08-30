@@ -90,6 +90,7 @@ pub mod ipv6;
 pub mod nonnegative;
 pub mod ordered_float;
 pub mod path;
+pub mod redacted;
 pub mod socket_addr;
 pub mod unsigned_int;
 pub mod uuid;
@@ -106,6 +107,10 @@ pub use crate::nonnegative::NonNegativeAdapter;
 pub use crate::ordered_float::OrderedFloatAdapter;
 #[doc(inline)]
 pub use crate::path::Utf8PathAdapter;
+#[doc(inline)]
+pub use crate::redacted::Redacted;
+#[doc(inline)]
+pub use crate::redacted::RedactedAdapter;
 #[doc(inline)]
 pub use crate::socket_addr::SocketAddrAdapter;
 #[doc(inline)]

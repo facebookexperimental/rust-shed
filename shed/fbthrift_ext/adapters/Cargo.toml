@@ -21,3 +21,4 @@ ordered-float = { version = "3.7", features = ["serde"] }
 paste = "1.0.14"
 thiserror = "1.0.49"
 uuid = { version = "1.2", features = ["serde", "v4", "v5", "v6", "v7", "v8"] }
+valuable = { version = "0.1", features = ["derive"] }

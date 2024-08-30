@@ -127,6 +127,7 @@ rust_library(
         "fbsource//third-party/rust:paste",
         "fbsource//third-party/rust:thiserror",
         "fbsource//third-party/rust:uuid",
+        "fbsource//third-party/rust:valuable",
         "//thrift/lib/rust:fbthrift",
     ],
 )
