@@ -83,6 +83,7 @@
 //!
 //! All adapters are re-exported at the root level for easy usage in thrift.
 
+pub mod arc;
 pub mod chrono;
 pub mod duration;
 pub mod ipv4;
@@ -95,6 +96,8 @@ pub mod socket_addr;
 pub mod unsigned_int;
 pub mod uuid;
 
+#[doc(inline)]
+pub use crate::arc::ArcAdapter;
 #[doc(inline)]
 pub use crate::duration::*;
 #[doc(inline)]
