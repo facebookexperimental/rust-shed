@@ -32,7 +32,7 @@ rust_unittest(
     srcs = glob(["tests/**/*.rs"]),
     crate_root = "tests/main.rs",
     env = {
-        "OUT_DIR": "fixtures/",
+        "OUT_DIR": "tests/fixtures/",
     },
     deps = [
         ":codegen_includer_proc_macro",
