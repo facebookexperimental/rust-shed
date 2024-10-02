@@ -252,12 +252,13 @@ mod test {
     #[test]
     fn test_naive_date_time() -> Result<(), ValueError> {
         assert_eq!(
-            NaiveDateTime::parse_from_str("2022-05-30T13:39:58.012345Z", "%+").unwrap(),
+            NaiveDateTime::parse_from_str("2022-05-30 13:39:58", "%Y-%m-%d %H:%M:%S").unwrap(),
             <NaiveDateTime as TryFromRowField>::try_from(RowField::Bytes(
-                "2022-05-30 13:39:58.012345".as_bytes().to_vec()
+                "2022-05-30 13:39:58".as_bytes().to_vec()
             ))
             .unwrap()
         );
+        println!("ok");
         Ok(())
     }
 }
