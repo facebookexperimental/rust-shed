@@ -192,7 +192,7 @@ impl<T: Hash> Hash for EagerHashMemoizer<T> {
         // the finish value.
         // Hasher has only limited apis, and this is safer than transmuting
         // to use a specific write_finish() api.
-        state.finish();
+        let _ = state.finish();
 
         // If we are using the MemoHasher, this will set the finish value.
         // Otherwise it harmlessly alters the hash a bit.
@@ -260,7 +260,7 @@ impl<T: Hash, I: BuildHasher> Hash for LazyHashMemoizer<'_, T, I> {
         // Tells MemoHasher to interpret the write_u64 as the finish value.
         // Hasher has only limited apis, and this is safer than transmuting
         // to use a specific write_finish() api.
-        state.finish();
+        let _ = state.finish();
 
         // If we are using the MemoHasher, this will set the finish value.
         // Otherwise it harmlessly alters the hash a bit
