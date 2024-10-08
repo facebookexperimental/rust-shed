@@ -22,7 +22,7 @@ impl KeyGen {
         C: AsRef<str>,
     {
         let category = category.as_ref();
-        let all_ascii = category.chars().all(|c| c.is_ascii());
+        let all_ascii = category.is_ascii();
         let no_bad = !category.chars().any(|c| c == ' ' || c == ':');
 
         assert!(all_ascii, "category is not pure ascii");
