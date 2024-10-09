@@ -120,6 +120,7 @@ rust_library(
     },
     crate = "fbthrift_adapters",
     deps = [
+        "fbsource//third-party/rust:bstr",
         "fbsource//third-party/rust:camino",
         "fbsource//third-party/rust:chrono",
         "fbsource//third-party/rust:ordered-float",
