@@ -21,7 +21,7 @@ name = "set"
 harness = false
 
 [dependencies]
-itertools = "0.11.0"
+itertools = "0.12.1"
 quickcheck = "1.0"
 
 [dev-dependencies]
