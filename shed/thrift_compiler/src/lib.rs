@@ -77,6 +77,7 @@ pub struct Config {
     clients_crate: Option<String>,
     options: Option<String>,
     include_srcs: Vec<PathBuf>,
+    extra_srcs: Vec<PathBuf>,
 }
 
 impl Config {
@@ -96,6 +97,7 @@ impl Config {
             clients_crate: None,
             options: None,
             include_srcs: vec![],
+            extra_srcs: vec![],
         })
     }
 
@@ -165,6 +167,13 @@ impl Config {
         self
     }
 
+    /// Set extra srcs to be copied into the generated crate.
+    pub fn extra_srcs(&mut self, value: impl IntoIterator<Item = impl AsRef<Path>>) -> &mut Self {
+        self.extra_srcs
+            .extend(value.into_iter().map(|path| path.as_ref().to_owned()));
+        self
+    }
+
     /// Transform a relative path so leading "../"'s are replaced with "_t".
     pub fn remap_to_out_dir(&self, path: &Path) -> PathBuf {
         let mut rem = path;
@@ -197,6 +206,15 @@ impl Config {
                 let out_path = self.remap_to_out_dir(include_src);
                 fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
                 fs::copy(include_src, out.join(out_path))?;
+            }
+        }
+
+        for extra_src in &self.extra_srcs {
+            println!("cargo:rerun-if-changed={}", extra_src.to_string_lossy());
+            if let GenContext::Types = self.gen_context {
+                let out_path = self.remap_to_out_dir(extra_src);
+                fs::create_dir_all(out.join(out_path.parent().unwrap()))?;
+                fs::copy(extra_src, out.join(out_path))?;
             }
         }
 
