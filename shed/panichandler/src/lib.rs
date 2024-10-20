@@ -16,7 +16,7 @@ use std::io;
 use std::io::BufWriter;
 use std::io::Write;
 use std::panic;
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 use std::ptr;
 
 use backtrace::Backtrace;
@@ -40,7 +40,7 @@ pub enum Fate {
     Abort,
 }
 
-fn handler(panic: &PanicInfo<'_>, fate: Fate) {
+fn handler(panic: &PanicHookInfo<'_>, fate: Fate) {
     let stderr = io::stderr();
     let mut w = BufWriter::new(stderr.lock());
 
