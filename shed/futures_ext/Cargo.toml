@@ -16,7 +16,7 @@ futures = { version = "0.3.30", features = ["async-await", "compat"] }
 pin-project = "0.4.30"
 shared_error = { version = "0.1.0", path = "../shared_error" }
 thiserror = "1.0.64"
-tokio = { version = "1.37.0", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.41.0", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
 assert_matches = "1.5"

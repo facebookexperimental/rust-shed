@@ -19,7 +19,7 @@ pin-project = "0.4.30"
 futures = { version = "0.3.30", features = ["async-await", "compat"] }
 proptest = "1.0"
 proptest-derive = "0.3"
-tokio = { version = "1.37.0", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.41.0", features = ["full", "test-util", "tracing"] }
 tokio-stream = { version = "0.1.14", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
