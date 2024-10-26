@@ -46,9 +46,9 @@ rust_library(
 )
 
 rust_binary(
-    name = "test",
+    name = "shed_panic_simple",
     srcs = [
-        "test/test.rs",
+        "test/shed_panic_simple.rs",
     ],
     unittests = False,
     deps = [
@@ -57,9 +57,9 @@ rust_binary(
 )
 
 rust_binary(
-    name = "test_deep",
+    name = "shed_panic_deep",
     srcs = [
-        "test/test_deep.rs",
+        "test/shed_panic_deep.rs",
     ],
     unittests = False,
     deps = [
@@ -68,9 +68,9 @@ rust_binary(
 )
 
 rust_binary(
-    name = "testmultithread",
+    name = "shed_panic_multithread",
     srcs = [
-        "test/testmultithread.rs",
+        "test/shed_panic_multithread.rs",
     ],
     unittests = False,
     deps = [
@@ -79,9 +79,9 @@ rust_binary(
 )
 
 rust_binary(
-    name = "testmultithread_abort",
+    name = "shed_panic_multithread_abort",
     srcs = [
-        "test/testmultithread_abort.rs",
+        "test/shed_panic_multithread_abort.rs",
     ],
     os_deps = [
         (
@@ -115,10 +115,10 @@ rust_unittest(
     allow_oss_build = False,
     crate_root = "test/testrunner.rs",
     resources = {
-        "test": "//common/rust/shed/panichandler:test",
-        "test_deep": "//common/rust/shed/panichandler:test_deep",
-        "testmultithread": "//common/rust/shed/panichandler:testmultithread",
-        "testmultithread_abort": "//common/rust/shed/panichandler:testmultithread_abort",
+        "shed_panic_deep": "//common/rust/shed/panichandler:shed_panic_deep",
+        "shed_panic_multithread": "//common/rust/shed/panichandler:shed_panic_multithread",
+        "shed_panic_multithread_abort": "//common/rust/shed/panichandler:shed_panic_multithread_abort",
+        "shed_panic_simple": "//common/rust/shed/panichandler:shed_panic_simple",
     },
     deps = [
         "fbsource//third-party/rust:anyhow",

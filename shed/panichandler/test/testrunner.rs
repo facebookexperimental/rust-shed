@@ -31,7 +31,7 @@ macro_rules! get_command {
 
 #[test]
 fn test() -> Result<()> {
-    let mut cmd = get_command!("test");
+    let mut cmd = get_command!("shed_panic_simple");
     cmd.assert()
         .failure()
         .code(101)
@@ -44,7 +44,7 @@ fn test() -> Result<()> {
 
 #[test]
 fn test_deep() -> Result<()> {
-    let mut cmd = get_command!("test_deep");
+    let mut cmd = get_command!("shed_panic_deep");
     cmd.assert()
         .failure()
         .code(101)
@@ -58,7 +58,7 @@ fn test_deep() -> Result<()> {
 
 #[test]
 fn testmultithread() -> Result<()> {
-    let mut cmd = get_command!("testmultithread");
+    let mut cmd = get_command!("shed_panic_multithread");
     cmd.assert()
         .failure()
         .code(99)
@@ -71,7 +71,7 @@ fn testmultithread() -> Result<()> {
 
 #[test]
 fn testmultithread_abort() -> Result<()> {
-    let mut cmd = get_command!("testmultithread_abort");
+    let mut cmd = get_command!("shed_panic_multithread_abort");
     let assert = cmd.assert();
     let assert = if cfg!(windows) {
         assert.failure().code(predicate::ne(101))
