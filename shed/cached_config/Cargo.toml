@@ -17,7 +17,7 @@ chrono = { version = "0.4", features = ["clock", "serde", "std"], default-featur
 fbinit = { version = "0.2.0", path = "../fbinit" }
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
-serde_json = { version = "1.0.125", features = ["float_roundtrip", "unbounded_depth"] }
+serde_json = { version = "1.0.132", features = ["float_roundtrip", "unbounded_depth"] }
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 tokio = { version = "1.41.0", features = ["full", "test-util", "tracing"] }
 
