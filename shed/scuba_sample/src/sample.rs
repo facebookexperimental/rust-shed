@@ -54,6 +54,20 @@ impl ScubaSample {
         }
     }
 
+    /// Create a new sample with the provided timestamp, subset and values,
+    /// this allows to create immutable objects
+    pub fn new_from_values(
+        time: u64,
+        subset: Option<String>,
+        values: HashMap<String, ScubaValue>,
+    ) -> Self {
+        ScubaSample {
+            time,
+            subset,
+            values,
+        }
+    }
+
     /// Joins the values from another scuba sample to the current one.
     /// If a key from the passed in sample is already present in self, the old
     /// value will be overridden
