@@ -25,4 +25,4 @@ itertools = "0.13.0"
 quickcheck = "1.0"
 
 [dev-dependencies]
-minibench = { git = "https://github.com/facebook/sapling.git", branch = "main" }
+sapling-minibench = { git = "https://github.com/facebook/sapling.git", branch = "main" }
