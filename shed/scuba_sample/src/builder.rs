@@ -291,7 +291,7 @@ pub enum ServerData {
     ModelName,
     /// Model id of the server
     ModelId,
-    /// Tupperware full cluster name
+    /// Device full cluster name (ie `atn1c01`)
     FullClusterName,
     /// Tier of the service
     Tier,
