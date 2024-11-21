@@ -23,6 +23,7 @@ pub mod futures03;
 pub use futures03::TimedFutureExt;
 pub use futures03::TimedStreamExt;
 pub use futures03::TimedTryFutureExt;
+pub use futures03::TimedTryStreamExt;
 
 /// A structure that holds some basic statistics for Future.
 #[derive(Clone, Debug)]
@@ -73,4 +74,17 @@ pub struct StreamStats {
 
     /// Whether the stream was polled to completion.
     pub completed: bool,
+}
+
+/// A structure that holds some basic statistics for Stream.
+#[derive(Clone, Debug)]
+pub struct TryStreamStats {
+    /// All the stats that are not try-stream specific.
+    pub stream_stats: StreamStats,
+
+    /// Number of errors in the stream.
+    pub error_count: usize,
+
+    /// Number of elements in the stream that were emitted before first error
+    pub first_error_position: Option<usize>,
 }
