@@ -150,10 +150,10 @@ where
     S: Stream,
     C: FnOnce(StreamStats),
 {
-    fn new(stream: S, callback: C) -> Self {
+    fn new(stream: S, callback: Option<C>) -> Self {
         TimedStream {
             inner: stream,
-            callback: Some(callback),
+            callback,
             start: None,
             count: 0,
             poll_count: 0,
@@ -164,17 +164,21 @@ where
         }
     }
 
+    fn gen_stats(&self) -> StreamStats {
+        StreamStats {
+            completion_time: self.start.as_ref().map(Instant::elapsed),
+            poll_time: self.poll_time,
+            max_poll_time: self.max_poll_time,
+            poll_count: self.poll_count,
+            count: self.count,
+            first_item_time: self.first_item_time,
+            completed: self.completed,
+        }
+    }
+
     fn run_callback(&mut self) {
         if let Some(callback) = self.callback.take() {
-            let stats = StreamStats {
-                completion_time: self.start.as_ref().map(Instant::elapsed),
-                poll_time: self.poll_time,
-                max_poll_time: self.max_poll_time,
-                poll_count: self.poll_count,
-                count: self.count,
-                first_item_time: self.first_item_time,
-                completed: self.completed,
-            };
+            let stats = self.gen_stats();
             callback(stats)
         }
     }
@@ -306,7 +310,7 @@ pub trait TimedStreamExt: Stream + Sized {
     where
         C: FnOnce(StreamStats),
     {
-        TimedStream::new(self, callback)
+        TimedStream::new(self, Some(callback))
     }
 }
 
