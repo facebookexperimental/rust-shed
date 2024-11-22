@@ -67,11 +67,22 @@ pub trait FbStreamExt: Stream {
     }
 
     /// Construct a new [self::yield_periodically::YieldPeriodically], with a sensible default.
-    fn yield_periodically(self) -> YieldPeriodically<Self>
+    #[track_caller]
+    fn yield_periodically<'a>(self) -> YieldPeriodically<'a, Self>
     where
         Self: Sized,
     {
-        YieldPeriodically::new(self, Duration::from_millis(10))
+        let location = std::panic::Location::caller();
+
+        let location = slog::RecordLocation {
+            file: location.file(),
+            line: location.line(),
+            column: location.column(),
+            function: "",
+            module: "",
+        };
+
+        YieldPeriodically::new(self, location, Duration::from_millis(10))
     }
 }
 
