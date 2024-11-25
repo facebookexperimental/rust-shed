@@ -12,6 +12,8 @@
 use std::marker::PhantomData;
 
 use fbthrift::adapter::ThriftAdapter;
+use serde_derive::Deserialize;
+use serde_derive::Serialize;
 
 const REDACTED: &str = "<REDACTED>";
 
@@ -48,7 +50,7 @@ impl<T: Clone + PartialEq + Send + Sync> Redactable for T {}
 /// [`Debug`]: std::fmt::Debug
 /// [`Display`]: std::fmt::Display
 /// [`Valuable`]: valuable::Valuable
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Redacted<T: Redactable> {
     inner: T,
 }

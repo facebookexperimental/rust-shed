@@ -125,6 +125,8 @@ rust_library(
         "fbsource//third-party/rust:chrono",
         "fbsource//third-party/rust:ordered-float",
         "fbsource//third-party/rust:paste",
+        "fbsource//third-party/rust:serde",
+        "fbsource//third-party/rust:serde_derive",
         "fbsource//third-party/rust:thiserror",
         "fbsource//third-party/rust:uuid",
         "fbsource//third-party/rust:valuable",
