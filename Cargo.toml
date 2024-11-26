@@ -63,6 +63,8 @@ members = [
   "shed/perthread",
   "shed/quickcheck_arbitrary_derive",
   "shed/scuba_sample",
+  "shed/scuba_sample/builder",
+  "shed/scuba_sample/client",
   "shed/scuba_sample/derive",
   "shed/scuba_sample/derive_tests",
   "shed/scuba_stub",

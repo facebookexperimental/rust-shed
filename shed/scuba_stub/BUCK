@@ -11,6 +11,8 @@ rust_library(
             "extra_buck_dependencies": {
                 "dependencies": [
                     "//common/rust/shed/scuba_sample:scuba_sample",
+                    "//common/rust/shed/scuba_sample:scuba_sample_builder",
+                    "//common/rust/shed/scuba_sample:scuba_sample_client",
                 ],
             },
             "lints": {
@@ -31,5 +33,7 @@ rust_library(
     },
     deps = [] + ([
         "//common/rust/shed/scuba_sample:scuba_sample",
+        "//common/rust/shed/scuba_sample:scuba_sample_builder",
+        "//common/rust/shed/scuba_sample:scuba_sample_client",
     ] if rust_oss.is_oss_build() else []),
 )

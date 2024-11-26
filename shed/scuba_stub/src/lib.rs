@@ -25,3 +25,7 @@
 pub use fb_scuba::*;
 #[cfg(not(fbcode_build))]
 pub use scuba_sample::*;
+#[cfg(not(fbcode_build))]
+pub use scuba_sample_builder::*;
+#[cfg(not(fbcode_build))]
+pub use scuba_sample_client::*;

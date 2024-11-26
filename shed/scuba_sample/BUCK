@@ -9,7 +9,7 @@ rust_library(
     autocargo = {
         "cargo_toml_config": {
             "package": {
-                "description": "Helps build scuba samples",
+                "description": "Provides Scuba sample type and sampling",
             },
         },
     },
@@ -25,7 +25,6 @@ rust_library(
         "fbsource//third-party/rust:serde_json",
         "fbsource//third-party/rust:thiserror",
         ":scuba_sample_derive",
-        "//common/rust/shed/fbinit:fbinit",
     ],
 )
 
@@ -46,6 +45,42 @@ rust_library(
         "fbsource//third-party/rust:proc-macro2",
         "fbsource//third-party/rust:quote",
         "fbsource//third-party/rust:syn",
+    ],
+)
+
+rust_library(
+    name = "scuba_sample_builder",
+    srcs = glob(["builder/src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Helps build scuba samples",
+            },
+        },
+        "cargo_toml_dir": "builder/",
+    },
+    deps = [
+        "fbsource//third-party/rust:rand",
+        "fbsource//third-party/rust:serde_json",
+        ":scuba_sample",
+        "//common/rust/shed/fbinit:fbinit",
+    ],
+)
+
+rust_library(
+    name = "scuba_sample_client",
+    srcs = glob(["client/src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "package": {
+                "description": "Provides scuba sample client stub",
+            },
+        },
+        "cargo_toml_dir": "client/",
+    },
+    deps = [
+        ":scuba_sample",
+        "//common/rust/shed/fbinit:fbinit",
     ],
 )
 

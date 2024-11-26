@@ -12,6 +12,8 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 scuba_sample = { version = "0.1.0", path = "../scuba_sample" }
+scuba_sample_builder = { version = "0.1.0", path = "../scuba_sample/builder" }
+scuba_sample_client = { version = "0.1.0", path = "../scuba_sample/client" }
 
 [lints]
 rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
