@@ -115,6 +115,7 @@ impl<'a, T: AsSql> AsSql for SqlList<'a, T> {
 
 /// mysql_query!("SELECT foo FROM table WHERE col = {id}", id = "foo");
 /// mysql_query!("SELECT foo FROM table WHERE col = {}", "foo");
+/// mysql_query!("SELECT foo FROM table WHERE col1 = {my_var} AND col = {id}", id = "foo"; my_var = "@bar");
 #[macro_export]
 macro_rules! mysql_query {
     ($query:expr) => {
@@ -130,7 +131,14 @@ macro_rules! mysql_query {
         ::sql::mysql::MySqlQuery::new(format!(
                 $query, $( &::sql::mysql::AsSql::as_sql(&$arg, false) ),*
         ))
-    }
+    };
+    ($query:expr, $($key:ident = $value:expr),* ; $($key2:ident = $variable:expr),*) => {
+        ::sql::mysql::MySqlQuery::new(format!(
+                $query,
+                $( $key = &::sql::mysql::AsSql::as_sql(&$value, false), )*
+                $( $key2 = &$variable.as_sql(false), )*
+        ))
+    };
 }
 pub use mysql_query;
 
