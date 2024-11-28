@@ -16,7 +16,7 @@ futures = "0.1.31"
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 
 [dev-dependencies]
-thiserror = "1.0.64"
+thiserror = "2"
 
 [lints]
 rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
