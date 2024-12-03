@@ -30,8 +30,8 @@ use fbthrift::adapter::ThriftAdapter;
 pub struct UnsignedIntAdapter<T>(PhantomData<T>);
 
 macro_rules! unsigned_int_adapter {
-    ($thrift:ty, $rust:ty) => {
-        impl ThriftAdapter for UnsignedIntAdapter<$thrift> {
+    ($thrift:ty, $rust:ty, $adapter:ty) => {
+        impl ThriftAdapter for $adapter {
             type StandardType = $thrift;
             type AdaptedType = $rust;
             type Error = std::convert::Infallible;
@@ -47,7 +47,27 @@ macro_rules! unsigned_int_adapter {
     };
 }
 
-unsigned_int_adapter!(i8, u8);
-unsigned_int_adapter!(i16, u16);
-unsigned_int_adapter!(i32, u32);
-unsigned_int_adapter!(i64, u64);
+unsigned_int_adapter!(i8, u8, UnsignedIntAdapter<i8>);
+unsigned_int_adapter!(i16, u16, UnsignedIntAdapter<i16>);
+unsigned_int_adapter!(i32, u32, UnsignedIntAdapter<i32>);
+unsigned_int_adapter!(i64, u64, UnsignedIntAdapter<i64>);
+
+#[cfg(target_pointer_width = "64")]
+/// Adapts the platform-appropriate signed Thrift integer type to `usize`
+///
+/// # Examples
+///
+/// ```thrift
+/// include "thrift/annotation/rust.thrift";
+///
+/// @rust.Adapter{name = "::fbthrift_adapters::UsizeAdapter"}
+/// typedef i64 Usize;
+///
+/// struct Parameters {
+///   1: Usize my_param;
+/// }
+/// ```
+pub struct UsizeAdapter(PhantomData<i64>);
+
+#[cfg(target_pointer_width = "64")]
+unsigned_int_adapter!(i64, usize, UsizeAdapter);

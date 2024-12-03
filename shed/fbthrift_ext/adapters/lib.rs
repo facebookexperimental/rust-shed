@@ -121,5 +121,8 @@ pub use crate::redacted::RedactedAdapter;
 pub use crate::socket_addr::SocketAddrAdapter;
 #[doc(inline)]
 pub use crate::unsigned_int::UnsignedIntAdapter;
+#[cfg(target_pointer_width = "64")]
+#[doc(inline)]
+pub use crate::unsigned_int::UsizeAdapter;
 #[doc(inline)]
 pub use crate::uuid::UuidAdapter;
