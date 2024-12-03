@@ -1,0 +1,30 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+
+oncall("autocargo")
+
+rust_library(
+    name = "ods",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
+            "package": {
+                "description": "Library that points to meta specific ods for fbcode builds and to the stub for non-fbcode builds",
+            },
+        },
+    },
+    named_deps = {
+        "fb_ods": "//common/rust/multiplatform/ods:ods",
+    },
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "//common/rust/shed/fbinit:fbinit",
+    ],
+)

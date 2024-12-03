@@ -1,0 +1,16 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+
+oncall("autocargo")
+
+rust_library(
+    name = "abomonable_string",
+    srcs = glob([
+        "src/**/*.rs",
+        "README.*",
+    ]),
+    deps = [
+        "fbsource//third-party/rust:abomonation",
+        "fbsource//third-party/rust:quickcheck",
+        "//common/rust/shed/quickcheck_arbitrary_derive:quickcheck_arbitrary_derive",
+    ],
+)

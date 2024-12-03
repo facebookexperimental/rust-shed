@@ -1,0 +1,17 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+
+oncall("autocargo")
+
+rust_library(
+    name = "async_once_cell",
+    srcs = glob([
+        "src/**/*.rs",
+    ]),
+    named_deps = {
+        "tokio": "fbsource//third-party/rust:tokio",
+    },
+    test_deps = [
+        "fbsource//third-party/rust:futures",
+        "fbsource//third-party/rust:rand",
+    ],
+)

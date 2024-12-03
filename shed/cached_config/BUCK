@@ -1,0 +1,41 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+
+oncall("autocargo")
+
+rust_library(
+    name = "cached_config",
+    srcs = glob(["src/**/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fbcode_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
+            "package": {
+                "description": "Helpers to maintain cached set of configs",
+            },
+        },
+    },
+    compatible_with = [
+        "ovr_config//os:linux",
+    ],
+    test_deps = [
+        "fbsource//third-party/rust:serde_derive",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:bytes",
+        "fbsource//third-party/rust:chrono",
+        "fbsource//third-party/rust:serde",
+        "fbsource//third-party/rust:serde_json",
+        "fbsource//third-party/rust:slog",
+        "fbsource//third-party/rust:tokio",
+        "//common/rust/configerator:configerator_client",
+        "//common/rust/shed/fbinit:fbinit",
+        "//thrift/lib/rust:fbthrift",
+    ],
+)

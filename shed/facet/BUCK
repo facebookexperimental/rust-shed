@@ -1,0 +1,146 @@
+load("@fbcode_macros//build_defs:rust_library.bzl", "rust_library")
+load("@fbcode_macros//build_defs:rust_unittest.bzl", "rust_unittest")
+
+oncall("autocargo")
+
+rust_library(
+    name = "facet",
+    srcs = glob(["src/**/*.rs"]),
+    doc_deps = [
+        "fbsource//third-party/rust:tokio",
+    ],
+    features = ["impl_never_type"],
+    tests = [
+        ":facet_async_test",
+        ":facet_basic_test",
+        ":facet_delegate_test",
+        ":facet_deps_test",
+        ":facet_fallible_test",
+        ":facet_params_test",
+        ":facet_static_test",
+    ],
+    deps = [
+        "fbsource//third-party/rust:anyhow",
+        "fbsource//third-party/rust:async-trait",
+        "fbsource//third-party/rust:futures",
+        "fbsource//third-party/rust:thiserror",
+        "fbsource//third-party/rust:trait-set",
+        ":facet_proc_macros",
+    ],
+)
+
+rust_library(
+    name = "facet_proc_macros",
+    srcs = glob(["proc_macros/*.rs"]),
+    autocargo = {
+        "cargo_toml_config": {
+            "dependencies_override": {
+                "dependencies": {
+                    "proc-macro-crate": {
+                        "version": "1.1.0",
+                    },
+                },
+            },
+            "lints": {
+                "rust": {
+                    "unexpected_cfgs": {
+                        "check-cfg": ["cfg(fb_buck_build)"],
+                        "level": "warn",
+                    },
+                },
+            },
+        },
+        "cargo_toml_dir": "proc_macros",
+    },
+    crate_root = "proc_macros/lib.rs",
+    proc_macro = True,
+    deps = [
+        "fbsource//third-party/rust:proc-macro2",
+        "fbsource//third-party/rust:quote",
+        "fbsource//third-party/rust:syn",
+    ],
+)
+
+rust_unittest(
+    name = "facet_basic_test",
+    srcs = ["test/basic_test.rs"],
+    crate_root = "test/basic_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_async_test",
+    srcs = ["test/async_test.rs"],
+    crate_root = "test/async_test.rs",
+    deps = [
+        "fbsource//third-party/rust:async-trait",
+        "fbsource//third-party/rust:tokio",
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_params_test",
+    srcs = ["test/params_test.rs"],
+    crate_root = "test/params_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_deps_test",
+    srcs = ["test/deps_test.rs"],
+    crate_root = "test/deps_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_fallible_test",
+    srcs = ["test/fallible_test.rs"],
+    crate_root = "test/fallible_test.rs",
+    deps = [
+        "fbsource//third-party/rust:thiserror",
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_static_test",
+    srcs = ["test/static_test.rs"],
+    crate_root = "test/static_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_delegate_test",
+    srcs = ["test/delegate_test.rs"],
+    crate_root = "test/delegate_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_from_container_test",
+    srcs = ["test/from_container_test.rs"],
+    crate_root = "test/from_container_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
+
+rust_unittest(
+    name = "facet_tuple_struct_test",
+    srcs = ["test/tuple_struct_test.rs"],
+    crate_root = "test/tuple_struct_test.rs",
+    deps = [
+        ":facet",
+    ],
+)
