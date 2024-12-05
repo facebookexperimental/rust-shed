@@ -75,7 +75,6 @@ members = [
   "shed/services/common",
   "shed/shared_error",
   "shed/slog_glog_fmt",
-  "shed/slog_stats",
   "shed/sorted_vector_map",
   "shed/sql",
   "shed/sql/common",
