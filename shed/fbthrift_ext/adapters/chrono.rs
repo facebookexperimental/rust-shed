@@ -10,7 +10,6 @@
 //! Adapters that interpret thrift integers as [`chrono::DateTime`]s.
 
 use chrono::DateTime;
-use chrono::NaiveDateTime;
 use chrono::Utc;
 use fbthrift::adapter::ThriftAdapter;
 use thiserror::Error;
@@ -164,26 +163,24 @@ macro_rules! impl_timestamp_adapter {
 
             #[allow(clippy::redundant_closure_call)]
             fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-                $from_thrift_fn(value)
-                    .ok_or(OutOfRangeError(value))
-                    .map(|dt| dt.and_utc())
+                $from_thrift_fn(value).ok_or(OutOfRangeError(value))
             }
         }
     };
 }
 
 impl_timestamp_adapter!(UtcTimestampAdapter, DateTime::<Utc>::timestamp, |val| {
-    NaiveDateTime::from_timestamp_opt(val, 0)
+    DateTime::from_timestamp(val, 0)
 });
 impl_timestamp_adapter!(
     UtcMillisecondTimestampAdapter,
     DateTime::<Utc>::timestamp_millis,
-    NaiveDateTime::from_timestamp_millis
+    DateTime::from_timestamp_millis
 );
 impl_timestamp_adapter!(
     UtcMicrosecondTimestampAdapter,
     DateTime::<Utc>::timestamp_micros,
-    NaiveDateTime::from_timestamp_micros
+    DateTime::from_timestamp_micros
 );
 
 macro_rules! test_timestamp_adapter {

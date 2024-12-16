@@ -468,6 +468,7 @@ mod duration {
 
     struct DurationVisitor;
 
+    #[allow(clippy::needless_lifetimes)]
     impl<'de> Visitor<'de> for DurationVisitor {
         type Value = Duration;
 

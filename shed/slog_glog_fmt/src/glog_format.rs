@@ -308,7 +308,7 @@ mod tests {
         msg: String,
     }
 
-    impl<'a> TestLine {
+    impl TestLine {
         fn new(level: &'static str, line: u32, msg: &'static str) -> Self {
             TestLine {
                 level: level.to_owned(),
@@ -320,7 +320,7 @@ mod tests {
             }
         }
 
-        fn with_captures(captures: Captures<'a>) -> Self {
+        fn with_captures(captures: Captures<'_>) -> Self {
             TestLine {
                 level: captures.get(1).unwrap().as_str().to_owned(),
                 tid: captures.get(3).unwrap().as_str().to_owned(),

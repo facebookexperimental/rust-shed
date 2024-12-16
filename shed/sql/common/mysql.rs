@@ -95,7 +95,7 @@ impl<'a, T: AsSql> SqlList<'a, T> {
     }
 }
 
-impl<'a, T: AsSql> AsSql for SqlList<'a, T> {
+impl<T: AsSql> AsSql for SqlList<'_, T> {
     fn as_sql(&self, no_backslash_escape: bool) -> String {
         let mut result = String::new();
         result.push('(');
