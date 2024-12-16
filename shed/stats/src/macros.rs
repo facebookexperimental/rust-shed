@@ -198,7 +198,7 @@ macro_rules! define_stats {
 
     (prefix = $prefix:expr;
      $( $name:ident: $stat_type:tt($( $params:tt )*), )*) => (
-        #[allow(non_snake_case, non_upper_case_globals, unused_imports)]
+        #[allow(non_snake_case, non_upper_case_globals, unused_imports, clippy::redundant_pub_crate)]
         pub(crate) mod STATS {
             use $crate::macros::common_macro_prelude::*;
 
