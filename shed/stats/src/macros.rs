@@ -218,16 +218,62 @@ macro_rules! define_stats {
 #[doc(hidden)]
 #[macro_export]
 macro_rules! __define_key_generator {
+    ($name:ident($prefix:literal, $key:expr; $( $placeholder:ident: $type:ty ),+)) => (
+        fn $name(&($( ref $placeholder, )+): &($( $type, )+)) -> String {
+            if $prefix.is_empty() {
+                format!($key, $( $placeholder ),+)
+            } else {
+                format!(concat!($prefix, ".", $key), $( $placeholder ),+)
+            }
+        }
+    );
+    ($name:ident($prefix:expr, $key:expr)) => (
+        fn $name() -> String {
+            if $prefix.is_empty() {
+                $key
+            } else {
+                format!("{0}.{1}", $prefix, $key)
+            }
+        }
+    );
+    ($name:ident($prefix:expr, $key:expr; $placeholder:ident: $type:ty )) => (
+        fn $name(&( ref $placeholder, ): &( $type, )) -> String {
+            if $prefix.is_empty() {
+                format!($key, $placeholder)
+            } else {
+                format!(concat!("{1}.", $key), $placeholder, $prefix )
+            }
+        }
+    );
+    ($name:ident($prefix:expr, $key:expr; $placeholder1:ident: $type1:ty, $placeholder2:ident: $type2:ty )) => (
+        fn $name(&( ref $placeholder1, ref $placeholder2, ): &( $type1, $type2, )) -> String {
+            if $prefix.is_empty() {
+                format!($key, $placeholder1, $placeholder2)
+            } else {
+                format!(concat!("{2}.", $key), $placeholder1, $placeholder2, $prefix )
+            }
+        }
+    );
+    ($name:ident($prefix:expr, $key:expr; $placeholder1:ident: $type1:ty, $placeholder2:ident: $type2:ty, $placeholder3:ident: $type3:ty )) => (
+        fn $name(&( ref $placeholder1, ref $placeholder2, ref $placeholder3,): &( $type1, $type2, $type3,)) -> String {
+            if $prefix.is_empty() {
+                format!($key, $placeholder1, $placeholder2, $placeholder3)
+            } else {
+                format!(concat!("{3}.", $key), $placeholder1, $placeholder2, $placeholder3, $prefix )
+            }
+        }
+    );
     ($name:ident($prefix:expr, $key:expr; $( $placeholder:ident: $type:ty ),+)) => (
         fn $name(&($( ref $placeholder, )+): &($( $type, )+)) -> String {
             let key = format!($key, $( $placeholder ),+);
             if $prefix.is_empty() {
                 key
             } else {
-                [$prefix, &key].join(".")
+                format!("{0}.{1}", $prefix, key)
             }
         }
     );
+
 }
 
 #[doc(hidden)]
