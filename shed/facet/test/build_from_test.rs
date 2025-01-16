@@ -62,7 +62,7 @@ pub mod factories {
 pub mod containers {
     use crate::facets::one::One;
     use crate::facets::two::Two;
-    use crate::facets::two::TwoArc;
+    use crate::facets::two::TwoRef;
 
     #[facet::container]
     pub struct Basic {
@@ -79,8 +79,13 @@ pub mod containers {
         second: dyn Two,
     }
 
-    pub fn to_just_two(other: impl TwoArc) -> JustTwo {
-        just_two_from_container!(other)
+    #[facet::container]
+    pub struct DelegatedJustTwo {
+        #[init(just_two.two().get() == 2)]
+        pub is_two: bool,
+
+        #[delegate(dyn Two)]
+        just_two: JustTwo,
     }
 }
 
@@ -99,6 +104,13 @@ fn main() {
     let value = factory.build::<containers::Basic>().unwrap();
     test_values(&value);
 
-    let just_two = containers::to_just_two(&value);
+    let just_two = containers::JustTwo::build_from(&value);
     assert_eq!(just_two.two().get(), 2);
+
+    let delegated_just_two = containers::DelegatedJustTwo::build_from(&value);
+    assert_eq!(delegated_just_two.two().get(), 2);
+    assert!(delegated_just_two.is_two);
+
+    let from_delegated_just_two = containers::JustTwo::build_from(&delegated_just_two);
+    assert_eq!(from_delegated_just_two.two().get(), 2);
 }

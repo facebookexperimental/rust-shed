@@ -270,6 +270,21 @@
 //! }
 //! ```
 //!
+//! Containers may also be constructed from other containers, provided that
+//! all facets within the new container are members of the source container,
+//! using the `build_from` associated function on the container type.
+//!
+//! For example:
+//! ```
+//! # #[facet::container] struct MyContainer {}
+//! # #[facet::container] struct OtherContainer {}
+//! # fn main() -> Result<(), anyhow::Error> {
+//! # let other_container = OtherContainer {};
+//! let my_container = MyContainer::build_from(&other_container);
+//! #   Ok(())
+//! # }
+//! ```
+//!
 //! ## Async
 //!
 //! Async dynamic facets can be supported by using the `async-trait` crate.
@@ -479,6 +494,22 @@ pub trait AsyncBuilderFor<T: Sized> {
 #[async_trait::async_trait]
 pub trait AsyncBuilder {
     async fn build_needed(&mut self) -> Result<(), FactoryError>;
+}
+
+// Trait implemented by containers so that they can be built from other
+// containers.
+#[doc(hidden)]
+pub trait BuildFrom<O>: Sized {
+    fn build_from(other: &O) -> Self;
+}
+
+impl<T, O> BuildFrom<O> for Arc<T>
+where
+    T: BuildFrom<O>,
+{
+    fn build_from(other: &O) -> Self {
+        Arc::new(T::build_from(other))
+    }
 }
 
 // Trait implemented by containers that can provide a reference to facets of

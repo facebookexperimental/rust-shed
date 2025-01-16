@@ -10,7 +10,6 @@
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
-use quote::ToTokens;
 use syn::parse_macro_input;
 use syn::parse_quote;
 use syn::punctuated::Punctuated;
@@ -23,10 +22,8 @@ use syn::Index;
 use syn::ItemStruct;
 use syn::Token;
 use syn::Type;
-use syn::TypeParamBound;
 
 use crate::facet_crate_name;
-use crate::snakify_pascal_case;
 
 #[derive(Debug, Copy, Clone)]
 enum ContainerType {
@@ -190,7 +187,7 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
     let attr_impls = gen_attr_impls(&facet_crate, container_name, &members);
     let buildable_impl = gen_buildable_impl(&facet_crate, container_name, &members);
     let async_buildable_impl = gen_async_buildable_impl(&facet_crate, container_name, &members);
-    let from_impl = gen_from_impl(container_name, &members);
+    let build_from_impl = gen_build_from_impl(&facet_crate, container_name, &members);
     let like_trait = gen_like_trait(&facet_crate, container_name, &members);
 
     Ok(quote! {
@@ -202,7 +199,7 @@ fn gen_container(mut container: ItemStruct) -> Result<TokenStream, Error> {
 
         #async_buildable_impl
 
-        #from_impl
+        #build_from_impl
 
         #like_trait
     })
@@ -442,73 +439,52 @@ fn gen_attr_impls(
     output
 }
 
-fn gen_from_impl(container_name: &Ident, members: &ContainerMembers) -> Option<TokenStream> {
-    if members.field_idents.is_empty()
-        && members.delegate_idents.is_empty()
-        && !members.facet_idents.is_empty()
-    {
-        let facet_idents = &members.facet_idents;
-        let facet_types = members
-            .facet_types
-            .iter()
-            .map(|ty| {
-                // This is janky. For each type, we turn it to text that's hopefuly the right type,
-                // then parse that back into an ident
-                let token_stream = match ty {
-                    Type::TraitObject(obj) => obj
-                        .bounds
-                        .iter()
-                        .filter_map(|bound| {
-                            if let TypeParamBound::Trait(bound) = bound {
-                                Some(bound.path.clone())
-                            } else {
-                                None
-                            }
-                        })
-                        .next()?
-                        .to_token_stream(),
-                    _ => ty.to_token_stream(),
-                };
-                syn::parse2(token_stream).ok()
-            })
-            .collect::<Option<Vec<Ident>>>()?;
+fn gen_build_from_impl(
+    facet_crate: &Ident,
+    container_name: &Ident,
+    members: &ContainerMembers,
+) -> TokenStream {
+    let facet_idents = &members.facet_idents;
+    let facet_types = &members.facet_types;
+    let delegate_idents = &members.delegate_idents;
+    let delegate_types = &members.delegate_types;
+    let field_idents = &members.field_idents;
+    let field_inits = &members.field_inits;
+    let container_init = members.container_type.gen_init(quote! {
+        #(#delegate_idents,)*
+        #(#facet_idents,)*
+        #(#field_idents,)*
+    });
 
-        let part_params = facet_idents
-            .iter()
-            .zip(members.facet_types.iter())
-            .map(|(ident, ty)| quote! {#ident: ::std::sync::Arc<#ty>});
-        let snake_name = snakify_pascal_case(container_name.to_string());
-
-        let macro_name = format_ident!("{}_from_container", snake_name);
-        let facet_copies = facet_types.iter().map(|facet_type| {
-            let facet_type = snakify_pascal_case(facet_type.to_string());
-            let facet_type = format_ident!("{}_arc", facet_type);
-            quote! {
-                $other.#facet_type()
+    quote! {
+        impl<O> ::#facet_crate::BuildFrom<O> for #container_name
+        where
+            O: #( ::#facet_crate::FacetArc<#facet_types> + )* ::std::marker::Send + ::std::marker::Sync,
+            #( #delegate_types: ::#facet_crate::BuildFrom<O>, )*
+        {
+            fn build_from(other: &O) -> Self {
+                #(
+                    let #delegate_idents = <#delegate_types as ::#facet_crate::BuildFrom<O>>::build_from(other);
+                )*
+                #(
+                    let #facet_idents = ::#facet_crate::FacetArc::<#facet_types>::facet_arc(other);
+                )*
+                #(
+                    let #field_idents = #field_inits;
+                )*
+                #container_init
             }
-        });
+        }
 
-        let container_init = members.container_type.gen_init(quote! {
-            #(#facet_idents),*
-        });
-
-        Some(quote! {
-            impl #container_name {
-                pub fn from_parts(#(#part_params),*) -> Self {
-                    #container_init
-                }
+        impl #container_name {
+            pub fn build_from<O>(other: &O) -> Self
+            where
+                O: #( ::#facet_crate::FacetArc<#facet_types> + )* ::std::marker::Send + ::std::marker::Sync,
+                #( #delegate_types: ::#facet_crate::BuildFrom<O>, )*
+            {
+                <Self as ::#facet_crate::BuildFrom<O>>::build_from(other)
             }
-            #[allow(unused)]
-            macro_rules! #macro_name {
-                ($other:expr) => {
-                    #container_name::from_parts(
-                        #( #facet_copies ),*
-                    )
-                }
-            }
-        })
-    } else {
-        None
+        }
     }
 }
 
