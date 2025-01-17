@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 abomonation = { version = "0.7", features = ["smallvec"] }
 anyhow = "1.0.95"
-bytes = { version = "1.6.0", features = ["serde"] }
+bytes = { version = "1.9.0", features = ["serde"] }
 
 [lints]
 rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }

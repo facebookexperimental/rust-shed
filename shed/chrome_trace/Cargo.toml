@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.95"
-bytes = { version = "1.6.0", features = ["serde"] }
+bytes = { version = "1.9.0", features = ["serde"] }
 flate2 = { version = "1.0.33", features = ["rust_backend"], default-features = false }
 libc = "0.2.139"
 serde = { version = "1.0.185", features = ["derive", "rc"] }
