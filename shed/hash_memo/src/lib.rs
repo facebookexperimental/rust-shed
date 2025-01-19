@@ -20,8 +20,7 @@ use std::hash::Hasher;
 use std::ops::Deref;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
 
 /// `BuildMemoHasher` provides a way to construct a wrapper `MemoHasher` of a
 /// `std::hash::Hasher`s so that the memoized `Hasher::finish()` values
@@ -219,7 +218,7 @@ impl<T: Hash> Deref for EagerHashMemoizer<T> {
 /// called (e.g. you might put in a `HashMap`) and you want to defer the cost.
 pub struct LazyHashMemoizer<'a, T, I: BuildHasher + 'a> {
     inner: T,
-    hash_memo: OnceCell<u64>,
+    hash_memo: OnceLock<u64>,
     factory: &'a I,
 }
 
@@ -244,7 +243,7 @@ impl<'a, T, I: BuildHasher> LazyHashMemoizer<'a, T, I> {
     pub fn new(value: T, factory: &'a I) -> Self {
         Self {
             inner: value,
-            hash_memo: OnceCell::new(),
+            hash_memo: OnceLock::new(),
             factory,
         }
     }

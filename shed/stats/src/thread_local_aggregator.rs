@@ -25,6 +25,7 @@ use std::fmt;
 use std::future::Future as NewFuture;
 use std::sync::atomic;
 use std::sync::Arc;
+use std::sync::LazyLock;
 use std::sync::Mutex;
 use std::time::Duration;
 
@@ -32,14 +33,13 @@ use futures::future::ready;
 use futures::FutureExt as _;
 use futures::Stream as NewStream;
 use futures::StreamExt as _;
-use once_cell::sync::Lazy;
 use perthread::ThreadMap;
 use stats_traits::stats_manager::BoxStatsManager;
 use stats_traits::stats_manager::StatsManager;
 
 static STATS_SCHEDULED: atomic::AtomicBool = atomic::AtomicBool::new(false);
-static STATS_AGGREGATOR: Lazy<StatsAggregator> =
-    Lazy::new(|| StatsAggregator(Mutex::new(Vec::new())));
+static STATS_AGGREGATOR: LazyLock<StatsAggregator> =
+    LazyLock::new(|| StatsAggregator(Mutex::new(Vec::new())));
 
 type SchedulerPreview = std::pin::Pin<Box<dyn NewFuture<Output = ()> + Send>>;
 

@@ -22,12 +22,13 @@
 //!
 //! Examples:
 //! ```
-//! use once_cell::sync::Lazy;
+//! use std::sync::LazyLock;
+//!
 //! use perthread::PerThread;
 //! use perthread::ThreadMap;
 //!
 //! // Set up the map of per-thread counters
-//! static COUNTERS: Lazy<ThreadMap<usize>> = Lazy::new(ThreadMap::default);
+//! static COUNTERS: LazyLock<ThreadMap<usize>> = LazyLock::new(ThreadMap::default);
 //!
 //! // Declare a specific per-thread counter
 //! thread_local! {
@@ -230,8 +231,7 @@ impl<T> Deref for PerThread<T> {
 mod tests {
     use std::collections::HashSet;
     use std::hash::Hash;
-
-    use once_cell::sync::Lazy;
+    use std::sync::LazyLock;
 
     use super::*;
 
@@ -246,9 +246,9 @@ mod tests {
 
     #[test]
     fn test_single_thread() {
-        static TEST_MAP: Lazy<ThreadMap<i64>> = Lazy::new(ThreadMap::default);
-        static TEST_VAL1: Lazy<PerThread<i64>> = Lazy::new(|| TEST_MAP.register(42));
-        static TEST_VAL2: Lazy<PerThread<i64>> = Lazy::new(|| TEST_MAP.register(431));
+        static TEST_MAP: LazyLock<ThreadMap<i64>> = LazyLock::new(ThreadMap::default);
+        static TEST_VAL1: LazyLock<PerThread<i64>> = LazyLock::new(|| TEST_MAP.register(42));
+        static TEST_VAL2: LazyLock<PerThread<i64>> = LazyLock::new(|| TEST_MAP.register(431));
 
         let mut expected_values = HashSet::new();
         assert_map_content(&*TEST_MAP, &expected_values);
@@ -267,7 +267,7 @@ mod tests {
         use std::sync::mpsc::sync_channel;
         struct Ack;
 
-        static TEST_MAP: Lazy<ThreadMap<i64>> = Lazy::new(ThreadMap::default);
+        static TEST_MAP: LazyLock<ThreadMap<i64>> = LazyLock::new(ThreadMap::default);
 
         thread_local! {
             static TEST_VAL1: PerThread<i64> = TEST_MAP.register(7);

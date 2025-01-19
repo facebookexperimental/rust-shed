@@ -236,12 +236,12 @@ impl OnelineMetadata {
 mod tests {
     use std::io;
     use std::sync::Arc;
+    use std::sync::LazyLock;
     use std::sync::Mutex;
 
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
-    use once_cell::sync::Lazy;
     use regex::Captures;
     use regex::Regex;
     use slog::info;
@@ -257,7 +257,7 @@ mod tests {
     use crate::kv_categorizer::InlineCategorizer;
 
     // Create a regex that matches log lines.
-    static LOG_REGEX: Lazy<Regex> = Lazy::new(|| {
+    static LOG_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(
             r"(?m)^(.)(\d{4} \d\d:\d\d:\d\d\.\d{6}) +(\d+)(?: \[([\d\S-]+)\] )?([^:]+):(\d+)\] ([^\n]*(?:\n[^IEV][^\n]*)*)$"
         ).unwrap()
