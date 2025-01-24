@@ -19,7 +19,7 @@ proc-macro = true
 proc-macro-crate = "1.1.0"
 proc-macro2 = { version = "1.0.70", features = ["span-locations"] }
 quote = "1.0.29"
-syn = { version = "2.0.85", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
+syn = { version = "2.0.96", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 
 [lints]
 rust = { unexpected_cfgs = { check-cfg = ["cfg(fb_buck_build)"], level = "warn" } }
