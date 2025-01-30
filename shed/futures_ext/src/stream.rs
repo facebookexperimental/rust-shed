@@ -72,17 +72,7 @@ pub trait FbStreamExt: Stream {
     where
         Self: Sized,
     {
-        let location = std::panic::Location::caller();
-
-        let location = slog::RecordLocation {
-            file: location.file(),
-            line: location.line(),
-            column: location.column(),
-            function: "",
-            module: "",
-        };
-
-        YieldPeriodically::new(self, location, Duration::from_millis(10))
+        YieldPeriodically::new(self, Duration::from_millis(10))
     }
 }
 
