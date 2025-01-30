@@ -58,13 +58,13 @@ impl ConfigStore {
     pub fn new(
         source: Arc<dyn Source + Sync + Send>,
         poll_interval: impl Into<Option<Duration>>,
-        logger: impl Into<Option<Logger>>,
+        logger: impl crate::IntoOptionLogger,
     ) -> Self {
         let this = Self {
             source,
             clients: Arc::new(Mutex::new(HashMap::new())),
             kick: Arc::new(Condvar::new()),
-            logger: logger.into(),
+            logger: logger.into_option_logger(),
         };
 
         if let Some(poll_interval) = poll_interval.into() {
@@ -86,7 +86,7 @@ impl ConfigStore {
     /// `suffix` is a file suffix to add to get the config JSON
     /// `poll_interval` is the sleep time between checks for config changes
     pub fn file(
-        logger: impl Into<Option<Logger>>,
+        logger: impl crate::IntoOptionLogger,
         directory: PathBuf,
         extension: impl Into<Option<String>>,
         poll_interval: impl Into<Option<Duration>>,
@@ -94,7 +94,7 @@ impl ConfigStore {
         Self::new(
             Arc::new(FileSource::new(directory, extension)),
             poll_interval,
-            logger.into(),
+            logger.into_option_logger(),
         )
     }
 

@@ -13,7 +13,6 @@ use std::time::Duration;
 
 use anyhow::Result;
 use fbinit::FacebookInit;
-use slog::Logger;
 
 use crate::ConfigStore;
 
@@ -28,7 +27,7 @@ impl ConfigStore {
     /// When called in non-fbcode builds
     pub fn configerator(
         _: FacebookInit,
-        _: impl Into<Option<Logger>>,
+        _: impl crate::IntoOptionLogger,
         _: impl Into<Option<Duration>>,
         _: Duration,
     ) -> Result<Self> {
@@ -39,7 +38,7 @@ impl ConfigStore {
     /// When called in non-fbcode builds
     pub fn signed_configerator(
         _: FacebookInit,
-        _: impl Into<Option<Logger>>,
+        _: impl crate::IntoOptionLogger,
         _: HashMap<String, String>,
         _: impl Into<Option<Duration>>,
         _: Duration,
@@ -51,7 +50,7 @@ impl ConfigStore {
     /// When called in non-fbcode builds
     pub fn regex_signed_configerator(
         _: FacebookInit,
-        _: impl Into<Option<Logger>>,
+        _: impl crate::IntoOptionLogger,
         _: Vec<(String, String)>,
         _: impl Into<Option<Duration>>,
         _: Duration,
@@ -62,7 +61,7 @@ impl ConfigStore {
     /// # Panics
     /// When called in non-fbcode builds
     pub fn materialized_configs(
-        _: impl Into<Option<Logger>>,
+        _: impl crate::IntoOptionLogger,
         _: PathBuf,
         _: impl Into<Option<Duration>>,
     ) -> Self {

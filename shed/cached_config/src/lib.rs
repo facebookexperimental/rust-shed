@@ -68,3 +68,26 @@ pub enum ModificationTime {
     /// ISO 8601 time without timezone.
     DateTime(NaiveDateTime),
 }
+
+#[doc(hidden)]
+pub trait IntoOptionLogger {
+    fn into_option_logger(self) -> Option<slog::Logger>;
+}
+
+impl IntoOptionLogger for Option<slog::Logger> {
+    fn into_option_logger(self) -> Option<slog::Logger> {
+        self
+    }
+}
+
+impl IntoOptionLogger for slog::Logger {
+    fn into_option_logger(self) -> Option<slog::Logger> {
+        Some(self)
+    }
+}
+
+impl IntoOptionLogger for slog::slog::Logger {
+    fn into_option_logger(self) -> Option<slog::Logger> {
+        Some(slog::Logger::Slog(self))
+    }
+}
