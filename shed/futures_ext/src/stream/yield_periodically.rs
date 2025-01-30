@@ -21,7 +21,7 @@ use slog::Logger;
 use slog::Record;
 
 /// If the budget is exceeded, we will log a warning if the total overshoot is more than this multiplier.
-const BUDGET_OVERSHOOT_MULTIPLIER: f32 = 3.0;
+const BUDGET_OVERSHOOT_MULTIPLIER: u32 = 3;
 
 /// A stream that will yield control back to the caller if it runs for more than a given duration
 /// without yielding (i.e. returning Poll::Pending).  The clock starts counting the first time the
@@ -38,17 +38,14 @@ pub struct YieldPeriodically<'a, S> {
     must_yield: bool,
     /// The code location where yield_periodically was called.
     location: slog::RecordLocation,
-    /// Enable logging to the provided logger.
+    /// Enable logging to the provided logger when the budget is exceeded by
+    /// BUDGET_OVERSHOOT_MULTIPLIER times or more.
     logger: Option<MaybeOwned<'a, Logger>>,
-    /// The threshold for logging.
-    log_threshold: Duration,
 }
 
 impl<S> YieldPeriodically<'_, S> {
     /// Create a new [YieldPeriodically].
     pub fn new(inner: S, location: slog::RecordLocation, budget: Duration) -> Self {
-        let multiplier = BUDGET_OVERSHOOT_MULTIPLIER + 1.0;
-
         Self {
             inner,
             budget,
@@ -56,9 +53,6 @@ impl<S> YieldPeriodically<'_, S> {
             must_yield: false,
             location,
             logger: None,
-            log_threshold: Duration::from_millis(
-                budget.mul_f32(multiplier).as_millis().try_into().unwrap(),
-            ),
         }
     }
 
@@ -107,7 +101,7 @@ impl<S: Stream> Stream for YieldPeriodically<'_, S> {
         match this.current_budget.checked_sub(elapsed) {
             Some(new_budget) => *this.current_budget = new_budget,
             None => {
-                if elapsed > *this.log_threshold {
+                if (elapsed - current_budget) > *this.budget * BUDGET_OVERSHOOT_MULTIPLIER {
                     maybe_log(
                         this.logger,
                         this.location,
