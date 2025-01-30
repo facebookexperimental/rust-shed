@@ -89,5 +89,7 @@ members = [
   "shed/time_ext",
   "shed/tokio-detectors",
   "shed/tokio-uds-compat",
+  "shed/tracing_slog_compat",
+  "shed/tracing_slog_compat/example",
 ]
 resolver = "2"
