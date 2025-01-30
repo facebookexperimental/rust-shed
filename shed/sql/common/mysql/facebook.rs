@@ -7,6 +7,8 @@
  * of this source tree.
  */
 
+//! This module is only used in internal Meta builds.
+
 #![deny(warnings)]
 
 mod fbmysql_wrapper;

@@ -1,16 +1,15 @@
-// (c) Meta Platforms, Inc. and affiliates. Confidential and proprietary.
+/*
+ * Copyright (c) Meta Platforms, Inc. and affiliates.
+ *
+ * This source code is licensed under both the MIT license found in the
+ * LICENSE-MIT file in the root directory of this source tree and the Apache
+ * License, Version 2.0 found in the LICENSE-APACHE file in the root directory
+ * of this source tree.
+ */
 
-use crate::FbStatus;
+//! This module is only used in internal Meta builds.
 
-impl From<FbStatus> for fb303::fb_status {
-    fn from(status: FbStatus) -> Self {
-        match status {
-            FbStatus::Dead => fb303::fb_status::DEAD,
-            FbStatus::Starting => fb303::fb_status::STARTING,
-            FbStatus::Alive => fb303::fb_status::ALIVE,
-            FbStatus::Stopping => fb303::fb_status::STOPPING,
-            FbStatus::Stopped => fb303::fb_status::STOPPED,
-            FbStatus::Warning => fb303::fb_status::WARNING,
-        }
-    }
-}
+mod internal;
+
+#[allow(unused)]
+pub use internal::*;
