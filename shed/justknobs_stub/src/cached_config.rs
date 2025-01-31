@@ -20,11 +20,11 @@ use cached_config::ConfigHandle;
 use just_knobs_struct::JustKnobs as JustKnobsStruct;
 use serde::Deserialize;
 use serde::Serialize;
-use slog::debug;
-use slog::error;
-use slog::warn;
-use slog::Logger;
 use tokio::runtime::Handle;
+use tracing_slog_compat::debug;
+use tracing_slog_compat::error;
+use tracing_slog_compat::warn;
+use tracing_slog_compat::Logger;
 
 use crate::JustKnobs;
 
@@ -102,10 +102,11 @@ fn log_just_knobs(just_knobs: &JustKnobsStruct) -> String {
 }
 
 pub fn init_just_knobs_worker(
-    logger: Logger,
+    logger: impl IntoLogger,
     config_handle: ConfigHandle<JustKnobsStruct>,
     runtime_handle: Handle,
 ) -> Result<()> {
+    let logger = logger.into_logger();
     init_just_knobs(&logger, &config_handle)?;
     if JUST_KNOBS_WORKER_STATE
         .set(JustKnobsWorkerState {
@@ -122,12 +123,13 @@ pub fn init_just_knobs_worker(
 }
 
 pub fn init_just_knobs(
-    logger: &Logger,
+    logger: &(impl IntoLogger + Clone),
     config_handle: &ConfigHandle<JustKnobsStruct>,
 ) -> Result<()> {
     let just_knobs = config_handle.get();
+    let logger = logger.clone();
     debug!(
-        logger,
+        logger.into_logger(),
         "Initializing JustKnobs: {}",
         log_just_knobs(&just_knobs)
     );
@@ -179,6 +181,23 @@ fn update_just_knobs(new_just_knobs: Arc<JustKnobsStruct>) -> Result<()> {
     let just_knobs = just_knobs();
     just_knobs.swap(Arc::new(new_just_knobs.into()));
     Ok(())
+}
+
+#[doc(hidden)]
+pub trait IntoLogger {
+    fn into_logger(self) -> tracing_slog_compat::Logger;
+}
+
+impl IntoLogger for slog::Logger {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        tracing_slog_compat::Logger::Slog(self)
+    }
+}
+
+impl IntoLogger for tracing_slog_compat::Logger {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        self
+    }
 }
 
 #[cfg(test)]
