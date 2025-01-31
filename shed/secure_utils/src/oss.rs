@@ -9,13 +9,13 @@
 
 use anyhow::Result;
 use openssl::ssl::SslAcceptorBuilder;
-use slog::Logger;
 
+use crate::IntoLogger;
 use crate::SslConfig;
 
 impl SslConfig {
     /// Creates the tls acceptor builder
-    pub fn tls_acceptor_builder(self, _: Logger) -> Result<SslAcceptorBuilder> {
+    pub fn tls_acceptor_builder(self, _: impl IntoLogger) -> Result<SslAcceptorBuilder> {
         self.inner_tls_acceptor_builder()
     }
 }

@@ -31,7 +31,6 @@ use openssl::ssl::SslAcceptorBuilder;
 use openssl::ssl::SslMethod;
 use openssl::ssl::SslVerifyMode;
 use openssl::x509::X509;
-use slog::Logger;
 
 /// Certificates for the TLS acceptor
 #[derive(Clone, Debug)]
@@ -60,7 +59,7 @@ impl SslConfig {
     }
 
     /// Builds the tls acceptor
-    pub fn build_tls_acceptor(self, logger: Logger) -> Result<SslAcceptor> {
+    pub fn build_tls_acceptor(self, logger: impl IntoLogger) -> Result<SslAcceptor> {
         Ok(self.tls_acceptor_builder(logger)?.build())
     }
 
@@ -133,4 +132,21 @@ fn read_bytes<T: AsRef<Path>>(path: T) -> Result<Vec<u8>> {
         Ok(buf)
     })()
     .with_context(|| format!("While reading file {}", path.display()))
+}
+
+#[doc(hidden)]
+pub trait IntoLogger {
+    fn into_logger(self) -> tracing_slog_compat::Logger;
+}
+
+impl IntoLogger for slog::Logger {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        tracing_slog_compat::Logger::Slog(self)
+    }
+}
+
+impl IntoLogger for tracing_slog_compat::Logger {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        self
+    }
 }
