@@ -7,10 +7,15 @@
  * of this source tree.
  */
 
+include "thrift/annotation/rust.thrift"
+
+@rust.Exhaustive
 struct JustKnobs {
   1: JustKnobInts ints;
   2: JustKnobBools bools;
-} (rust.exhaustive)
+}
 
-typedef map<string, bool> (rust.type = "HashMap") JustKnobBools
-typedef map<string, i64> (rust.type = "HashMap") JustKnobInts
+@rust.Type{name = "HashMap"}
+typedef map<string, bool> JustKnobBools
+@rust.Type{name = "HashMap"}
+typedef map<string, i64> JustKnobInts

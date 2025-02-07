@@ -7,6 +7,8 @@ use thrift_compiler::Config;
 use thrift_compiler::GenContext;
 const CRATEMAP: &str = "\
 common/rust/shed/justknobs_stub/cached_config_thrift_struct/just_knobs.thrift crate //common/rust/shed/justknobs_stub/cached_config_thrift_struct:just_knobs_struct-rust
+thrift/annotation/rust.thrift rust //thrift/annotation:rust-rust
+thrift/annotation/scope.thrift rust->scope //thrift/annotation:scope-rust
 ";
 #[rustfmt::skip]
 fn main() {
