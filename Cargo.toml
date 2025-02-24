@@ -27,6 +27,7 @@ members = [
   "shed/ascii_ext",
   "shed/async_once_cell",
   "shed/borrowed",
+  "shed/bounded_traversal",
   "shed/buffered_weighted",
   "shed/cached_config",
   "shed/cachelib_stub",
