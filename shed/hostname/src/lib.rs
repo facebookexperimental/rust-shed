@@ -16,6 +16,15 @@ use anyhow::Result;
 
 /// Returns hostname as reported by the system
 pub fn get_hostname() -> Result<String> {
+    if let Ok(aws) = std::env::var("AWS_REGION") {
+        if !aws.is_empty() {
+            if let Ok(hostname) = std::env::var("HOSTNAME") {
+                // we are running in AWS and probably in EKS, we can trust the HOSTNAME env var
+                return Ok(hostname);
+            }
+        }
+    }
+
     #[cfg(not(fbcode_build))]
     {
         Ok(::real_hostname::get()?.to_string_lossy().into_owned())
