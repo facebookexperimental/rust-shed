@@ -13,4 +13,4 @@ keywords = ["cache", "hash", "map", "memo", "memoize", "set"]
 categories = ["data-structures"]
 
 [dev-dependencies]
-ahash = "0.8"
+ahash = { version = "0.8.11", features = ["runtime-rng"] }
