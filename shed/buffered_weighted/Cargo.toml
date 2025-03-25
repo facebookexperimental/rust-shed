@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.95"
-futures-util = "0.3.30"
+futures-util = { version = "0.3.30", features = ["compat"] }
 pin-project = "0.4.30"
 
 [dev-dependencies]
