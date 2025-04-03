@@ -45,6 +45,7 @@ members = [
   "shed/fbthrift_ext/socket",
   "shed/fbthrift_ext/tcp",
   "shed/fbthrift_ext/util",
+  "shed/fsiomicrobench",
   "shed/futures_01_ext",
   "shed/futures_ext",
   "shed/futures_lazy_shared",
