@@ -860,26 +860,22 @@ where
 /// traversal: `queued_max` and `scheduled_max`.
 ///
 /// * `scheduled_max`: Limits the number of concurrent unfold futures that are
-///                    run.  If there are more unfolds needed then they will
-///                    be queued.
+///   run.  If there are more unfolds needed then they will be queued.
 ///
 /// * `queued_max`: Limits the number of stream values that can be queued.
-///                 Once the limit is reached, no more unfolds will be
-///                 scheduled until enough values have been yielded to reduce
-///                 the queue below this limit.  Note that the queue might
-///                 still grow larger than this limit if already-running
-///                 unfolds yield more items.
+///   Once the limit is reached, no more unfolds will be scheduled until enough
+///   values have been yielded to reduce the queue below this limit.  Note that
+///   the queue might still grow larger than this limit if already-running
+///   unfolds yield more items.
 ///
 /// * `init`: The root(s) of the implicit tree to be traversed and their total
-///           weights, which are the estimated numbers of items each tree
-///           contains.
+///   weights, which are the estimated numbers of items each tree contains.
 ///
 /// * `unfold`: A callback that returns a try-future that unfolds a single
-///             input item into a sequence of output or recursion items.
-///             Unlike the unordered `bounded_traversal_stream`, the ordering
-///             between the items in the stream is maintained, with the
-///             results of unfolding recursion items taking the place of
-///             each recursion item in the stream.
+///   input item into a sequence of output or recursion items. Unlike the
+///   unordered `bounded_traversal_stream`, the ordering between the items in
+///   the stream is maintained, with the results of unfolding recursion items
+///   taking the place of each recursion item in the stream.
 ///
 /// The roots and recursion items must include an estimate of the weight of
 /// the tree or subtree, this being the total number of items that it is
@@ -922,9 +918,9 @@ where
 /// Like `bounded_traversal_ordered_stream` with one additional parameter:
 ///
 /// * `limit`: Specifies the limit to the number of output items.  This is
-///            similar to calling the `StreamExt::take` method on the output
-///            stream but attempts to avoid doing unnecessary unfold calls as
-///            the limit is approached.
+///   similar to calling the `StreamExt::take` method on the output stream but
+///   attempts to avoid doing unnecessary unfold calls as the limit is
+///   approached.
 ///
 /// Use of this method over `StreamExt::take` works best when the estimate for
 /// the number of items subtrees will yield is accurate.  If the difference is

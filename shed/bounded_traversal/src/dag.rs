@@ -42,8 +42,8 @@ use super::Iter;
 /// is proportional to number of paths from the root, since DAG can be constructed to contain
 /// `O(exp(N))` path it might cause problems) but it comes with a price:
 ///  - `bounded_traversal_dag` keeps `Out` result of computation for all the nodes
-///     but `bounded_traversal` only keeps results for nodes that have not been completely
-///     evaluatated
+///    but `bounded_traversal` only keeps results for nodes that have not been completely
+///    evaluatated
 ///  - `In` has additional constraints to be `Eq + Hash + Clone`
 ///  - `Out` has additional constraint to be `Clone`
 ///
