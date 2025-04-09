@@ -74,7 +74,7 @@ impl<S: Sink> Out<S> {
     }
 
     fn out_mut(&mut self) -> &mut S {
-        self.out.as_mut().take().expect("Out after completion")
+        self.out.as_mut().expect("Out after completion")
     }
 
     fn take_result(&mut self) -> S {
@@ -112,7 +112,7 @@ where
     E: From<In::Error> + From<Out1::SinkError> + From<Out2::SinkError>,
 {
     fn inp_mut(&mut self) -> &mut Fuse<In> {
-        self.inp.as_mut().take().expect("Input after completion")
+        self.inp.as_mut().expect("Input after completion")
     }
 
     fn take_result(&mut self) -> (In, Out1, Out2) {
