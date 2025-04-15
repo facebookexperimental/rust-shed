@@ -24,8 +24,8 @@ use futures::future::TryFuture;
 pub use shared_error::anyhow::SharedError;
 use tokio::time::Timeout;
 
-pub use self::abort_handle_ref::spawn_controlled;
 pub use self::abort_handle_ref::ControlledHandle;
+pub use self::abort_handle_ref::spawn_controlled;
 pub use self::conservative_receiver::ConservativeReceiver;
 pub use self::on_cancel::OnCancel;
 pub use self::on_cancel_with_data::CancelData;

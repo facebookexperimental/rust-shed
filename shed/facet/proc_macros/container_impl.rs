@@ -10,9 +10,6 @@
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
-use syn::parse_macro_input;
-use syn::parse_quote;
-use syn::punctuated::Punctuated;
 use syn::Attribute;
 use syn::Error;
 use syn::Expr;
@@ -22,6 +19,9 @@ use syn::Index;
 use syn::ItemStruct;
 use syn::Token;
 use syn::Type;
+use syn::parse_macro_input;
+use syn::parse_quote;
+use syn::punctuated::Punctuated;
 
 use crate::facet_crate_name;
 

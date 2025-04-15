@@ -67,9 +67,9 @@
 //! ```rust
 //! # futures::executor::block_on(async {
 //! use buffered_weighted::StreamExt as _;
+//! use futures::StreamExt as _;
 //! use futures::channel::oneshot;
 //! use futures::stream;
-//! use futures::StreamExt as _;
 //!
 //! let (send_one, recv_one) = oneshot::channel();
 //! let (send_two, recv_two) = oneshot::channel();

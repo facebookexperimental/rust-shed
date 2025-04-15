@@ -9,11 +9,11 @@
 
 use std::pin::Pin;
 
+use futures::Future;
 use futures::channel::oneshot::Canceled;
 use futures::channel::oneshot::Receiver;
 use futures::task::Context;
 use futures::task::Poll;
-use futures::Future;
 use pin_project::pin_project;
 use thiserror::Error;
 

@@ -88,15 +88,15 @@ impl<C: KVCategorizer> Serializer for CollectorSerializer<'_, C> {
 #[cfg(test)]
 mod tests {
     use itertools::assert_equal;
-    use rand::rngs::StdRng;
     use rand::Rng;
     use rand::SeedableRng;
-    use slog::b;
-    use slog::record;
+    use rand::rngs::StdRng;
+    use slog::KV;
     use slog::Level;
     use slog::Record;
     use slog::Result as SlogResult;
-    use slog::KV;
+    use slog::b;
+    use slog::record;
 
     use super::*;
     use crate::kv_categorizer::InlineCategorizer;

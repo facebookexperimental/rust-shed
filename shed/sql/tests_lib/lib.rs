@@ -11,17 +11,17 @@
 
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
+use rand::Rng;
 use rand::distributions::Alphanumeric;
 use rand::thread_rng;
-use rand::Rng;
-use sql::anyhow::Error;
-use sql::mysql_async::prelude::*;
-use sql::mysql_async::FromValueError;
-use sql::mysql_async::Value;
-use sql::queries;
-use sql::sql_common::mysql;
 use sql::Connection;
 use sql::Transaction;
+use sql::anyhow::Error;
+use sql::mysql_async::FromValueError;
+use sql::mysql_async::Value;
+use sql::mysql_async::prelude::*;
+use sql::queries;
+use sql::sql_common::mysql;
 
 pub struct A;
 

@@ -7,20 +7,20 @@
  * of this source tree.
  */
 
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::collections::VecDeque;
+use std::collections::hash_map::Entry;
 use std::future::Future;
 use std::num::NonZeroUsize;
 use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures::future::join;
-use futures::future::ready;
 use futures::future::BoxFuture;
 use futures::future::Join;
 use futures::future::Ready;
+use futures::future::join;
+use futures::future::ready;
 use futures::ready;
 use futures::stream::FuturesUnordered;
 use futures::stream::Stream;

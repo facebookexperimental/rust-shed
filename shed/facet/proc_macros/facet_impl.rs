@@ -10,9 +10,9 @@
 use proc_macro2::TokenStream;
 use quote::format_ident;
 use quote::quote;
-use syn::parse_macro_input;
 use syn::Error;
 use syn::Item;
+use syn::parse_macro_input;
 
 use crate::facet_crate_name;
 use crate::snakify_pascal_case;

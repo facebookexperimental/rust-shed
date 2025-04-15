@@ -31,9 +31,9 @@ use std::time::Instant;
 
 use anyhow::Result;
 use bytes::Bytes;
+use flate2::Compression;
 use flate2::read::GzDecoder;
 use flate2::write::GzEncoder;
-use flate2::Compression;
 use serde::Deserialize;
 use serde::Serialize;
 use serde_json::Value;
@@ -444,10 +444,10 @@ mod duration {
     use std::fmt;
     use std::time::Duration;
 
-    use serde::de;
-    use serde::de::Visitor;
     use serde::Deserializer;
     use serde::Serializer;
+    use serde::de;
+    use serde::de::Visitor;
 
     use super::as_micros;
 

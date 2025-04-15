@@ -15,8 +15,8 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::time::Instant;
 
-use anyhow::anyhow;
 use anyhow::Result;
+use anyhow::anyhow;
 use blake3::Hash;
 use clap::Parser;
 use rand::RngCore;

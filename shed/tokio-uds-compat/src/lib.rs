@@ -8,13 +8,13 @@
  */
 
 #[cfg(unix)]
-pub use tokio::net::unix::OwnedReadHalf;
-#[cfg(unix)]
-pub use tokio::net::unix::OwnedWriteHalf;
-#[cfg(unix)]
 pub use tokio::net::UnixListener;
 #[cfg(unix)]
 pub use tokio::net::UnixStream;
+#[cfg(unix)]
+pub use tokio::net::unix::OwnedReadHalf;
+#[cfg(unix)]
+pub use tokio::net::unix::OwnedWriteHalf;
 
 #[cfg(windows)]
 mod windows {

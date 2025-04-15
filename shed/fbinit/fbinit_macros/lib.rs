@@ -16,13 +16,13 @@ mod args;
 mod expand;
 
 use proc_macro::TokenStream;
+use syn::ItemFn;
 use syn::parse::Error;
 use syn::parse_macro_input;
-use syn::ItemFn;
 
 use crate::args::Args;
-use crate::expand::expand;
 use crate::expand::Mode;
+use crate::expand::expand;
 
 /// Expand from:
 ///

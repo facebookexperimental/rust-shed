@@ -30,8 +30,8 @@ impl crate::Connection {
 /// ```
 /// use anyhow::Error;
 /// use futures::Future;
-/// use sql::queries;
 /// use sql::Connection;
+/// use sql::queries;
 /// use sql_tests_lib::A;
 /// use sql_tests_lib::B;
 ///

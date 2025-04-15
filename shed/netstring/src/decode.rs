@@ -7,10 +7,10 @@
  * of this source tree.
  */
 
-use anyhow::bail;
-use anyhow::ensure;
 use anyhow::Error;
 use anyhow::Result;
+use anyhow::bail;
+use anyhow::ensure;
 use bytes::BytesMut;
 use tokio_util::codec::Decoder;
 

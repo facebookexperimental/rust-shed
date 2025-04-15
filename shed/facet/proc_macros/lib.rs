@@ -21,8 +21,8 @@ mod util;
 fn facet_crate_name() -> String {
     #[cfg(not(fb_buck_build))]
     {
-        use proc_macro_crate::crate_name;
         use proc_macro_crate::FoundCrate;
+        use proc_macro_crate::crate_name;
 
         if let Ok(FoundCrate::Name(name)) = crate_name("facet") {
             return name;

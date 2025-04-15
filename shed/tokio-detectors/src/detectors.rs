@@ -73,15 +73,15 @@
 
 use std::collections::HashSet;
 use std::env;
-use std::sync::mpsc;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::mpsc;
 use std::thread;
 use std::thread::ThreadId;
 use std::time::Duration;
 
-use rand::thread_rng;
 use rand::Rng;
+use rand::thread_rng;
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 

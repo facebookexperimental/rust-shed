@@ -14,13 +14,13 @@ use std::sync::Arc;
 
 use anyhow::Error;
 use futures_stats::futures03::TimedFutureExt;
-use mysql_async::prelude::Queryable;
 use mysql_async::Conn as MysqlConnection;
 use mysql_async::Pool;
 use mysql_async::QueryResult as MysqlQueryResult;
 use mysql_async::TextProtocol;
 use mysql_async::Transaction;
 use mysql_async::TxOpts;
+use mysql_async::prelude::Queryable;
 use stats::prelude::*;
 use time_ext::DurationExt;
 

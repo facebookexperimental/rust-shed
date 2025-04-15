@@ -14,15 +14,15 @@ use std::thread;
 use anyhow::Result;
 use itertools::Either;
 use itertools::Itertools;
-use slog::o;
 use slog::Drain;
+use slog::KV;
 use slog::Key;
 use slog::Level;
 use slog::Logger;
 use slog::Never;
 use slog::OwnedKVList;
 use slog::Record;
-use slog::KV;
+use slog::o;
 use slog_term::Decorator;
 use slog_term::PlainSyncDecorator;
 use slog_term::RecordDecorator;
@@ -39,9 +39,9 @@ use crate::kv_defaults::FacebookKV;
 /// error_chain errors.
 /// # Example:
 /// ```
+/// use slog::Logger;
 /// use slog::info;
 /// use slog::o;
-/// use slog::Logger;
 /// use slog_glog_fmt::default_drain;
 ///
 /// fn main() {
@@ -244,15 +244,15 @@ mod tests {
     use itertools::assert_equal;
     use regex::Captures;
     use regex::Regex;
-    use slog::info;
-    use slog::o;
     use slog::Drain;
     use slog::Logger;
+    use slog::info;
+    use slog::o;
     use slog_term::PlainSyncDecorator;
     use thiserror::Error;
 
-    use super::get_tid;
     use super::GlogFormat;
+    use super::get_tid;
     use crate::kv_categorizer::FacebookCategorizer;
     use crate::kv_categorizer::InlineCategorizer;
 

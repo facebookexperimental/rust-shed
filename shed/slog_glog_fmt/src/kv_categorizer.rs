@@ -99,9 +99,9 @@ mod tests {
     use anyhow::Error;
     use failure_ext::SlogKVError;
     use itertools::assert_equal;
+    use slog::KV;
     use slog::b;
     use slog::record;
-    use slog::KV;
     use thiserror::Error;
 
     use super::*;

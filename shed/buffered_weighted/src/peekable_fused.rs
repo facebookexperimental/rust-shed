@@ -12,8 +12,8 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures_util::stream::FusedStream;
 use futures_util::Stream;
+use futures_util::stream::FusedStream;
 use pin_project::pin_project;
 
 /// A variant on `Peekable` that only works on fused streams.

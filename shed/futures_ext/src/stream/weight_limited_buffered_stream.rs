@@ -9,17 +9,17 @@
 
 use std::pin::Pin;
 
+use futures::Future;
+use futures::FutureExt;
+use futures::Stream;
+use futures::StreamExt;
+use futures::TryStream;
 use futures::future;
 use futures::future::BoxFuture;
 use futures::ready;
 use futures::stream;
 use futures::task::Context;
 use futures::task::Poll;
-use futures::Future;
-use futures::FutureExt;
-use futures::Stream;
-use futures::StreamExt;
-use futures::TryStream;
 use pin_project::pin_project;
 
 /// Params for [crate::FbStreamExt::buffered_weight_limited] and [WeightLimitedBufferedStream]
@@ -186,16 +186,16 @@ where
 
 #[cfg(test)]
 mod test {
+    use std::sync::Arc;
     use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::Ordering;
-    use std::sync::Arc;
 
+    use futures::FutureExt;
+    use futures::StreamExt;
     use futures::future;
     use futures::future::BoxFuture;
     use futures::stream;
     use futures::stream::BoxStream;
-    use futures::FutureExt;
-    use futures::StreamExt;
 
     use super::*;
 

@@ -19,11 +19,11 @@
 use std::fmt;
 use std::fmt::Debug;
 
-use futures::stream::FuturesUnordered;
-use futures::stream::StreamFuture;
 use futures::Async;
 use futures::Poll;
 use futures::Stream;
+use futures::stream::FuturesUnordered;
+use futures::stream::StreamFuture;
 
 /// An unbounded set of streams
 ///

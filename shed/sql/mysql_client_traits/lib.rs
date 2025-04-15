@@ -17,11 +17,11 @@ pub use to_sql::ToSQL;
 pub use to_sql::TryToSQL;
 
 mod row_field;
-pub use row_field::opt_try_from_rowfield;
 pub use row_field::OptionalTryFromRowField;
 pub use row_field::RowField;
 pub use row_field::TryFromRowField;
 pub use row_field::ValueError;
+pub use row_field::opt_try_from_rowfield;
 
 /**
 Unpack result for `field` from query results contained in `row` into [`T`]

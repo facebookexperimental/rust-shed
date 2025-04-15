@@ -26,10 +26,10 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::process::Command;
 
-use anyhow::anyhow;
-use anyhow::ensure;
 use anyhow::Context;
 use anyhow::Result;
+use anyhow::anyhow;
+use anyhow::ensure;
 use clap::ValueEnum;
 use serde::Deserialize;
 use which::which;

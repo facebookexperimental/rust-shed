@@ -8,9 +8,9 @@
  */
 
 mod lrtd_tests_current {
+    use std::sync::Arc;
     use std::sync::atomic::AtomicBool;
     use std::sync::atomic::Ordering;
-    use std::sync::Arc;
     use std::thread;
     use std::time::Duration;
 
@@ -111,10 +111,10 @@ mod unix_lrtd_tests {
 
     use std::backtrace::Backtrace;
     use std::collections::HashMap;
-    use std::sync::atomic::AtomicUsize;
-    use std::sync::atomic::Ordering;
     use std::sync::Arc;
     use std::sync::Mutex;
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
     use std::thread;
     use std::time::Duration;
     use std::time::Instant;

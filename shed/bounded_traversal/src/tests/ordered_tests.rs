@@ -16,16 +16,16 @@ use futures::future::BoxFuture;
 use futures::future::FutureExt;
 use futures::stream::TryStreamExt;
 use pretty_assertions::assert_eq;
-use quickcheck::empty_shrinker;
 use quickcheck::Arbitrary;
 use quickcheck::Gen;
+use quickcheck::empty_shrinker;
 use tokio::task::yield_now;
 
 use super::utils::StateLog;
 use super::utils::Tick;
+use crate::OrderedTraversal;
 use crate::bounded_traversal_limited_ordered_stream;
 use crate::bounded_traversal_ordered_stream;
-use crate::OrderedTraversal;
 
 /// Ordered tree for test purposes
 #[derive(Clone, Debug)]

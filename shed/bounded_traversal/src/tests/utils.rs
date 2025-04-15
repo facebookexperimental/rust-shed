@@ -14,8 +14,8 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use anyhow::Error;
-use futures::channel::oneshot::channel;
 use futures::channel::oneshot::Sender;
+use futures::channel::oneshot::channel;
 use futures::future;
 use futures::future::Future;
 use futures::future::FutureExt;

@@ -17,20 +17,20 @@ use std::io::Error as IoError;
 use std::io::Write;
 use std::num::NonZeroU64;
 use std::path::Path;
-use std::sync::atomic::AtomicU64;
-use std::sync::atomic::Ordering;
 use std::sync::Arc;
 use std::sync::Mutex;
+use std::sync::atomic::AtomicU64;
+use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use fbinit::FacebookInit;
 use serde_json::Error;
 use serde_json::Value;
 
-use crate::sample::ScubaSample;
-use crate::value::ScubaValue;
 use crate::Sampling;
 use crate::ShouldLog;
+use crate::sample::ScubaSample;
+use crate::value::ScubaValue;
 
 /// A helper builder to make it easier to create a new sample and log it into
 /// the proper Scuba dataset.

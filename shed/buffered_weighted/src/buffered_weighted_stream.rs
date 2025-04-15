@@ -12,11 +12,11 @@ use std::pin::Pin;
 use std::task::Context;
 use std::task::Poll;
 
-use futures_util::stream::Fuse;
-use futures_util::stream::FuturesOrdered;
 use futures_util::Future;
 use futures_util::Stream;
 use futures_util::StreamExt as _;
+use futures_util::stream::Fuse;
+use futures_util::stream::FuturesOrdered;
 use pin_project::pin_project;
 
 use crate::global_weight::GlobalWeight;

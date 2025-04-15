@@ -13,18 +13,18 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use std::sync::OnceLock;
 
-use anyhow::anyhow;
 use anyhow::Result;
+use anyhow::anyhow;
 use arc_swap::ArcSwap;
 use cached_config::ConfigHandle;
 use just_knobs_struct::JustKnobs as JustKnobsStruct;
 use serde::Deserialize;
 use serde::Serialize;
 use tokio::runtime::Handle;
+use tracing_slog_compat::Logger;
 use tracing_slog_compat::debug;
 use tracing_slog_compat::error;
 use tracing_slog_compat::warn;
-use tracing_slog_compat::Logger;
 
 use crate::JustKnobs;
 
@@ -205,9 +205,9 @@ mod test {
     use std::thread;
     use std::time::Duration;
 
-    use cached_config::test_source::TestSource;
     use cached_config::ConfigStore;
     use cached_config::ModificationTime;
+    use cached_config::test_source::TestSource;
     use slog_glog_fmt::logger_that_can_work_in_tests;
     use tokio::runtime::Handle;
 

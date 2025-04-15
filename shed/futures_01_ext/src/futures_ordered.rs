@@ -110,11 +110,11 @@ where
 mod test {
     use std::result;
 
-    use futures::sync::mpsc;
-    use futures::task;
     use futures::Future;
     use futures::Sink;
     use futures::Stream;
+    use futures::sync::mpsc;
+    use futures::task;
     use futures03::compat::Future01CompatExt;
 
     use super::*;

@@ -7,10 +7,10 @@
  * of this source tree.
  */
 
-use futures::future;
-use futures::stream;
 use futures::FutureExt;
 use futures::TryStreamExt;
+use futures::future;
+use futures::stream;
 use futures_stats::TimedFutureExt;
 use futures_stats::TimedStreamExt;
 

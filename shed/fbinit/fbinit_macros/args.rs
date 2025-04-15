@@ -7,11 +7,11 @@
  * of this source tree.
  */
 
+use syn::Ident;
+use syn::LitInt;
 use syn::meta::ParseNestedMeta;
 use syn::parse::Error;
 use syn::parse::Result;
-use syn::Ident;
-use syn::LitInt;
 
 #[derive(Default)]
 pub struct Args {

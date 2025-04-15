@@ -9,11 +9,11 @@
 
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::parse_quote;
-use syn::punctuated::Punctuated;
 use syn::Error;
 use syn::ItemFn;
 use syn::Result;
+use syn::parse_quote;
+use syn::punctuated::Punctuated;
 
 use crate::args::Args;
 use crate::args::DisableFatalSignals;

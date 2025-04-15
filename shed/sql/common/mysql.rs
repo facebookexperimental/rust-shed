@@ -20,11 +20,11 @@ pub use facebook::Connection;
 pub use facebook::MysqlError;
 #[cfg(fbcode_build)]
 pub use facebook::Transaction;
-pub use mysql_client_traits::opt_try_from_rowfield;
 pub use mysql_client_traits::OptionalTryFromRowField;
 pub use mysql_client_traits::RowField;
 pub use mysql_client_traits::TryFromRowField;
 pub use mysql_client_traits::ValueError;
+pub use mysql_client_traits::opt_try_from_rowfield;
 pub use mysql_derive::OptTryFromRowField;
 pub use mysql_derive::TryFromRowField;
 #[cfg(not(fbcode_build))]

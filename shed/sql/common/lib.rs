@@ -19,8 +19,8 @@ pub mod transaction;
 use std::fmt;
 use std::fmt::Debug;
 
-use mysql_async::prelude::FromValue;
 use mysql_async::Value;
+use mysql_async::prelude::FromValue;
 use vec1::Vec1;
 
 /// Struct to store a set of write, read and read-only connections for a shard.

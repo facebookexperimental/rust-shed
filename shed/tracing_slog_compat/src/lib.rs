@@ -12,13 +12,13 @@
 //! This crate should be used as a replacement for `slog`.
 
 pub use slog;
-pub use slog::b;
-pub use slog::o;
 pub use slog::BorrowedKV;
 pub use slog::Discard;
 pub use slog::Drain;
 pub use slog::Duplicate;
+pub use slog::KV;
 pub use slog::Key;
+pub use slog::LOG_LEVEL_NAMES;
 pub use slog::Level;
 pub use slog::Never;
 pub use slog::OwnedKV;
@@ -32,8 +32,8 @@ pub use slog::SendSyncRefUnwindSafeKV;
 pub use slog::Serializer;
 pub use slog::SingleKV;
 pub use slog::Value;
-pub use slog::KV;
-pub use slog::LOG_LEVEL_NAMES;
+pub use slog::b;
+pub use slog::o;
 pub use tracing;
 
 #[derive(Clone, Debug)]

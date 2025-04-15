@@ -10,8 +10,8 @@
 use std::future::Future;
 use std::sync::Arc;
 
-use futures::future::abortable;
 use futures::future::AbortHandle;
+use futures::future::abortable;
 
 /// Spawns a new task returning an abort handle for it.
 ///

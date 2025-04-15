@@ -12,12 +12,12 @@ use std::collections::VecDeque;
 use std::hash::Hash;
 use std::task::Poll;
 
+use futures::Stream;
 use futures::future::BoxFuture;
 use futures::ready;
 use futures::stream;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
-use futures::Stream;
 
 /// `bounded_traversal_stream` traverses implicit asynchronous tree specified by `init`
 /// and `unfold` arguments. All `unfold` operations are executed in parallel if they

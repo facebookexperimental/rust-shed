@@ -9,12 +9,12 @@
 
 use std::pin::Pin;
 
-use futures::channel::oneshot::channel;
+use futures::Stream;
 use futures::channel::oneshot::Sender;
+use futures::channel::oneshot::channel;
 use futures::ready;
 use futures::task::Context;
 use futures::task::Poll;
-use futures::Stream;
 use pin_project::pin_project;
 
 use crate::future::ConservativeReceiver;
@@ -70,8 +70,8 @@ impl<In: Stream + Unpin> Stream for ReturnRemainder<In> {
 mod test {
     use assert_matches::assert_matches;
     use futures::future;
-    use futures::stream::iter;
     use futures::stream::StreamExt;
+    use futures::stream::iter;
 
     use super::*;
 

@@ -15,17 +15,17 @@ use std::task::Context;
 use std::task::Poll;
 
 use either::Either;
-use futures::future::join;
-use futures::future::ready;
 use futures::future::BoxFuture;
 use futures::future::Join;
 use futures::future::Ready;
+use futures::future::join;
+use futures::future::ready;
 use futures::ready;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
 
-use super::common::Either2;
 use super::Iter;
+use super::common::Either2;
 
 /// `bounded_traversal` traverses implicit asynchronous tree specified by `init`
 /// and `unfold` arguments, and it also does backward pass with `fold` operation.

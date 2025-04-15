@@ -24,15 +24,15 @@ use bytes::Bytes;
 use fbthrift::deserialize::Deserialize;
 use fbthrift::simplejson_protocol::SimpleJsonProtocolDeserializer;
 use serde::de::DeserializeOwned;
+use slog::Logger;
 use slog::info;
 use slog::warn;
-use slog::Logger;
 
+use crate::Source;
 use crate::file_source::FileSource;
 use crate::handle::ConfigHandle;
 use crate::refreshable_entities::Refreshable;
 use crate::refreshable_entities::RegisteredConfigEntity;
-use crate::Source;
 
 /// A wrapper around the configerator APIs to provide an easily mocked way of reading JSON configs
 /// into Serde-compatible structures.

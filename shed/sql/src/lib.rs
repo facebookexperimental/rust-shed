@@ -26,8 +26,8 @@
 //! ```
 //! use anyhow::Error;
 //! use futures::Future;
-//! use sql::queries;
 //! use sql::Connection;
+//! use sql::queries;
 //! use sql_tests_lib::A;
 //! use sql_tests_lib::B;
 //!
@@ -67,22 +67,22 @@ pub use futures_util;
 pub use mysql_async;
 use mysql_async::Value;
 pub use rusqlite;
+use rusqlite::Result as SqliteResult;
 use rusqlite::types::FromSql as FromSqliteValue;
 use rusqlite::types::FromSqlResult as FromSqliteValueResult;
 use rusqlite::types::ToSql as ToSqliteValue;
 use rusqlite::types::ToSqlOutput as ToSqliteOutput;
 use rusqlite::types::Value as SqliteValue;
 use rusqlite::types::ValueRef as SqliteValueRef;
-use rusqlite::Result as SqliteResult;
 pub use sql_common;
-pub use sql_common::mysql;
-pub use sql_common::mysql::OssConnection;
-pub use sql_common::sqlite;
-pub use sql_common::transaction::Transaction;
 pub use sql_common::Connection;
 pub use sql_common::SqlConnections;
 pub use sql_common::SqlShardedConnections;
 pub use sql_common::WriteResult;
+pub use sql_common::mysql;
+pub use sql_common::mysql::OssConnection;
+pub use sql_common::sqlite;
+pub use sql_common::transaction::Transaction;
 
 /// Wrapper around MySql Value to implement Sqlite traits on it.
 /// This should never be used directly, it is made public so that internal macros can make use of it
@@ -378,28 +378,28 @@ macro_rules! _query_common {
         // Some users of queries! have redefined Result
         use std::result::Result;
 
-        use $crate::anyhow::anyhow;
+        use $crate::Connection;
+        use $crate::HList;
+        use $crate::Transaction;
+        use $crate::ValueWrapper;
         use $crate::anyhow::Context;
         use $crate::anyhow::Error;
+        use $crate::anyhow::anyhow;
         use $crate::cloned::cloned;
         use $crate::futures::compat::Future01CompatExt;
         use $crate::futures::future::Future;
         use $crate::futures::future::FutureExt;
         use $crate::futures::future::TryFutureExt;
         use $crate::mysql_async::prelude::*;
-        use $crate::rusqlite::types::ToSql as ToSqliteValue;
         use $crate::rusqlite::Connection as SqliteConnection;
         use $crate::rusqlite::Result as SqliteResult;
         use $crate::rusqlite::Row as SqliteRow;
         use $crate::rusqlite::Statement as SqliteStatement;
+        use $crate::rusqlite::types::ToSql as ToSqliteValue;
         use $crate::sql_common::mysql::OssConnection;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
         use $crate::sqlite::SqliteQueryType;
-        use $crate::Connection;
-        use $crate::HList;
-        use $crate::Transaction;
-        use $crate::ValueWrapper;
 
         #[allow(unused_imports)]
         use super::*;

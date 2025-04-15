@@ -10,19 +10,19 @@
 use std::pin::Pin;
 use std::time::Duration;
 
-use futures::future::BoxFuture;
-use futures::stream;
 use futures::Future;
 use futures::FutureExt;
 use futures::Stream;
 use futures::StreamExt as _;
+use futures::future::BoxFuture;
+use futures::stream;
 use proptest::prelude::*;
 use proptest_derive::Arbitrary;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 
-use crate::traits::WeightedFuture;
 use crate::BufferedWeighted;
 use crate::StreamExt as _;
+use crate::traits::WeightedFuture;
 
 #[derive(Clone, Debug, Arbitrary)]
 struct TestState {

@@ -18,9 +18,9 @@ use std::hash::BuildHasher;
 use std::hash::Hash;
 use std::hash::Hasher;
 use std::ops::Deref;
+use std::sync::OnceLock;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering;
-use std::sync::OnceLock;
 
 /// `BuildMemoHasher` provides a way to construct a wrapper `MemoHasher` of a
 /// `std::hash::Hasher`s so that the memoized `Hasher::finish()` values
@@ -283,8 +283,8 @@ impl<T, I: BuildHasher> Deref for LazyHashMemoizer<'_, T, I> {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::hash_map::RandomState as DefaultRandomState;
     use std::collections::HashMap;
+    use std::collections::hash_map::RandomState as DefaultRandomState;
 
     use ahash::RandomState as AhashRandomState;
 

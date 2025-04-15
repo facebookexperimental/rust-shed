@@ -9,6 +9,7 @@
 
 #![deny(warnings)]
 
+use sql_tests_lib::TestSemantics;
 use sql_tests_lib::test_datetime_query;
 use sql_tests_lib::test_query_visibility_modifiers_compile;
 use sql_tests_lib::test_read_query;
@@ -16,10 +17,9 @@ use sql_tests_lib::test_transaction_commit;
 use sql_tests_lib::test_transaction_rollback;
 use sql_tests_lib::test_transaction_rollback_on_drop;
 use sql_tests_lib::test_write_query;
-use sql_tests_lib::TestSemantics;
 
-use crate::rusqlite::Connection as SqliteConnection;
 use crate::Connection;
+use crate::rusqlite::Connection as SqliteConnection;
 
 #[tokio::test]
 async fn test_read_query_sqlite() {

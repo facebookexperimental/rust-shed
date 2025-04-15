@@ -11,8 +11,8 @@
 
 use quote::quote;
 use quote::quote_spanned;
-use syn::spanned::Spanned;
 use syn::DeriveInput;
+use syn::spanned::Spanned;
 
 /// Derive the [`quickcheck::Arbitrary`](https://docs.rs/quickcheck/latest/quickcheck/trait.Arbitrary.html) trait.
 ///

@@ -10,12 +10,12 @@
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use anyhow::bail;
 use anyhow::Result;
+use anyhow::bail;
 use bytes::Bytes;
-use tokio::sync::watch::channel;
 use tokio::sync::watch::Receiver;
 use tokio::sync::watch::Sender;
+use tokio::sync::watch::channel;
 
 use crate::Entity;
 use crate::ModificationTime;

@@ -11,8 +11,8 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::parse_macro_input;
 use syn::DeriveInput;
+use syn::parse_macro_input;
 
 /// The proc macro allows to derive an implementation of mysql_client::OptionalTryFromRowField
 /// trait for the type if that type implements mysql_async::FromValueOpt.

@@ -18,12 +18,12 @@
 //!  * thread-local-in-memory, which is useful for testing. It allows to override justknobs within a
 //!    test without affecting other tests. Used always when cfg(test) is true.
 
+#[cfg(not(fbcode_build))]
+use JustKnobsStub as prod_implementation;
 use anyhow::Result;
 use cached_config::CachedConfigJustKnobs;
 #[cfg(fbcode_build)]
 use fb_justknobs as prod_implementation;
-#[cfg(not(fbcode_build))]
-use JustKnobsStub as prod_implementation;
 
 pub mod cached_config;
 mod thread_local_in_memory;
@@ -33,11 +33,11 @@ use thread_local_in_memory::ThreadLocalInMemoryJustKnobsImpl;
 
 /// Those should be only used in tests.
 pub mod test_helpers {
+    pub use crate::thread_local_in_memory::JustKnobsInMemory;
+    pub use crate::thread_local_in_memory::KnobVal;
     pub use crate::thread_local_in_memory::override_just_knobs;
     pub use crate::thread_local_in_memory::with_just_knobs;
     pub use crate::thread_local_in_memory::with_just_knobs_async;
-    pub use crate::thread_local_in_memory::JustKnobsInMemory;
-    pub use crate::thread_local_in_memory::KnobVal;
 }
 
 /// Trait that defines the interface for JustKnobs supported by this library and multiple stub

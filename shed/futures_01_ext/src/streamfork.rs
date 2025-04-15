@@ -7,14 +7,14 @@
  * of this source tree.
  */
 
-use futures::sink::Sink;
-use futures::stream::Fuse;
-use futures::stream::Stream;
-use futures::try_ready;
 use futures::Async;
 use futures::AsyncSink;
 use futures::Future;
 use futures::Poll;
+use futures::sink::Sink;
+use futures::stream::Fuse;
+use futures::stream::Stream;
+use futures::try_ready;
 
 /// Fork a Stream into two
 ///
@@ -210,13 +210,13 @@ where
 
 #[cfg(test)]
 mod test {
-    use futures::sink::Sink;
-    use futures::stream::iter_ok;
-    use futures::stream::once;
     use futures::Async;
     use futures::AsyncSink;
     use futures::Future;
     use futures::StartSend;
+    use futures::sink::Sink;
+    use futures::stream::iter_ok;
+    use futures::stream::once;
 
     use super::*;
 

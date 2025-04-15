@@ -13,12 +13,12 @@
 //! statically checked.
 
 use std::cell::RefCell;
-use std::collections::hash_map::Entry;
 use std::collections::HashMap;
+use std::collections::hash_map::Entry;
 use std::thread::LocalKey;
 
-use dashmap::mapref::entry::Entry as DashEntry;
 use dashmap::DashMap;
+use dashmap::mapref::entry::Entry as DashEntry;
 use fbinit::FacebookInit;
 
 use crate::stat_types::BoxHistogram;

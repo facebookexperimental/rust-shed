@@ -177,8 +177,8 @@ mod test {
     use std::sync::atomic::Ordering;
     use std::time::Duration;
 
-    use rand::thread_rng;
     use rand::Rng;
+    use rand::thread_rng;
 
     use super::*;
 

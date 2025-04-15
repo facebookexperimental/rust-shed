@@ -9,9 +9,9 @@
 
 use std::sync::Arc;
 
-use anyhow::bail;
 use anyhow::Context;
 use anyhow::Result;
+use anyhow::bail;
 use serde::de::DeserializeOwned;
 use serde_json::from_str;
 use tokio::sync::watch::Receiver;

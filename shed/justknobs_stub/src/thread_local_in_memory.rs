@@ -14,12 +14,12 @@ use std::ops::Deref;
 use std::sync::Arc;
 use std::thread_local;
 
+use anyhow::Result;
 use anyhow::anyhow;
 use anyhow::bail;
-use anyhow::Result;
-use futures::future::poll_fn;
 use futures::Future;
 use futures::FutureExt;
+use futures::future::poll_fn;
 use just_knobs_struct::JustKnobs as JustKnobsStruct;
 
 use crate::JustKnobs;

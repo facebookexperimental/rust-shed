@@ -14,16 +14,16 @@
 
 use std::fmt::Debug;
 
-use futures::future;
-use futures::stream;
-use futures::sync::mpsc;
-use futures::sync::oneshot;
-use futures::try_ready;
 use futures::Async;
 use futures::Future;
 use futures::Poll;
 use futures::Sink;
 use futures::Stream;
+use futures::future;
+use futures::stream;
+use futures::sync::mpsc;
+use futures::sync::oneshot;
+use futures::try_ready;
 
 mod futures_ordered;
 mod select_all;
@@ -35,10 +35,10 @@ mod streamfork;
 // what "futures" means.
 pub use futures as futures_reexport;
 
-pub use crate::futures_ordered::futures_ordered;
 pub use crate::futures_ordered::FuturesOrdered;
-pub use crate::select_all::select_all;
+pub use crate::futures_ordered::futures_ordered;
 pub use crate::select_all::SelectAll;
+pub use crate::select_all::select_all;
 pub use crate::split_err::split_err;
 pub use crate::stream_wrappers::CollectNoConsume;
 pub use crate::stream_wrappers::CollectTo;
@@ -790,18 +790,18 @@ impl<S: Stream> Stream for BatchStream<S> {
 
 #[cfg(test)]
 mod test {
+    use std::sync::Arc;
     use std::sync::atomic::AtomicUsize;
     use std::sync::atomic::Ordering;
-    use std::sync::Arc;
 
     use anyhow::Result;
     use assert_matches::assert_matches;
     use cloned::cloned;
+    use futures::Stream;
     use futures::future::err;
     use futures::future::ok;
     use futures::stream;
     use futures::sync::mpsc;
-    use futures::Stream;
     use futures03::compat::Future01CompatExt;
     use tokio::runtime::Runtime;
 

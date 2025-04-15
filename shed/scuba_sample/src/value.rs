@@ -812,8 +812,8 @@ mod tests {
     #[allow(deprecated)]
     use assert_matches::assert_matches;
     use quickcheck::quickcheck;
-    use serde_json::json;
     use serde_json::Value;
+    use serde_json::json;
 
     use super::*;
 

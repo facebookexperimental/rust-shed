@@ -20,10 +20,10 @@ use std::fmt::Display;
 use anyhow::Error;
 
 mod slogkv;
-pub use crate::slogkv::cause_workaround as cause;
 pub use crate::slogkv::SlogKVError;
 pub use crate::slogkv::SlogKVErrorKey;
 pub use crate::slogkv::SlogKVErrorWithoutBackTrace;
+pub use crate::slogkv::cause_workaround as cause;
 
 pub mod prelude {
     //! A "prelude" of `failure_ext` crate.

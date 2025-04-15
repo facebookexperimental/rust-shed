@@ -15,9 +15,6 @@ use proc_macro::TokenStream;
 use proc_macro2::Span;
 use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
-use syn::parse::Error;
-use syn::parse::Result;
-use syn::parse_macro_input;
 use syn::Data;
 use syn::DataStruct;
 use syn::DeriveInput;
@@ -28,6 +25,9 @@ use syn::Ident;
 use syn::Lifetime;
 use syn::LitStr;
 use syn::Type;
+use syn::parse::Error;
+use syn::parse::Result;
+use syn::parse_macro_input;
 
 enum Derive {
     StructuredSample,

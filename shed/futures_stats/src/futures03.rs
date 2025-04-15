@@ -13,12 +13,12 @@ use std::pin::Pin;
 use std::time::Duration;
 use std::time::Instant;
 
+use futures::TryStream;
 use futures::future::Future;
 use futures::future::TryFuture;
 use futures::stream::Stream;
 use futures::task::Context;
 use futures::task::Poll;
-use futures::TryStream;
 use futures_ext::future::CancelData;
 
 use super::FutureStats;
@@ -438,15 +438,15 @@ impl<T: Sized + TryStream> TimedTryStreamExt for T {}
 
 #[cfg(test)]
 mod tests {
-    use std::sync::atomic::AtomicBool;
-    use std::sync::atomic::Ordering;
     use std::sync::Arc;
     use std::sync::Mutex;
+    use std::sync::atomic::AtomicBool;
+    use std::sync::atomic::Ordering;
     use std::thread;
 
+    use futures::TryStreamExt;
     use futures::stream;
     use futures::stream::StreamExt;
-    use futures::TryStreamExt;
     use futures_ext::FbFutureExt;
 
     use super::*;

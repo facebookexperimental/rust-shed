@@ -14,10 +14,10 @@ use std::io::Write;
 use std::marker::PhantomData;
 
 use anyhow::Result;
-use bytes::buf::UninitSlice;
 use bytes::Buf;
 use bytes::BufMut;
 use bytes::Bytes;
+use bytes::buf::UninitSlice;
 
 pub fn init_cacheadmin() -> Result<()> {
     Ok(())
