@@ -68,9 +68,11 @@ impl<T> AsyncOnceCell<T> {
     ///
     /// SAFETY: The cell must be initialized.
     pub unsafe fn get_unchecked(&self) -> &T {
-        debug_assert!(self.is_initialized());
-        let slot = &*self.value.get();
-        slot.as_ref().expect("should be initialized")
+        unsafe {
+            debug_assert!(self.is_initialized());
+            let slot = &*self.value.get();
+            slot.as_ref().expect("should be initialized")
+        }
     }
 
     /// Returns a reference to the current value, or `None` if it is

@@ -80,7 +80,7 @@ impl<S: Stream> SelectAll<S> {
     /// ensure that `SelectAll::poll` is called in order to receive task
     /// notifications.
     pub fn push(&mut self, stream: S) {
-        self.inner.push(stream.into_future());
+        self.inner.push(Stream::into_future(stream));
     }
 }
 

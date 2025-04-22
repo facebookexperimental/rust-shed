@@ -231,12 +231,15 @@ mod test {
         };
         let s = WeightLimitedBufferedStream::new(params, s);
 
-        if let (Some(()), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 1);
-            assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(()), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 1);
+                assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -249,12 +252,15 @@ mod test {
         };
         let s = WeightLimitedBufferedStream::new(params, s);
 
-        if let (Some(()), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-            assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(()), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+                assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -267,12 +273,15 @@ mod test {
         };
         let s = WeightLimitedBufferedStream::new(params, s);
 
-        if let (Some(()), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-            assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(()), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+                assert_eq!(s.collect::<Vec<()>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -314,12 +323,15 @@ mod test {
         };
         let s = WeightLimitedBufferedTryStream::new(params, s);
 
-        if let (Some(Ok(())), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-            assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(Ok(())), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+                assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -332,12 +344,15 @@ mod test {
         };
         let s = WeightLimitedBufferedTryStream::new(params, s);
 
-        if let (Some(Ok(())), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 1);
-            assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(Ok(())), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 1);
+                assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -350,12 +365,15 @@ mod test {
         };
         let s = WeightLimitedBufferedTryStream::new(params, s);
 
-        if let (Some(Ok(())), s) = s.into_future().await {
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-            assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(Ok(())), s) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+                assert_eq!(s.collect::<Vec<_>>().await.len(), 2);
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -379,29 +397,32 @@ mod test {
         };
         let s = WeightLimitedBufferedTryStream::new(params, s);
 
-        if let (Some(Ok(())), s) = s.into_future().await {
-            // Producting the very first value caused a buffer
-            // to be filled with 2 futures
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-            let v = s.collect::<Vec<Result<_, _>>>().await;
-            // Second element of the resulting stream is an
-            // error, since we could not even calculate its
-            // weithg and get its future
-            assert!(v[0].is_err());
-            assert!(
-                v[0].clone()
-                    .unwrap_err()
-                    .contains("failed to calculate weight")
-            );
-            // Third element of the resulting stream was
-            // successfully produced
-            assert_eq!(v[1], Ok(()));
-            assert_eq!(v.len(), 2);
-            // Collecting the while resulting stream caused
-            // 3 elements of the inner stream to be polled
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(Ok(())), s) => {
+                // Producting the very first value caused a buffer
+                // to be filled with 2 futures
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+                let v = s.collect::<Vec<Result<_, _>>>().await;
+                // Second element of the resulting stream is an
+                // error, since we could not even calculate its
+                // weithg and get its future
+                assert!(v[0].is_err());
+                assert!(
+                    v[0].clone()
+                        .unwrap_err()
+                        .contains("failed to calculate weight")
+                );
+                // Third element of the resulting stream was
+                // successfully produced
+                assert_eq!(v[1], Ok(()));
+                assert_eq!(v.len(), 2);
+                // Collecting the while resulting stream caused
+                // 3 elements of the inner stream to be polled
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 
@@ -428,28 +449,31 @@ mod test {
         };
         let s = WeightLimitedBufferedTryStream::new(params, s);
 
-        if let (Some(Ok(())), s) = s.into_future().await {
-            // Producting the very first value caused a buffer
-            // to be filled with 2 futures
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-            let v = s.collect::<Vec<Result<_, _>>>().await;
-            // Second element of the resulting stream is an
-            // error
-            assert!(v[0].is_err());
-            assert!(
-                v[0].clone()
-                    .unwrap_err()
-                    .contains("failed to produce interesting value")
-            );
-            // Third element of the resulting stream was
-            // successfully produced
-            assert_eq!(v[1], Ok(()));
-            assert_eq!(v.len(), 2);
-            // Collecting the while resulting stream caused
-            // 3 elements of the inner stream to be polled
-            assert_eq!(counter.load(Ordering::SeqCst), 3);
-        } else {
-            panic!("Stream did not produce even a single value");
+        match StreamExt::into_future(s).await {
+            (Some(Ok(())), s) => {
+                // Producting the very first value caused a buffer
+                // to be filled with 2 futures
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+                let v = s.collect::<Vec<Result<_, _>>>().await;
+                // Second element of the resulting stream is an
+                // error
+                assert!(v[0].is_err());
+                assert!(
+                    v[0].clone()
+                        .unwrap_err()
+                        .contains("failed to produce interesting value")
+                );
+                // Third element of the resulting stream was
+                // successfully produced
+                assert_eq!(v[1], Ok(()));
+                assert_eq!(v.len(), 2);
+                // Collecting the while resulting stream caused
+                // 3 elements of the inner stream to be polled
+                assert_eq!(counter.load(Ordering::SeqCst), 3);
+            }
+            _ => {
+                panic!("Stream did not produce even a single value");
+            }
         }
     }
 }

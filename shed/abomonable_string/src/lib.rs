@@ -65,22 +65,24 @@ impl<const ALIGN: usize> Abomonation for AbomonableString<ALIGN> {
 
     #[inline]
     unsafe fn exhume<'a, 'b>(&'a mut self, bytes: &'b mut [u8]) -> Option<&'b mut [u8]> {
-        let padded_len = self.0.len() + remainder::<ALIGN>(self.0.len());
-        if padded_len > bytes.len() {
-            None
-        } else {
-            let (mine, rest) = bytes.split_at_mut(padded_len);
-            // SAFETY: we ensure the resulting string is read-only by only
-            // allowing a shared reference to it once exhumed.
-            std::ptr::write(
-                self,
-                Self(String::from_raw_parts(
-                    mine.as_mut_ptr(),
-                    self.0.len(),
-                    self.0.len(),
-                )),
-            );
-            Some(rest)
+        unsafe {
+            let padded_len = self.0.len() + remainder::<ALIGN>(self.0.len());
+            if padded_len > bytes.len() {
+                None
+            } else {
+                let (mine, rest) = bytes.split_at_mut(padded_len);
+                // SAFETY: we ensure the resulting string is read-only by only
+                // allowing a shared reference to it once exhumed.
+                std::ptr::write(
+                    self,
+                    Self(String::from_raw_parts(
+                        mine.as_mut_ptr(),
+                        self.0.len(),
+                        self.0.len(),
+                    )),
+                );
+                Some(rest)
+            }
         }
     }
 

@@ -141,7 +141,7 @@ impl Transaction {
 impl Drop for Transaction {
     fn drop(&mut self) {
         match self {
-            Transaction::Sqlite(ref mut con) => {
+            Transaction::Sqlite(con) => {
                 let con = if let Some(con) = con {
                     con
                 } else {

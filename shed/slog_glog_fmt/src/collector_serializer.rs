@@ -35,7 +35,7 @@ impl<'a, C: KVCategorizer> CollectorSerializer<'a, C> {
 
 /// Define a macro to implement serializer emit functions.
 macro_rules! impl_emit_body(
-    ($s:expr, $k:expr, $v:expr) => {
+    ($s:expr_2021, $k:expr_2021, $v:expr_2021) => {
         if $s.1.ignore($k) {
             return Ok(())
         }
@@ -126,21 +126,21 @@ mod tests {
         fn new<R: Rng>(key: Key, rng: &mut R) -> Self {
             TestKv {
                 key,
-                vusize: rng.gen(),
-                visize: rng.gen(),
-                vbool: rng.gen(),
-                vchar: rng.gen(),
-                vu8: rng.gen(),
-                vi8: rng.gen(),
-                vu16: rng.gen(),
-                vi16: rng.gen(),
-                vu32: rng.gen(),
-                vi32: rng.gen(),
-                vf32: rng.gen(),
-                vu64: rng.gen(),
-                vi64: rng.gen(),
-                vf64: rng.gen(),
-                vstr: format!("value{}", rng.gen::<i64>()),
+                vusize: rng.r#gen(),
+                visize: rng.r#gen(),
+                vbool: rng.r#gen(),
+                vchar: rng.r#gen(),
+                vu8: rng.r#gen(),
+                vi8: rng.r#gen(),
+                vu16: rng.r#gen(),
+                vi16: rng.r#gen(),
+                vu32: rng.r#gen(),
+                vi32: rng.r#gen(),
+                vf32: rng.r#gen(),
+                vu64: rng.r#gen(),
+                vi64: rng.r#gen(),
+                vf64: rng.r#gen(),
+                vstr: format!("value{}", rng.r#gen::<i64>()),
             }
         }
 

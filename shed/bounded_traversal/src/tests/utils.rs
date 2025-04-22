@@ -89,7 +89,7 @@ impl Tick {
         yield_now().await
     }
 
-    pub fn sleep(&self, delay: usize) -> impl Future<Output = usize> {
+    pub fn sleep(&self, delay: usize) -> impl Future<Output = usize> + use<> {
         let this = self.clone();
         async move {
             let (send, recv) = channel();

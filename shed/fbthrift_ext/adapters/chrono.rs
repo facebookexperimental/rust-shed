@@ -149,7 +149,7 @@ pub struct UtcMillisecondTimestampAdapter;
 pub struct UtcMicrosecondTimestampAdapter;
 
 macro_rules! impl_timestamp_adapter {
-    ($adapter:ident, $to_thrift_fn:expr, $from_thrift_fn:expr) => {
+    ($adapter:ident, $to_thrift_fn:expr_2021, $from_thrift_fn:expr_2021) => {
         impl ThriftAdapter for $adapter {
             type StandardType = i64;
             type AdaptedType = DateTime<Utc>;

@@ -34,9 +34,9 @@ enum EnumFoo {
 fn main() {
     use quickcheck::Arbitrary;
     use quickcheck::Gen;
-    let mut gen = Gen::new(10);
-    println!("{:#?}", StructFoo::arbitrary(&mut gen));
-    println!("{:#?}", TupleFoo::arbitrary(&mut gen));
-    println!("{:#?}", UnitFoo::arbitrary(&mut gen));
-    println!("{:#?}", EnumFoo::arbitrary(&mut gen));
+    let mut r#gen = Gen::new(10);
+    println!("{:#?}", StructFoo::arbitrary(&mut r#gen));
+    println!("{:#?}", TupleFoo::arbitrary(&mut r#gen));
+    println!("{:#?}", UnitFoo::arbitrary(&mut r#gen));
+    println!("{:#?}", EnumFoo::arbitrary(&mut r#gen));
 }

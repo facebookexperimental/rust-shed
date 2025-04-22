@@ -92,10 +92,9 @@ impl<S: Sink> Out<S> {
     }
 
     fn push(&mut self) -> Poll<(), S::SinkError> {
-        if let Some(item) = self.buf.take() {
-            self.try_start_send(item)
-        } else {
-            Ok(Async::Ready(()))
+        match self.buf.take() {
+            Some(item) => self.try_start_send(item),
+            _ => Ok(Async::Ready(())),
         }
     }
 

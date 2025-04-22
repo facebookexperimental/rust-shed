@@ -14,7 +14,7 @@ use assert_cmd::prelude::*;
 use predicates::prelude::*;
 
 macro_rules! get_command {
-    ( $name:expr ) => {{
+    ( $name:expr_2021 ) => {{
         #[cfg(fbcode_build)]
         {
             Command::new(buck_resources::get(format!(

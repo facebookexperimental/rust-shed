@@ -596,7 +596,7 @@ impl<'a> TryFrom<&'a ScubaValue> for Option<&'a String> {
     fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
         match value {
             #[allow(deprecated)]
-            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(Some(v)),
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(Some(v)),
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
                 "ScubaValue: {:?} expected to be Option<String>",
@@ -612,7 +612,7 @@ impl<'a> TryFrom<&'a ScubaValue> for &'a str {
     fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
         match value {
             #[allow(deprecated)]
-            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(v.as_str()),
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(v.as_str()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
                 "Expected &str value for ScubaValue but got null: {:?}",
                 value
@@ -631,7 +631,7 @@ impl<'a> TryFrom<&'a ScubaValue> for Option<&'a str> {
     fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
         match value {
             #[allow(deprecated)]
-            ScubaValue::Normal(ref v) | ScubaValue::Denorm(ref v) => Ok(Some(v.as_str())),
+            ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(Some(v.as_str())),
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
                 "ScubaValue: {:?} expected to be &str",
@@ -682,7 +682,7 @@ impl<'a> TryFrom<&'a ScubaValue> for HashSet<&'a str> {
 
     fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
         match value {
-            ScubaValue::TagSet(ref v) => Ok(v.iter().map(|v| v.as_str()).collect()),
+            ScubaValue::TagSet(v) => Ok(v.iter().map(|v| v.as_str()).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
                 "Expected Set for ScubaValue but got null: {:?}",
                 value
@@ -718,7 +718,7 @@ impl<'a> TryFrom<&'a ScubaValue> for BTreeSet<&'a str> {
 
     fn try_from(value: &'a ScubaValue) -> Result<Self, Error> {
         match value {
-            ScubaValue::TagSet(ref v) => Ok(v.iter().map(|v| v.as_str()).collect()),
+            ScubaValue::TagSet(v) => Ok(v.iter().map(|v| v.as_str()).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
                 "Expected Set for ScubaValue but got null: {:?}",
                 value
@@ -818,7 +818,7 @@ mod tests {
     use super::*;
 
     macro_rules! test_int_conv {
-        ( $x:expr ) => {
+        ( $x:expr_2021 ) => {
             let value = ScubaValue::from($x);
 
             let correct_from = match &value {
@@ -833,7 +833,7 @@ mod tests {
     }
 
     macro_rules! test_float_conv {
-        ( $x:expr ) => {
+        ( $x:expr_2021 ) => {
             #[allow(clippy::float_cmp)]
             {
                 let value = ScubaValue::from($x);

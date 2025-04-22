@@ -531,8 +531,8 @@ where
         while let Some(Frame {
             node_index,
             child_index,
-            ref mut node_schedule,
-            ref mut surplus,
+            node_schedule,
+            surplus,
         }) = stack.last_mut()
         {
             let node = self

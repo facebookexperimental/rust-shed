@@ -326,7 +326,7 @@ pub trait StreamExt: Stream {
         Self: 'a + Send + Sized,
     {
         Box::new(
-            self.into_future()
+            Stream::into_future(self)
                 .map(|(first, _rest)| first.is_none())
                 .map_err(|(err, _rest)| err),
         )
@@ -340,7 +340,7 @@ pub trait StreamExt: Stream {
         Self: 'a + Send + Sized,
     {
         Box::new(
-            self.into_future()
+            Stream::into_future(self)
                 .map(|(first, _rest)| first.is_some())
                 .map_err(|(err, _rest)| err),
         )
@@ -647,7 +647,7 @@ impl<In: Stream> Stream for ReturnRemainder<In> {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! handle_nb {
-    ($e:expr) => {
+    ($e:expr_2021) => {
         match $e {
             Ok(t) => Ok(::futures::Async::Ready(t)),
             Err(ref e) if e.kind() == ::std::io::ErrorKind::WouldBlock => {
@@ -664,7 +664,7 @@ macro_rules! handle_nb {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_boxfuture {
-    ($e:expr) => {
+    ($e:expr_2021) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::FutureExt::boxify($crate::futures_reexport::future::err(e.into())),
@@ -678,7 +678,7 @@ macro_rules! try_boxfuture {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_boxstream {
-    ($e:expr) => {
+    ($e:expr_2021) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::StreamExt::boxify($crate::futures_reexport::stream::once(Err(e.into()))),
@@ -692,7 +692,7 @@ macro_rules! try_boxstream {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! ensure_boxfuture {
-    ($cond:expr, $e:expr) => {
+    ($cond:expr_2021, $e:expr_2021) => {
         if !($cond) {
             return $crate::FutureExt::boxify(::futures::future::err($e.into()));
         }
@@ -705,7 +705,7 @@ macro_rules! ensure_boxfuture {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! ensure_boxstream {
-    ($cond:expr, $e:expr) => {
+    ($cond:expr_2021, $e:expr_2021) => {
         if !($cond) {
             return $crate::StreamExt::boxify(::futures::stream::once(Err($e.into())));
         }
@@ -718,7 +718,7 @@ macro_rules! ensure_boxstream {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_left_future {
-    ($e:expr) => {
+    ($e:expr_2021) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::futures_reexport::future::err(e.into()).left_future(),
@@ -984,12 +984,15 @@ mod test {
             buffer_size: 10,
         };
         let s = s.buffered_weight_limited(params);
-        if let Ok((Some(()), s)) = runtime.block_on(s.into_future().compat()) {
-            assert_eq!(counter.load(Ordering::SeqCst), 1);
-            assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-        } else {
-            panic!("failed to block on a stream");
+        match runtime.block_on(Stream::into_future(s).compat()) {
+            Ok((Some(()), s)) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 1);
+                assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+            }
+            _ => {
+                panic!("failed to block on a stream");
+            }
         }
 
         let (counter, s) = create_stream();
@@ -998,12 +1001,15 @@ mod test {
             buffer_size: 10,
         };
         let s = s.buffered_weight_limited(params);
-        if let Ok((Some(()), s)) = runtime.block_on(s.into_future().compat()) {
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-            assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
-            assert_eq!(counter.load(Ordering::SeqCst), 2);
-        } else {
-            panic!("failed to block on a stream");
+        match runtime.block_on(Stream::into_future(s).compat()) {
+            Ok((Some(()), s)) => {
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+                assert_eq!(runtime.block_on(s.collect().compat()).unwrap().len(), 1);
+                assert_eq!(counter.load(Ordering::SeqCst), 2);
+            }
+            _ => {
+                panic!("failed to block on a stream");
+            }
         }
     }
 
