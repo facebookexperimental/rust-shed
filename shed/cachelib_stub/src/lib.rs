@@ -12,13 +12,12 @@
 #[cfg(not(fbcode_build))]
 mod oss;
 
-// export Abomonation so that users of this crate don't need to add abomination as dependency
-#[cfg(not(fbcode_build))]
-pub use abomonation::Abomonation;
 #[cfg(fbcode_build)]
 pub use fb_cachelib::*;
 
 #[cfg(not(fbcode_build))]
-pub use crate::oss::abomonation_future_cache::*;
+pub use crate::oss::dummy_cache as abomonation_cache;
+#[cfg(not(fbcode_build))]
+pub use crate::oss::dummy_cache as bincode_cache;
 #[cfg(not(fbcode_build))]
 pub use crate::oss::lrucache::*;

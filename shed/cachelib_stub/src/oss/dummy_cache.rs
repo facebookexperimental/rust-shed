@@ -9,14 +9,13 @@
 
 use std::time::Duration;
 
-use abomonation::Abomonation;
 use anyhow::Result;
 
 use super::lrucache::VolatileLruCachePool;
 
 pub fn get_cached<T>(_cache_pool: &VolatileLruCachePool, _cache_key: &String) -> Result<Option<T>>
 where
-    T: Abomonation + Clone + Send + 'static,
+    T: Clone + Send + 'static,
 {
     Ok(None)
 }
@@ -30,7 +29,7 @@ pub fn set_cached<T>(
     _ttl: Option<Duration>,
 ) -> Result<bool>
 where
-    T: Abomonation + Clone + Send + 'static,
+    T: Clone + Send + 'static,
 {
     Ok(false)
 }

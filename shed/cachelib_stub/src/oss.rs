@@ -7,5 +7,5 @@
  * of this source tree.
  */
 
-pub mod abomonation_future_cache;
+pub mod dummy_cache;
 pub mod lrucache;
