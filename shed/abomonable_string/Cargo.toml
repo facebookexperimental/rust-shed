@@ -11,5 +11,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 abomonation = { version = "0.7", features = ["smallvec"] }
+bincode = { version = "2", features = ["serde"] }
 quickcheck = "1.0"
 quickcheck_arbitrary_derive = { version = "0.1.0", path = "../quickcheck_arbitrary_derive" }

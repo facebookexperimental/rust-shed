@@ -20,6 +20,7 @@ use abomonation::Abomonation;
 use quickcheck_arbitrary_derive::Arbitrary;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Arbitrary)]
+#[derive(bincode::Encode, bincode::Decode)]
 pub struct AbomonableString<const ALIGN: usize>(String);
 
 impl<const ALIGN: usize> AbomonableString<ALIGN> {
