@@ -13,10 +13,7 @@ use anyhow::Result;
 
 use super::lrucache::VolatileLruCachePool;
 
-pub fn get_cached<T>(_cache_pool: &VolatileLruCachePool, _cache_key: &String) -> Result<Option<T>>
-where
-    T: Clone + Send + 'static,
-{
+pub fn get_cached<T>(_cache_pool: &VolatileLruCachePool, _cache_key: &String) -> Result<Option<T>> {
     Ok(None)
 }
 
@@ -27,9 +24,6 @@ pub fn set_cached<T>(
     _cache_key: &str,
     _entry: &T,
     _ttl: Option<Duration>,
-) -> Result<bool>
-where
-    T: Clone + Send + 'static,
-{
+) -> Result<bool> {
     Ok(false)
 }
