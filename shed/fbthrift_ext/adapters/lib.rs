@@ -84,6 +84,7 @@
 //! All adapters are re-exported at the root level for easy usage in thrift.
 
 pub mod arc;
+pub mod arcbstr;
 pub mod bstr;
 pub mod chrono;
 pub mod duration;
@@ -99,6 +100,8 @@ pub mod uuid;
 
 #[doc(inline)]
 pub use crate::arc::ArcAdapter;
+#[doc(inline)]
+pub use crate::arcbstr::ArcBStringAdapter;
 #[doc(inline)]
 pub use crate::bstr::BStringAdapter;
 #[doc(inline)]
