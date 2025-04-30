@@ -116,6 +116,22 @@ pub const unsafe fn perform_init() -> FacebookInit {
     assume_init()
 }
 
+/// The `disable_fatal_signals` argument is a bitset of fatal signal numbers,
+/// such as `1 << libc::SIGTERM | 1 << libc::SIGINT` (a recommended choice).
+///
+/// Calling this function is discouraged in favor of the `fbinit::main` macro,
+/// as in `#[fbinit::main(disable_fatal_signals = sigterm_only)]`.
+///
+/// # Safety
+///
+/// This function must be called at the beginning of main before there are
+/// additional threads. It must be allowed to modify process-global state like
+/// env vars or gflags without the risk of undefined behavior from other code
+/// concurrently reading those things.
+pub const unsafe fn perform_init_with_disable_signals(_disable_fatal_signals: u64) -> FacebookInit {
+    assume_init()
+}
+
 /// Returns if facebookInit has been performed.
 pub fn was_performed() -> bool {
     false
@@ -167,12 +183,6 @@ pub mod hacks {
 // initializations.
 #[doc(hidden)]
 pub mod internal {
-    use crate::FacebookInit;
-
-    pub const unsafe fn perform_init_with_disable_signals(_: u64) -> FacebookInit {
-        super::perform_init()
-    }
-
     pub struct DestroyGuard;
 
     impl DestroyGuard {

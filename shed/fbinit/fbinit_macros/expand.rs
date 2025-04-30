@@ -91,19 +91,19 @@ pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStrea
         DisableFatalSignals::Default => {
             // 8002 is 1 << 15 (SIGTERM) | 1 << 2 (SIGINT)
             quote! {
-                fbinit::internal::perform_init_with_disable_signals(0x8002)
+                fbinit::perform_init_with_disable_signals(0x8002)
             }
         }
         DisableFatalSignals::All => {
             // ffff is a mask of all 1's
             quote! {
-                fbinit::internal::perform_init_with_disable_signals(0xffff)
+                fbinit::perform_init_with_disable_signals(0xffff)
             }
         }
         DisableFatalSignals::SigtermOnly => {
             // 8000 is 1 << 15 (SIGTERM)
             quote! {
-                fbinit::internal::perform_init_with_disable_signals(0x8000)
+                fbinit::perform_init_with_disable_signals(0x8000)
             }
         }
         DisableFatalSignals::None => {
