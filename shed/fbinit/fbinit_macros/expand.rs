@@ -118,7 +118,7 @@ pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStrea
         #assignment unsafe {
             #perform_init
         };
-        let destroy_guard = unsafe { fbinit::internal::DestroyGuard::new() };
+        let destroy_guard = unsafe { fbinit::DestroyGuard::new() };
         #body
     });
 

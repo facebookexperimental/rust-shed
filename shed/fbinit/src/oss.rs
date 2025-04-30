@@ -137,6 +137,32 @@ pub fn was_performed() -> bool {
     false
 }
 
+/// Immediately runs the `InitFacebookLight` C++ destructor.
+///
+/// # Safety
+///
+/// Must ensure it is the very end of the program when no more Facebook C++ code
+/// is running, and nothing else also calls `perform_destroy`.
+pub unsafe fn perform_destroy() {}
+
+/// Guard to ensure we call [`perform_destroy`] before exiting.
+pub struct DestroyGuard;
+
+impl DestroyGuard {
+    /// # Safety
+    ///
+    /// Must ensure only one guard is ever created, the guard will only be dropped
+    /// at the very end of the program when no more Facebook C++ code is running,
+    /// and nothing else also calls `perform_destroy`.
+    pub unsafe fn new() -> Self {
+        DestroyGuard
+    }
+}
+
+impl Drop for DestroyGuard {
+    fn drop(&mut self) {}
+}
+
 #[doc(hidden)]
 pub mod hacks {
     use crate::FacebookInit;
@@ -182,12 +208,4 @@ pub mod hacks {
 // The non fbcode_build version is not performing any Facebook
 // initializations.
 #[doc(hidden)]
-pub mod internal {
-    pub struct DestroyGuard;
-
-    impl DestroyGuard {
-        pub fn new() -> Self {
-            DestroyGuard
-        }
-    }
-}
+pub mod internal {}
