@@ -203,9 +203,3 @@ pub mod hacks {
         None
     }
 }
-
-// Not public API. These are used by the attribute macros.
-// The non fbcode_build version is not performing any Facebook
-// initializations.
-#[doc(hidden)]
-pub mod internal {}
