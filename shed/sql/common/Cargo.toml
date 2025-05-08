@@ -27,7 +27,7 @@ rusqlite = { version = "0.32.1", features = ["backup", "blob", "column_decltype"
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "2"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
-tokio = { version = "1.41.0", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.44.2", features = ["full", "test-util", "tracing"] }
 vec1 = { version = "1", features = ["serde"] }
 
 [dev-dependencies]
