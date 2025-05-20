@@ -584,7 +584,7 @@ macro_rules! _read_query_impl {
             $crate::_emit_sqlite_lnames!($( $lname ),*);
             connection.prepare(&format!(
                 $sqlite_q,
-                $( $pname = concat!(":", stringify!($pname)), )*
+                $( $pname = format!(":{}", stringify!($pname).trim_start_matches("r#")), )*
                 $( $lname = $lname, )*
             ))
         }
@@ -731,12 +731,12 @@ macro_rules! _write_query_impl {
         ) -> Result<WriteResult, Error> {
             let mut multi_params = Vec::new();
             for value in values {
-                let mut params: Vec<(&str, ValueWrapper)> = Vec::new();
+                let mut params: Vec<(String, ValueWrapper)> = Vec::new();
 
                 $crate::_sqlite_named_params!(params, value $( , $vname )*);
                 $(
                     params.push((
-                        concat!(":", stringify!($pname)),
+                        format!(":{}", stringify!($pname).trim_start_matches("r#")),
                         ValueWrapper(ToValue::to_value($pname)),
                     ));
                 )*
@@ -752,7 +752,7 @@ macro_rules! _write_query_impl {
             for params in multi_params {
                 let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                 for param in &params {
-                    param_refs.push((param.0, &param.1));
+                    param_refs.push((param.0.as_str(), &param.1));
                 }
 
                 let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
@@ -772,12 +772,12 @@ macro_rules! _write_query_impl {
         ) -> Result<(SqliteConnectionGuard, WriteResult), Error> {
             let mut multi_params = Vec::new();
             for value in values {
-                let mut params: Vec<(&str, ValueWrapper)> = Vec::new();
+                let mut params: Vec<(String, ValueWrapper)> = Vec::new();
 
                 $crate::_sqlite_named_params!(params, value $( , $vname )*);
                 $(
                     params.push((
-                        concat!(":", stringify!($pname)),
+                        format!(":{}", stringify!($pname).trim_start_matches("r#")),
                         ValueWrapper(ToValue::to_value($pname)),
                     ));
                 )*
@@ -792,7 +792,7 @@ macro_rules! _write_query_impl {
                 for params in multi_params {
                     let mut param_refs: Vec<(&str, &dyn ToSqliteValue)> = Vec::new();
                     for param in &params {
-                        param_refs.push((param.0, &param.1));
+                        param_refs.push((param.0.as_str(), &param.1));
                     }
 
                     let a: &[(&str, &dyn ToSqliteValue)] = &param_refs[..];
@@ -815,7 +815,7 @@ macro_rules! _write_query_impl {
         ) -> SqliteResult<SqliteStatement<'a>> {
             let mut val = Vec::new();
             $(
-                val.push(concat!(":", stringify!($vname)));
+                val.push(format!(":{}", stringify!($vname).trim_start_matches("r#")));
             )*
             connection.prepare(&$crate::_write_sqlite_query!(
                 $qtype,
@@ -1028,7 +1028,7 @@ macro_rules! _write_sqlite_query {
             $q,
             insert_or_ignore = "INSERT OR IGNORE",
             values = $values,
-            $( $pname = concat!(":", stringify!($pname)), )*
+            $( $pname = format!(":{}", stringify!($pname).trim_start_matches("r#")), )*
         )
     };
 
@@ -1036,7 +1036,7 @@ macro_rules! _write_sqlite_query {
         format!(
             $q,
             insert_or_ignore = "INSERT OR IGNORE",
-            $( $pname = concat!(":", stringify!($pname)), )*
+            $( $pname = format!(":{}", stringify!($pname).trim_start_matches("r#")), )*
             $( $lname = $lname, )*
         )
     };
@@ -1045,14 +1045,14 @@ macro_rules! _write_sqlite_query {
         format!(
             $q,
             values = $values,
-            $( $pname = concat!(":", stringify!($pname)), )*
+            $( $pname = format!(":{}", stringify!($pname).trim_start_matches("r#")), )*
         )
     };
 
     (none, $q:expr, $( $pname:ident ),* $( >list $lname:ident )*) => {
         format!(
             $q,
-            $( $pname = concat!(":", stringify!($pname)), )*
+            $( $pname = format!(":{}", stringify!($pname).trim_start_matches("r#")), )*
             $( $lname = $lname, )*
         )
     };
@@ -1089,7 +1089,7 @@ macro_rules! _sqlite_named_params {
             ( $( $binds , )* ) => {
                 $(
                     $params.push((
-                        concat!(":", stringify!($unames)),
+                        format!(":{}", stringify!($unames).trim_start_matches("r#")),
                         ValueWrapper(ToValue::to_value($uses)),
                     ));
                 )*
@@ -1193,7 +1193,7 @@ macro_rules! _emit_sqlite_lnames {
 macro_rules! _prepare_sqlite_params {
     ($params:ident, $( $pname:ident ),* $( >list $lname:ident )*) => (
         let $params = vec![ $(
-            (format!(":{}", stringify!($pname)), ValueWrapper(ToValue::to_value($pname)))
+            (format!(":{}", stringify!($pname).trim_start_matches("r#")), ValueWrapper(ToValue::to_value($pname)))
         ),* ].into_iter();
 
         $(
