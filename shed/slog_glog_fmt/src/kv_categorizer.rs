@@ -132,7 +132,7 @@ mod tests {
 
         let categorizer = ErrorCategorizer;
         let mut serializer = CollectorSerializer::new(&categorizer);
-        SlogKVError(err)
+        SlogKVError(&err)
             .serialize(
                 &record!(Level::Info, "test", &format_args!(""), b!()),
                 &mut serializer,

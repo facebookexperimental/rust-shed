@@ -16,9 +16,9 @@ use super::Compat;
 use super::Error;
 
 /// Wrapper around [Error] that implements [slog::KV] trait, so it might be used in [slog] logging
-pub struct SlogKVError(pub Error);
+pub struct SlogKVError<'a>(pub &'a Error);
 
-impl slog::KV for SlogKVError {
+impl slog::KV for SlogKVError<'_> {
     fn serialize(
         &self,
         _record: &slog::Record<'_>,
@@ -37,7 +37,7 @@ impl slog::KV for SlogKVError {
             }
         }
 
-        let mut err = err.deref() as &dyn StdError;
+        let mut err = err.as_ref() as &dyn StdError;
         while let Some(cause) = cause_workaround(err) {
             serializer.emit_str(Cause.into_str(), &format!("{cause}"))?;
             err = cause;

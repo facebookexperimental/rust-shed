@@ -370,7 +370,7 @@ mod tests {
 
         // Send a log to the buffer. Remember the line the log was on.
         let line = line!() + 1;
-        info!(log, "Test log {}", 1; "answer" => 42.42, SlogKVError(err));
+        info!(log, "Test log {}", 1; "answer" => 42.42, SlogKVError(&err));
 
         // Get the log string back out of the buffer.
         let log_string = test_buffer.get_string();
