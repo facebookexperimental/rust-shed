@@ -25,7 +25,7 @@ mysql_client_traits = { version = "0.1.0", path = "../mysql_client_traits" }
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.32.1", features = ["backup", "blob", "column_decltype", "functions", "limits", "serde_json"] }
 stats = { version = "0.1.0", path = "../../stats" }
-thiserror = "2"
+thiserror = "2.0.12"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
 tokio = { version = "1.45.0", features = ["full", "test-util", "tracing"] }
 vec1 = { version = "1", features = ["serde"] }

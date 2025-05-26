@@ -15,7 +15,7 @@ rand = { version = "0.8", features = ["small_rng"] }
 scuba_sample_derive = { version = "0.1.0", path = "derive" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["float_roundtrip", "unbounded_depth"] }
-thiserror = "2"
+thiserror = "2.0.12"
 
 [dev-dependencies]
 assert_matches = "1.5"
