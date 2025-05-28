@@ -132,6 +132,8 @@ impl SqliteConnectionGuard {
     /// Commit a transaction that is being executed on this connection, and
     /// then release the connection.  If the commit fails, the connection is
     /// not release, and is instead returned along with the error.
+    // TODO: Remove allow
+    #[allow(clippy::result_large_err)]
     pub async fn commit(self) -> Result<(), (Self, rusqlite::Error)> {
         fn commit_and_release(
             guard: SqliteConnectionGuard,
