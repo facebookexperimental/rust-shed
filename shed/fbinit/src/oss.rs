@@ -113,7 +113,7 @@ impl Arbitrary for FacebookInit {
 /// env vars or gflags without the risk of undefined behavior from other code
 /// concurrently reading those things.
 pub const unsafe fn perform_init() -> FacebookInit {
-    assume_init()
+    unsafe { assume_init() }
 }
 
 /// The `disable_fatal_signals` argument is a bitset of fatal signal numbers,
@@ -129,7 +129,7 @@ pub const unsafe fn perform_init() -> FacebookInit {
 /// env vars or gflags without the risk of undefined behavior from other code
 /// concurrently reading those things.
 pub const unsafe fn perform_init_with_disable_signals(_disable_fatal_signals: u64) -> FacebookInit {
-    assume_init()
+    unsafe { assume_init() }
 }
 
 /// Returns if facebookInit has been performed.
