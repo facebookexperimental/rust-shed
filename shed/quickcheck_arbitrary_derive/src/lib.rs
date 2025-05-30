@@ -52,11 +52,11 @@ use syn::spanned::Spanned;
 /// use quickcheck::Arbitrary;
 /// use quickcheck::Gen;
 ///
-/// let mut gen = Gen::new(10);
-/// println!("{:#?}", StructFoo::arbitrary(&mut gen));
-/// println!("{:#?}", TupleFoo::arbitrary(&mut gen));
-/// println!("{:#?}", UnitFoo::arbitrary(&mut gen));
-/// println!("{:#?}", EnumFoo::arbitrary(&mut gen));
+/// let mut random = Gen::new(10);
+/// println!("{:#?}", StructFoo::arbitrary(&mut random));
+/// println!("{:#?}", TupleFoo::arbitrary(&mut random));
+/// println!("{:#?}", UnitFoo::arbitrary(&mut random));
+/// println!("{:#?}", EnumFoo::arbitrary(&mut random));
 /// ```
 #[proc_macro_derive(Arbitrary)]
 pub fn derive(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
