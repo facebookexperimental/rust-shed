@@ -46,7 +46,7 @@ pub mod common_macro_prelude {
 /// the exported counter name will be "{prefix}.{name}"
 ///
 /// Examples:
-/// ```
+/// ```standalone_crate
 /// use stats::prelude::*;
 /// use fbinit::FacebookInit;
 ///
