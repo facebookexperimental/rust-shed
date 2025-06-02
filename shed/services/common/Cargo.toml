@@ -4,7 +4,7 @@
 name = "services_common"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
-edition = "2021"
+edition = "2024"
 description = "Common code for stubbed facebook services"
 readme = "../../README.md"
 homepage = "https://github.com/facebookexperimental/rust-shed/"

@@ -4,7 +4,7 @@
 name = "ods"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
-edition = "2021"
+edition = "2024"
 description = "Library that points to meta specific ods for fbcode builds and to the stub for non-fbcode builds"
 readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed"

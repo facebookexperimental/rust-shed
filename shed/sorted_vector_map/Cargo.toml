@@ -4,7 +4,7 @@
 name = "sorted_vector_map"
 version = "0.2.0"
 authors = ["Facebook <opensource+crates-sorted-vector-map@fb.com>"]
-edition = "2021"
+edition = "2024"
 description = "maps and sets backed by sorted vectors"
 readme = "README.md"
 repository = "https://github.com/facebookexperimental/rust-shed"

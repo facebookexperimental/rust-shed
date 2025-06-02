@@ -4,7 +4,7 @@
 name = "buffered_weighted"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
-edition = "2021"
+edition = "2024"
 description = "Ordered stream implementation that allows for concurrent polling constrained by the weight of the futures"
 readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed"

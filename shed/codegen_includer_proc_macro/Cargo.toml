@@ -4,7 +4,7 @@
 name = "codegen_includer_proc_macro"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
-edition = "2021"
+edition = "2024"
 description = "Workaround for https://github.com/rust-lang/rfcs/issues/752"
 readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed"
