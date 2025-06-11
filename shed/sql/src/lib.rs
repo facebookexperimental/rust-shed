@@ -169,13 +169,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query(
+            pub async fn commented_query<'a, C>(
                 connection: & Connection,
-                comment: &str,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<Vec<($( $rtype, )*)>, Error> {
-                query_internal(connection, Some(comment) $( , $pname )* $( , $lname )*)
+                comment: C,
+                $( $pname: &'a $ptype, )*
+                $( $lname: &'a [ $ltype ], )*
+            ) -> Result<Vec<($( $rtype, )*)>, Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal(connection, comment.into() $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -192,13 +195,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query_with_transaction(
+            pub async fn commented_query_with_transaction<'a, C>(
                 transaction: Transaction,
-                comment: &str,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
-                query_internal_with_transaction(transaction, Some(comment) $( , $pname )* $( , $lname )*)
+                comment: C,
+                $( $pname: &'a $ptype, )*
+                $( $lname: &'a [ $ltype ], )*
+            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal_with_transaction(transaction, comment.into() $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query in transaction))
             }
@@ -249,13 +255,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query(
+            pub async fn commented_query<'a, C>(
                 connection: &Connection,
-                comment: &str,
-                values: &[($( & $vtype, )*)],
-                $( $pname: & $ptype ),*
-            ) -> Result<WriteResult, Error> {
-                query_internal(connection, Some(comment), values $( , $pname )*)
+                comment: C,
+                values: &'a [($( & $vtype, )*)],
+                $( $pname: &'a $ptype ),*
+            ) -> Result<WriteResult, Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal(connection, comment.into(), values $( , $pname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -272,13 +281,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query_with_transaction(
+            pub async fn commented_query_with_transaction<'a, C>(
                 transaction: Transaction,
-                comment: &str,
-                values: &[($( & $vtype, )*)],
-                $( $pname: & $ptype ),*
-            ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction, Some(comment), values $( , $pname )*)
+                comment: C,
+                values: &'a [($( & $vtype, )*)],
+                $( $pname: &'a $ptype ),*
+            ) -> Result<(Transaction, WriteResult), Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal_with_transaction(transaction, comment.into(), values $( , $pname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -332,13 +344,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query(
+            pub async fn commented_query<'a, C>(
                 connection: &Connection,
-                comment: &str,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<WriteResult, Error> {
-                query_internal(connection, Some(comment) $( , $pname )* $( , $lname )*)
+                comment: C,
+                $( $pname: &'a $ptype, )*
+                $( $lname: &'a [ $ltype ], )*
+            ) -> Result<WriteResult, Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal(connection, comment.into() $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
@@ -355,13 +370,16 @@ macro_rules! queries {
             }
 
             #[allow(dead_code)]
-            pub async fn commented_query_with_transaction(
+            pub async fn commented_query_with_transaction<'a, C>(
                 transaction: Transaction,
-                comment: &str,
-                $( $pname: & $ptype, )*
-                $( $lname: & [ $ltype ], )*
-            ) -> Result<(Transaction, WriteResult), Error> {
-                query_internal_with_transaction(transaction, Some(comment) $( , $pname )* $( , $lname )*)
+                comment: C,
+                $( $pname: &'a $ptype, )*
+                $( $lname: &'a [ $ltype ], )*
+            ) -> Result<(Transaction, WriteResult), Error>
+            where
+                C: Into<Option<&'a str>>,
+            {
+                query_internal_with_transaction(transaction, comment.into() $( , $pname )* $( , $lname )*)
                     .await
                     .context(stringify!(While executing $name query))
             }
