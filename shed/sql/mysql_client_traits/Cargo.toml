@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-chrono = { version = "=0.4.39", features = ["clock", "serde", "std"], default-features = false }
+chrono = { version = "0.4.41", features = ["clock", "serde", "std"], default-features = false }
 mysql_common = { version = "0.29.0", features = ["chrono", "default"] }
 seq-macro = "0.3.4"
 thiserror = "2.0.12"
