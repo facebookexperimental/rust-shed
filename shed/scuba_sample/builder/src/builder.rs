@@ -24,11 +24,11 @@ use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use fbinit::FacebookInit;
+use sampling::SampleResult;
+use sampling::Sampling;
 use serde_json::Error;
 use serde_json::Value;
 
-use crate::Sampling;
-use crate::ShouldLog;
 use crate::sample::ScubaSample;
 use crate::value::ScubaValue;
 
@@ -123,7 +123,9 @@ impl ScubaSampleBuilder {
     /// Only log one in sample_rate samples. The decision is made at the point where sampled() is
     /// called. Multiple calls to sampled() further reduce the logging probability.
     pub fn sampled(&mut self, sample_rate: NonZeroU64) -> &mut Self {
-        self.sampling = self.sampling.sample(&mut rand::thread_rng(), sample_rate);
+        self.sampling = self
+            .sampling
+            .subsampled(&mut rand::thread_rng(), sample_rate);
         self
     }
 
@@ -187,7 +189,7 @@ impl ScubaSampleBuilder {
         self.sample.set_time_now();
         self.next_seq();
 
-        if let ShouldLog::DoNotLog = self.sampling.apply(&mut self.sample) {
+        if let SampleResult::Exclude = self.sampling.apply(&mut self.sample) {
             return Ok(false);
         }
 
@@ -208,7 +210,7 @@ impl ScubaSampleBuilder {
         self.sample.set_time(time);
         self.next_seq();
 
-        if let ShouldLog::DoNotLog = self.sampling.apply(&mut self.sample) {
+        if let SampleResult::Exclude = self.sampling.apply(&mut self.sample) {
             return false;
         }
 

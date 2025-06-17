@@ -11,9 +11,11 @@
 
 use std::collections::hash_map::Entry;
 use std::collections::hash_map::HashMap;
+use std::num::NonZeroU64;
 use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 
+use sampling::Sampleable;
 use serde_json::Error as SerdeError;
 use serde_json::Map;
 use serde_json::Number;
@@ -230,6 +232,12 @@ impl ScubaSample {
     }
 }
 
+impl Sampleable for ScubaSample {
+    fn set_sample_rate(&mut self, sample_rate: NonZeroU64) {
+        self.add("sample_rate", sample_rate.get());
+    }
+}
+
 impl Default for ScubaSample {
     fn default() -> Self {
         Self::new()
@@ -315,6 +323,9 @@ pub trait TryFromSample {}
 mod tests {
     use std::collections::HashSet;
 
+    use nonzero_ext::nonzero;
+    use sampling::SampleResult;
+    use sampling::Sampling;
     use serde_json::json;
 
     use super::*;
@@ -483,5 +494,14 @@ mod tests {
         });
 
         assert_eq!(json, expected);
+    }
+
+    #[test]
+    fn test_add_sample_rate() {
+        let mut sample = ScubaSample::new();
+        let sampling = Sampling::SampledIn(nonzero!(10u64));
+
+        assert_eq!(sampling.apply(&mut sample), SampleResult::Include);
+        assert_eq!(sample.get("sample_rate"), Some(&ScubaValue::Int(10)));
     }
 }

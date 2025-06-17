@@ -83,6 +83,7 @@ members = [
   "shed/panichandler",
   "shed/perthread",
   "shed/quickcheck_arbitrary_derive",
+  "shed/sampling",
   "shed/scuba_sample",
   "shed/scuba_sample/builder",
   "shed/scuba_sample/client",

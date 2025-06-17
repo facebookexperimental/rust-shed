@@ -11,7 +11,8 @@ use std::num::NonZeroU64;
 
 use rand::Rng;
 
-use crate::sample::ScubaSample;
+use crate::SampleResult;
+use crate::Sampleable;
 
 /// Indicates the status of this particular sample with regard to sampling.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -26,19 +27,11 @@ pub enum Sampling {
     SampledOut,
 }
 
-/// Indicates whether a sample should be logged to Scuba
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum ShouldLog {
-    /// The sample should be sent to Scuba due to its sampling result.
-    Log,
-    /// The sample should not be sent to Scuba due to its sampling result.
-    DoNotLog,
-}
-
 impl Sampling {
     /// Apply a sampling decision to this Sampling instance, using the provided sample_rate. One in
     /// sample_rate samples will be sampled in.
-    pub fn sample<R: Rng>(&self, rng: &mut R, sample_rate: NonZeroU64) -> Self {
+    #[must_use]
+    pub fn subsampled<R: Rng>(&self, rng: &mut R, sample_rate: NonZeroU64) -> Self {
         let val = rng.gen_range(0..sample_rate.get());
 
         if val == 0 {
@@ -60,24 +53,24 @@ impl Sampling {
 
     /// Indicate whether a given [ScubaSample] should be logged, and modifies the sample
     /// accordingly to report that it has been sampled.
-    pub fn apply(&self, sample: &mut ScubaSample) -> ShouldLog {
+    pub fn apply(&self, sample: &mut impl Sampleable) -> SampleResult {
         match &self {
-            Self::NoSampling => ShouldLog::Log,
+            Self::NoSampling => SampleResult::Include,
             Self::SampledIn(r) => {
                 // Notify the backend that sampling has happened.
-                sample.add("sample_rate", r.get());
-                ShouldLog::Log
+                sample.set_sample_rate(*r);
+                SampleResult::Include
             }
-            Self::SampledOut => ShouldLog::DoNotLog,
+            Self::SampledOut => SampleResult::Exclude,
         }
     }
 
     /// Indicate whether this [Sampling] will require logging when applied.
-    pub fn is_logged(&self) -> ShouldLog {
+    pub fn to_result(&self) -> SampleResult {
         match &self {
-            Self::NoSampling => ShouldLog::Log,
-            Self::SampledIn(..) => ShouldLog::Log,
-            Self::SampledOut => ShouldLog::DoNotLog,
+            Self::NoSampling => SampleResult::Include,
+            Self::SampledIn(..) => SampleResult::Include,
+            Self::SampledOut => SampleResult::Exclude,
         }
     }
 }
@@ -89,16 +82,26 @@ mod test {
     use rand_chacha::ChaCha8Rng; // Used for deterministic rng.
 
     use super::*;
-    use crate::value::ScubaValue;
+
+    #[derive(Debug, Default)]
+    struct TestSample {
+        pub sample_rate: Option<NonZeroU64>,
+    }
+
+    impl Sampleable for TestSample {
+        fn set_sample_rate(&mut self, sample_rate: NonZeroU64) {
+            self.sample_rate = Some(sample_rate);
+        }
+    }
 
     #[test]
     fn test_sampled_in() {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-        let sampling = Sampling::NoSampling.sample(&mut rng, nonzero!(2u64));
+        let sampling = Sampling::NoSampling.subsampled(&mut rng, nonzero!(2u64));
         assert_eq!(sampling, Sampling::SampledIn(nonzero!(2u64)));
 
-        let sampling = sampling.sample(&mut rng, nonzero!(3u64));
+        let sampling = sampling.subsampled(&mut rng, nonzero!(3u64));
         assert_eq!(sampling, Sampling::SampledIn(nonzero!(6u64)));
     }
 
@@ -106,32 +109,32 @@ mod test {
     fn test_sampled_out() {
         let mut rng = ChaCha8Rng::seed_from_u64(1);
 
-        let sampling = Sampling::NoSampling.sample(&mut rng, nonzero!(1u64));
+        let sampling = Sampling::NoSampling.subsampled(&mut rng, nonzero!(1u64));
         assert_eq!(sampling, Sampling::SampledIn(nonzero!(1u64)));
 
-        let sampling = sampling.sample(&mut rng, nonzero!(2u64));
+        let sampling = sampling.subsampled(&mut rng, nonzero!(2u64));
         assert_eq!(sampling, Sampling::SampledIn(nonzero!(2u64)));
 
-        let sampling = sampling.sample(&mut rng, nonzero!(10u64));
+        let sampling = sampling.subsampled(&mut rng, nonzero!(10u64));
         assert_eq!(sampling, Sampling::SampledOut);
     }
 
     #[test]
     fn test_add_sample_rate() {
-        let mut sample = ScubaSample::new();
+        let mut sample = TestSample::default();
         let sampling = Sampling::SampledIn(nonzero!(10u64));
 
-        assert_eq!(sampling.apply(&mut sample), ShouldLog::Log);
-        assert_eq!(sample.get("sample_rate"), Some(&ScubaValue::Int(10)));
+        assert_eq!(sampling.apply(&mut sample), SampleResult::Include);
+        assert_eq!(sample.sample_rate, Some(nonzero!(10u64)));
     }
 
     #[test]
     fn test_is_logged() {
-        assert_eq!(Sampling::NoSampling.is_logged(), ShouldLog::Log);
+        assert_eq!(Sampling::NoSampling.to_result(), SampleResult::Include);
         assert_eq!(
-            Sampling::SampledIn(nonzero!(1u64)).is_logged(),
-            ShouldLog::Log
+            Sampling::SampledIn(nonzero!(1u64)).to_result(),
+            SampleResult::Include
         );
-        assert_eq!(Sampling::SampledOut.is_logged(), ShouldLog::DoNotLog);
+        assert_eq!(Sampling::SampledOut.to_result(), SampleResult::Exclude);
     }
 }

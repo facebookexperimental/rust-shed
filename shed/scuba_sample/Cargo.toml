@@ -5,13 +5,13 @@ name = "scuba_sample"
 version = "0.1.0"
 authors = ["Facebook <opensource+rust-shed@fb.com>"]
 edition = "2024"
-description = "Provides Scuba sample type and sampling"
+description = "Provides Scuba sample type"
 readme = "../../README.md"
 repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-rand = { version = "0.8", features = ["small_rng"] }
+sampling = { version = "0.1.0", path = "../sampling" }
 scuba_sample_derive = { version = "0.1.0", path = "derive" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["float_roundtrip", "unbounded_depth"] }
@@ -21,4 +21,3 @@ thiserror = "2.0.12"
 assert_matches = "1.5"
 nonzero_ext = "0.2"
 quickcheck = "1.0"
-rand_chacha = "0.3"
