@@ -24,7 +24,7 @@ pub enum Sampling {
     /// should account for).
     SampledIn(NonZeroU64),
     /// This sample has had sampling applied to it and should not be logged.
-    SampledOut,
+    SampledOut(NonZeroU64),
 }
 
 impl Sampling {
@@ -34,21 +34,25 @@ impl Sampling {
     pub fn subsampled<R: Rng>(&self, rng: &mut R, sample_rate: NonZeroU64) -> Self {
         let val = rng.gen_range(0..sample_rate.get());
 
+        let previous_sample_rate = match self {
+            Self::NoSampling => const { NonZeroU64::new(1).unwrap() },
+            Self::SampledIn(r) | Self::SampledOut(r) => *r,
+        };
+
+        let new_sample_rate = NonZeroU64::new(previous_sample_rate.get() * sample_rate.get())
+            .expect("Product of NonZeroU64 should be non-zero");
+
         if val == 0 {
             // Sample it in!
             return match self {
-                Self::NoSampling => Self::SampledIn(sample_rate),
-                Self::SampledIn(r) => {
-                    let new_sample_rate = NonZeroU64::new(sample_rate.get() * r.get())
-                        .expect("Product of NonZeroU64 should be non-zero");
-                    Self::SampledIn(new_sample_rate)
-                }
-                Self::SampledOut => Self::SampledOut,
+                Self::NoSampling => Self::SampledIn(new_sample_rate),
+                Self::SampledIn(_) => Self::SampledIn(new_sample_rate),
+                Self::SampledOut(_) => Self::SampledOut(new_sample_rate),
             };
         }
 
         // Otherwise, sample it out.
-        Self::SampledOut
+        Self::SampledOut(new_sample_rate)
     }
 
     /// Indicate whether a given [ScubaSample] should be logged, and modifies the sample
@@ -61,7 +65,7 @@ impl Sampling {
                 sample.set_sample_rate(*r);
                 SampleResult::Include
             }
-            Self::SampledOut => SampleResult::Exclude,
+            Self::SampledOut(..) => SampleResult::Exclude,
         }
     }
 
@@ -70,7 +74,7 @@ impl Sampling {
         match &self {
             Self::NoSampling => SampleResult::Include,
             Self::SampledIn(..) => SampleResult::Include,
-            Self::SampledOut => SampleResult::Exclude,
+            Self::SampledOut(..) => SampleResult::Exclude,
         }
     }
 }
@@ -116,7 +120,7 @@ mod test {
         assert_eq!(sampling, Sampling::SampledIn(nonzero!(2u64)));
 
         let sampling = sampling.subsampled(&mut rng, nonzero!(10u64));
-        assert_eq!(sampling, Sampling::SampledOut);
+        assert_eq!(sampling, Sampling::SampledOut(nonzero!(20u64)));
     }
 
     #[test]
@@ -135,6 +139,9 @@ mod test {
             Sampling::SampledIn(nonzero!(1u64)).to_result(),
             SampleResult::Include
         );
-        assert_eq!(Sampling::SampledOut.to_result(), SampleResult::Exclude);
+        assert_eq!(
+            Sampling::SampledOut(nonzero!(1u64)).to_result(),
+            SampleResult::Exclude
+        );
     }
 }
