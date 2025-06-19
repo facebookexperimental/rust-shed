@@ -14,7 +14,7 @@ name = "tracing_slog_compat_example"
 path = "main.rs"
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.98"
 slog = { package = "tracing_slog_compat", version = "0.1.0", path = ".." }
 slog_glog_fmt = { version = "0.1.0", path = "../../slog_glog_fmt" }
 tracing = { version = "0.1.41", features = ["attributes", "valuable"] }
