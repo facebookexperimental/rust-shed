@@ -24,6 +24,8 @@ mysql_async = "0.31.2"
 mysql_client_traits = { version = "0.1.0", path = "../mysql_client_traits" }
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.33.0", features = ["backup", "blob", "bundled", "column_decltype", "functions", "limits", "modern_sqlite", "serde_json"] }
+serde = { version = "1.0.185", features = ["derive", "rc"] }
+serde_json = { version = "1.0.140", features = ["float_roundtrip", "unbounded_depth"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "2.0.12"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
