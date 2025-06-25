@@ -14,6 +14,7 @@ use std::fmt::Display;
 
 use thiserror::Error;
 
+use crate::QueryTelemetry;
 use crate::mysql::IsolationLevel;
 use crate::mysql::TransactionResult;
 use crate::mysql::WriteResult;
@@ -50,7 +51,10 @@ impl Connection {
     }
 
     /// Performs a given query and returns the result as a vector of rows.
-    pub async fn read_query<T>(&self, _query: String) -> Result<T, MysqlError> {
+    pub async fn read_query<T>(
+        &self,
+        _query: String,
+    ) -> Result<(T, Option<QueryTelemetry>), MysqlError> {
         unimplemented!("This is a stub");
     }
 

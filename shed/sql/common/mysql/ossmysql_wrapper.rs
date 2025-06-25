@@ -25,6 +25,7 @@ use mysql_async::prelude::Queryable;
 use stats::prelude::*;
 use time_ext::DurationExt;
 
+use crate::QueryTelemetry;
 use crate::mysql::ConnectionStats;
 use crate::mysql::WriteResult;
 
@@ -79,8 +80,9 @@ impl OssConnection {
         &self,
         conn: &'a mut MysqlConnection,
         query: &'a str,
-    ) -> Result<QueryResult<'a>, mysql_async::Error> {
-        OssConnection::raw_query_counted(conn, &self.stats, query).await
+    ) -> Result<(QueryResult<'a>, Option<QueryTelemetry>), mysql_async::Error> {
+        let res = OssConnection::raw_query_counted(conn, &self.stats, query).await?;
+        Ok((res, None))
     }
 
     /// Performs a given query and returns the write result.

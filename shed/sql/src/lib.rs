@@ -456,17 +456,26 @@ macro_rules! _read_query_impl {
                     if let Some(comment) = comment {
                         query.insert_str(0, &format!("/* {} */", comment));
                     }
-                    let res = conn.read_query(query).map_err(Error::from).await?;
+                    let (res, tel) = conn.read_query(query).map_err(Error::from).await?;
 
 
                     // TODO(T223577767): return telemetry after updating read_query return type
-                    Ok((res, None))
+                    #[cfg(fbcode_build)]
+                    {
+
+                        Ok((res, tel.map(QueryTelemetry::MySQL)))
+                    }
+
+                    #[cfg(not(fbcode_build))]
+                    {
+                        Ok((res, tel))
+                    }
                 }
                 Connection::OssMysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
 
                     let mut con = OssConnection::get_conn_counted(conn.pool.clone(), &conn.stats).await?;
-                    let mut res = conn.read_query(&mut con, &query).map_err(Error::from).await?;
+                    let (mut res, _tel) = conn.read_query(&mut con, &query).map_err(Error::from).await?;
 
                     let result = res
                         .map( |row| mysql_async_row_to_tuple(row))
