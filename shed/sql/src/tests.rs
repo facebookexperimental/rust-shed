@@ -89,6 +89,7 @@ mod mysql {
     use mysql_client::InstanceRequirement;
     use mysql_client::MysqlCppClient;
     use sql_tests_lib::test_basic_query;
+    use sql_tests_lib::test_basic_read_query_telemetry;
     use sql_tests_lib::test_basic_transaction;
 
     use super::*;
@@ -134,6 +135,13 @@ mod mysql {
     async fn test_mysql_transaction(fb: FacebookInit) -> Result<()> {
         let conn = setup_connection(fb).await?;
         test_basic_transaction(conn).await;
+        Ok(())
+    }
+
+    #[fbinit::test]
+    async fn test_mysql_basic_read_query_telemetry(fb: FacebookInit) -> Result<()> {
+        let conn = setup_connection(fb).await?;
+        test_basic_read_query_telemetry(conn).await?;
         Ok(())
     }
 }

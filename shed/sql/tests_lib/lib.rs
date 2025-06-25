@@ -15,8 +15,12 @@ use rand::Rng;
 use rand::distributions::Alphanumeric;
 use rand::thread_rng;
 use sql::Connection;
+#[cfg(fbcode_build)]
+use sql::QueryTelemetry;
 use sql::Transaction;
 use sql::anyhow::Error;
+#[cfg(fbcode_build)]
+use sql::anyhow::anyhow;
 use sql::mysql_async::FromValueError;
 use sql::mysql_async::Value;
 use sql::mysql_async::prelude::*;
@@ -224,6 +228,29 @@ pub async fn test_write_query(conn: Connection) {
     );
 }
 
+#[cfg(fbcode_build)]
+pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Error> {
+    let (_res, opt_tel) = TestQuery4::commented_query(&conn, "comment", &1, &3).await?;
+
+    println!("QueryTelemetry: {opt_tel:#?}");
+
+    let tel = match opt_tel {
+        None => Err(anyhow!("TestQuery4 QueryTelemetry is None")),
+        Some(QueryTelemetry::MySQL(tel)) => Ok(tel),
+        Some(_) => Err(anyhow!("These tests only work with MySQL backend")),
+    }?;
+
+    assert!(tel.client_stats().is_some());
+    // TODO(T223577767): look into why instance_type is not being returned
+    // assert!(tel.instance_type().is_some());
+    assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), vec!["foo"]);
+    assert!(tel.write_tables().is_empty());
+    assert!(!tel.wait_stats().is_empty());
+
+    Ok(())
+}
+
+#[derive(Debug, PartialEq)]
 pub enum TestSemantics {
     Sqlite,
     Mysql,
