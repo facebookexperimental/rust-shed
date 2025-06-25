@@ -151,10 +151,8 @@ pub async fn test_read_query(conn: Connection, semantics: TestSemantics) {
         TestQuery::query(&conn, &A, &72).await.unwrap(),
         vec![(44, B, B, 72)]
     );
-    assert_eq!(
-        TestQuery2::commented_query(&conn, "comment").await.unwrap(),
-        vec![(44, B)]
-    );
+    let (res, _tel) = TestQuery2::commented_query(&conn, "comment").await.unwrap();
+    assert_eq!(res, vec![(44, B)]);
     assert_eq!(
         TestQuery6::query(&conn).await.unwrap(),
         vec![(match semantics {

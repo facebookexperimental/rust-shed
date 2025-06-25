@@ -10,6 +10,7 @@
 //! Module hides the implementation details of the Facebook Mysql client library
 //! and provides API that is used in sql crate.
 
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use anyhow::Error;
@@ -28,6 +29,9 @@ use crate::mysql::ConnectionStats;
 use crate::mysql::WriteResult;
 
 type QueryResult<'a> = MysqlQueryResult<'a, 'static, TextProtocol>;
+
+/// Telemetry returned after a query is executed or transaction is committed.
+pub type OssQueryTelemetry = HashMap<String, String>;
 
 /// OssConnection is a wrapper around a MySQL async Pool
 /// It provides read/write query and begin transaction API.

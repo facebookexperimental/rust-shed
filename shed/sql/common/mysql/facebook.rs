@@ -14,5 +14,6 @@
 mod fbmysql_wrapper;
 
 pub use fbmysql_wrapper::Connection;
+pub use fbmysql_wrapper::MysqlQueryTelemetry;
 pub use fbmysql_wrapper::Transaction;
 pub use mysql_client::MysqlError;

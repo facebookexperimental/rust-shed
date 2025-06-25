@@ -76,6 +76,7 @@ use rusqlite::types::Value as SqliteValue;
 use rusqlite::types::ValueRef as SqliteValueRef;
 pub use sql_common;
 pub use sql_common::Connection;
+pub use sql_common::QueryTelemetry;
 pub use sql_common::SqlConnections;
 pub use sql_common::SqlShardedConnections;
 pub use sql_common::WriteResult;
@@ -165,6 +166,7 @@ macro_rules! queries {
             ) -> Result<Vec<($( $rtype, )*)>, Error> {
                 query_internal(connection, None $( , $pname )* $( , $lname )*)
                     .await
+                    .map(|(result, _)| result)
                     .context(stringify!(While executing $name query))
             }
 
@@ -174,13 +176,15 @@ macro_rules! queries {
                 comment: C,
                 $( $pname: &'a $ptype, )*
                 $( $lname: &'a [ $ltype ], )*
-            ) -> Result<Vec<($( $rtype, )*)>, Error>
+            ) -> Result<(Vec<($( $rtype, )*)>, Option<QueryTelemetry>), Error>
             where
                 C: Into<Option<&'a str>>,
             {
-                query_internal(connection, comment.into() $( , $pname )* $( , $lname )*)
+                let (res, opt_stats) = query_internal(connection, comment.into() $( , $pname )* $( , $lname )*)
                     .await
-                    .context(stringify!(While executing $name query))
+                    .context(stringify!(While executing $name commented query))?;
+
+                Ok((res, opt_stats))
             }
 
             #[allow(dead_code)]
@@ -414,6 +418,7 @@ macro_rules! _query_common {
         use $crate::rusqlite::Row as SqliteRow;
         use $crate::rusqlite::Statement as SqliteStatement;
         use $crate::rusqlite::types::ToSql as ToSqliteValue;
+        use $crate::sql_common::QueryTelemetry;
         use $crate::sql_common::mysql::OssConnection;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
@@ -438,17 +443,24 @@ macro_rules! _read_query_impl {
             comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> Result<Vec<($( $rtype, )*)>, Error> {
+        ) -> Result<(Vec<($( $rtype, )*)>, Option<QueryTelemetry>), Error> {
             match connection {
                 Connection::Sqlite(multithread_con) => {
-                    sqlite_query(multithread_con $( , $pname )* $( , $lname )*).await
+                    let res = sqlite_query(multithread_con $( , $pname )* $( , $lname )*).await?;
+
+                    // Sqlite doesn't support query telemetry
+                    Ok((res, None))
                 }
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);
                     if let Some(comment) = comment {
                         query.insert_str(0, &format!("/* {} */", comment));
                     }
-                    conn.read_query(query).map_err(Error::from).await
+                    let res = conn.read_query(query).map_err(Error::from).await?;
+
+
+                    // TODO(T223577767): return telemetry after updating read_query return type
+                    Ok((res, None))
                 }
                 Connection::OssMysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -462,8 +474,8 @@ macro_rules! _read_query_impl {
                         .into_iter()
                         .collect::<Result<Vec<($( $rtype, )*)>, Error>>()?;
 
-
-                    Ok(result)
+                    // OssMysql doesn't support query telemetry
+                    Ok((result, None))
                 }
             }
         }

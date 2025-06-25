@@ -19,6 +19,8 @@ pub use facebook::Connection;
 #[cfg(fbcode_build)]
 pub use facebook::MysqlError;
 #[cfg(fbcode_build)]
+pub use facebook::MysqlQueryTelemetry;
+#[cfg(fbcode_build)]
 pub use facebook::Transaction;
 pub use mysql_client_traits::OptionalTryFromRowField;
 pub use mysql_client_traits::RowField;
@@ -34,6 +36,7 @@ pub use mysql_stub::MysqlError;
 #[cfg(not(fbcode_build))]
 pub use mysql_stub::Transaction;
 pub use ossmysql_wrapper::OssConnection;
+pub use ossmysql_wrapper::OssQueryTelemetry;
 use stats::prelude::*;
 
 use super::WriteResult as SqlWriteResult;

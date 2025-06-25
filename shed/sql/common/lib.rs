@@ -151,3 +151,20 @@ impl WriteResult {
         self.affected_rows
     }
 }
+
+/// Telemetry returned after a query is executed or transaction is committed.
+#[derive(Debug, Clone)]
+pub enum QueryTelemetry {
+    #[cfg(fbcode_build)]
+    /// Internal MySQL
+    MySQL(mysql::MysqlQueryTelemetry),
+    /// OSS MySQL
+    OssMySQL(mysql::OssQueryTelemetry),
+}
+
+#[cfg(fbcode_build)]
+impl From<mysql::MysqlQueryTelemetry> for QueryTelemetry {
+    fn from(telemetry: mysql::MysqlQueryTelemetry) -> Self {
+        QueryTelemetry::MySQL(telemetry)
+    }
+}
