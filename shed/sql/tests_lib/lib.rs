@@ -330,14 +330,6 @@ pub mod mysql_test_lib {
 
     use super::*;
 
-    fn into_mysql_telemetry(opt_tel: Option<QueryTelemetry>) -> Result<MysqlQueryTelemetry> {
-        match opt_tel {
-            None => Err(anyhow!("QueryTelemetry is None")),
-            Some(QueryTelemetry::MySQL(tel)) => Ok(tel),
-            Some(_) => Err(anyhow!("Only MySQL telemetry is supported")),
-        }
-    }
-
     pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Error> {
         let (_res, opt_tel) = TestQuery4::commented_query(&conn, "comment", &1, &3).await?;
 
@@ -345,12 +337,7 @@ pub mod mysql_test_lib {
 
         let tel = into_mysql_telemetry(opt_tel)?;
 
-        assert!(tel.client_stats().is_some());
-        // TODO(T223577767): look into why instance_type is not being returned
-        // assert!(tel.instance_type().is_some());
-        assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), vec!["foo"]);
-        assert!(tel.write_tables().is_empty());
-        assert!(!tel.wait_stats().is_empty());
+        check_query_telemetry_was_populated(&tel, vec!["foo"], vec![]);
 
         Ok(())
     }
@@ -366,13 +353,31 @@ pub mod mysql_test_lib {
 
         transaction.commit().await.unwrap();
 
-        assert!(tel.client_stats().is_some());
-        // TODO(T223577767): look into why instance_type is not being returned
-        // assert!(tel.instance_type().is_some());
-        assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), vec!["foo"]);
-        assert!(tel.write_tables().is_empty());
-        assert!(!tel.wait_stats().is_empty());
+        check_query_telemetry_was_populated(&tel, vec!["foo"], vec![]);
 
         Ok(())
+    }
+
+    fn into_mysql_telemetry(opt_tel: Option<QueryTelemetry>) -> Result<MysqlQueryTelemetry> {
+        match opt_tel {
+            None => Err(anyhow!("QueryTelemetry is None")),
+            Some(QueryTelemetry::MySQL(tel)) => Ok(tel),
+            Some(_) => Err(anyhow!("Only MySQL telemetry is supported")),
+        }
+    }
+
+    fn check_query_telemetry_was_populated(
+        tel: &MysqlQueryTelemetry,
+        read_tables: Vec<&str>,
+        write_tables: Vec<&str>,
+    ) {
+        assert!(tel.client_stats().is_some());
+
+        // TODO(T223577767): look into why instance_type is not being returned
+        // assert!(tel.instance_type().is_some());
+
+        assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), read_tables);
+        assert_eq!(tel.write_tables().iter().collect::<Vec<_>>(), write_tables);
+        assert!(!tel.wait_stats().is_empty());
     }
 }
