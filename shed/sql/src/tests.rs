@@ -89,10 +89,10 @@ mod mysql {
     use mysql_client::DbLocator;
     use mysql_client::InstanceRequirement;
     use mysql_client::MysqlCppClient;
+    use sql_tests_lib::mysql_test_lib::test_basic_read_query_telemetry;
+    use sql_tests_lib::mysql_test_lib::test_transaction_read_query_telemetry;
     use sql_tests_lib::test_basic_query;
-    use sql_tests_lib::test_basic_read_query_telemetry;
     use sql_tests_lib::test_basic_transaction;
-    use sql_tests_lib::test_transaction_read_query_telemetry;
 
     use super::*;
     use crate::sql_common::mysql::Connection as MysqlConnection;
