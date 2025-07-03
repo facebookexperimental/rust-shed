@@ -92,6 +92,7 @@ mod mysql {
     use sql_tests_lib::test_basic_query;
     use sql_tests_lib::test_basic_read_query_telemetry;
     use sql_tests_lib::test_basic_transaction;
+    use sql_tests_lib::test_transaction_read_query_telemetry;
 
     use super::*;
     use crate::sql_common::mysql::Connection as MysqlConnection;
@@ -143,6 +144,13 @@ mod mysql {
     async fn test_mysql_basic_read_query_telemetry(fb: FacebookInit) -> Result<()> {
         let conn = setup_connection(fb).await?;
         test_basic_read_query_telemetry(conn).await?;
+        Ok(())
+    }
+
+    #[fbinit::test]
+    async fn test_mysql_transaction_read_query_telemetry(fb: FacebookInit) -> Result<()> {
+        let conn = setup_connection(fb).await?;
+        test_transaction_read_query_telemetry(conn).await?;
         Ok(())
     }
 }

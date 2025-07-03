@@ -260,6 +260,28 @@ pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Err
     Ok(())
 }
 
+#[cfg(fbcode_build)]
+pub async fn test_transaction_read_query_telemetry(conn: Connection) -> Result<(), Error> {
+    let transaction = conn.start_transaction().await.unwrap();
+    let (transaction, (_res, opt_tel)) =
+        TestQuery4::commented_query_with_transaction(transaction, "comment", &1, &3).await?;
+
+    println!("QueryTelemetry: {opt_tel:#?}");
+
+    let tel = into_mysql_telemetry(opt_tel)?;
+
+    transaction.commit().await.unwrap();
+
+    assert!(tel.client_stats().is_some());
+    // TODO(T223577767): look into why instance_type is not being returned
+    // assert!(tel.instance_type().is_some());
+    assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), vec!["foo"]);
+    assert!(tel.write_tables().is_empty());
+    assert!(!tel.wait_stats().is_empty());
+
+    Ok(())
+}
+
 #[derive(Debug, PartialEq)]
 pub enum TestSemantics {
     Sqlite,
@@ -283,7 +305,7 @@ pub async fn in_transaction(transaction: Transaction, semantics: TestSemantics) 
         TestSemantics::Sqlite => assert_eq!(res.last_insert_id(), Some(3)),
     }
 
-    let (transaction, res) =
+    let (transaction, (res, _opt_tel)) =
         TestQuery4::commented_query_with_transaction(transaction, "comment", &1, &3)
             .await
             .unwrap();

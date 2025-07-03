@@ -196,6 +196,7 @@ macro_rules! queries {
             ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error> {
                 query_internal_with_transaction(transaction, None $( , $pname )* $( , $lname )*)
                     .await
+                    .map(|(txn, (result, _))| (txn, result))
                     .context(stringify!(While executing $name query in transaction))
             }
 
@@ -205,7 +206,7 @@ macro_rules! queries {
                 comment: C,
                 $( $pname: &'a $ptype, )*
                 $( $lname: &'a [ $ltype ], )*
-            ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error>
+            ) -> Result<(Transaction, (Vec<($( $rtype, )*)>, Option<QueryTelemetry>)), Error>
             where
                 C: Into<Option<&'a str>>,
             {
@@ -513,7 +514,7 @@ macro_rules! _read_query_impl {
             comment: Option<&str>,
             $( $pname: & $ptype, )*
             $( $lname: & [ $ltype ], )*
-        ) -> Result<(Transaction, Vec<($( $rtype, )*)>), Error>{
+        ) -> Result<(Transaction, (Vec<($( $rtype, )*)>, Option<QueryTelemetry>)), Error>{
             match transaction {
                 Transaction::Sqlite(ref mut con) => {
                     let con = con
@@ -523,7 +524,8 @@ macro_rules! _read_query_impl {
                     sqlite_query_with_transaction(con $( , $pname )* $( , $lname )*)
                         .await
                         .map(move |(con, res)| {
-                            (Transaction::Sqlite(Some(con)), res)
+                            // Sqlite doesn't support query telemetry
+                            (Transaction::Sqlite(Some(con)), (res, None))
                         })
                 }
                 Transaction::Mysql(ref mut transaction) => {
@@ -533,8 +535,19 @@ macro_rules! _read_query_impl {
                     }
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
-                    let result = tr.read_query(query).map_err(Error::from).await?;
-                    Ok((Transaction::Mysql(Some(tr)), result))
+                    let (result, tel) = tr.read_query(query).map_err(Error::from).await?;
+
+                    // TODO(T223577767): return telemetry after updating read_query return type
+                    #[cfg(fbcode_build)]
+                    {
+                        Ok((Transaction::Mysql(Some(tr)), (result, tel.map(QueryTelemetry::MySQL))))
+                    }
+                    #[cfg(not(fbcode_build))]
+                    {
+                        Ok((Transaction::Mysql(Some(tr)), (result, None)))
+                    }
+
+
                 }
                 Transaction::OssMysql(ref mut transaction) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -548,7 +561,9 @@ macro_rules! _read_query_impl {
                         .await?
                         .into_iter()
                         .collect::<Result<Vec<($( $rtype, )*)>, Error>>()?;
-                    Ok((Transaction::OssMysql(Some(tr)), result))
+
+                    // OssMysql doesn't support query telemetry
+                    Ok((Transaction::OssMysql(Some(tr)), (result, None)))
                 }
             }
         }

@@ -80,7 +80,10 @@ pub struct Transaction;
 
 impl Transaction {
     /// Performs a given query and returns the result as a vector of rows.
-    pub async fn read_query<T>(&mut self, _query: String) -> Result<T, MysqlError> {
+    pub async fn read_query<T>(
+        &mut self,
+        _query: String,
+    ) -> Result<(T, Option<QueryTelemetry>), MysqlError> {
         unimplemented!("This is a stub");
     }
 
