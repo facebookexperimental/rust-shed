@@ -689,7 +689,7 @@ macro_rules! _write_query_impl {
             $( $pname: & $ptype ),*
         ) -> Result<WriteResult, Error> {
             if values.is_empty() {
-                return Ok(WriteResult::new(None, 0));
+                return Ok(WriteResult::new(None, 0, None));
             }
 
             match connection {
@@ -719,7 +719,7 @@ macro_rules! _write_query_impl {
             $( $pname: & $ptype ),*
         ) -> Result<(Transaction, WriteResult), Error> {
             if values.is_empty() {
-                return Ok((transaction, WriteResult::new(None, 0)));
+                return Ok((transaction, WriteResult::new(None, 0, None)));
             }
 
             match transaction {
@@ -754,7 +754,7 @@ macro_rules! _write_query_impl {
                     let last_insert_id = query_result.last_insert_id();
                     let rows_affected = query_result.affected_rows();
 
-                    let result = WriteResult::new(last_insert_id, rows_affected);
+                    let result = WriteResult::new(last_insert_id, rows_affected, None);
 
                     Ok((Transaction::OssMysql(Some(tr)), result.into()))
 
@@ -817,6 +817,7 @@ macro_rules! _write_query_impl {
             Ok(WriteResult::new(
                 Some(con.last_insert_rowid() as u64),
                 res.into_iter().sum::<usize>() as u64,
+                None,
             ))
         }
 
@@ -860,6 +861,7 @@ macro_rules! _write_query_impl {
             let res = WriteResult::new(
                 Some(transaction.last_insert_rowid() as u64),
                 res as u64,
+                None,
             );
 
             Ok((transaction, res))
@@ -951,7 +953,7 @@ macro_rules! _write_query_impl {
 
                     let last_insert_id = query_result.last_insert_id();
                     let rows_affected = query_result.affected_rows();
-                    let result = WriteResult::new(last_insert_id, rows_affected);
+                    let result = WriteResult::new(last_insert_id, rows_affected, None);
                     Ok((Transaction::OssMysql(Some(tr)), result))
                 }
             }
@@ -988,6 +990,7 @@ macro_rules! _write_query_impl {
             Ok(WriteResult::new(
                 Some(con.last_insert_rowid() as u64),
                 res as u64,
+                None,
             ))
         }
 
@@ -1017,6 +1020,7 @@ macro_rules! _write_query_impl {
             let res = WriteResult::new(
                 Some(transaction.last_insert_rowid() as u64),
                 res as u64,
+                None,
             );
 
             Ok((transaction, res))

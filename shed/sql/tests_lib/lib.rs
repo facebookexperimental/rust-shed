@@ -358,6 +358,40 @@ pub mod mysql_test_lib {
         Ok(())
     }
 
+    pub async fn test_basic_write_query_telemetry(conn: Connection) -> Result<(), Error> {
+        let res = TestQuery3::commented_query(&conn, "comment", &[(&44,), (&53,)]).await?;
+
+        let opt_tel = res.query_telemetry().clone();
+        println!("QueryTelemetry: {opt_tel:#?}");
+
+        let tel = into_mysql_telemetry(opt_tel)?;
+
+        assert!(tel.client_stats().is_some());
+
+        check_query_telemetry_was_populated(&tel, vec![], vec!["foo"]);
+
+        Ok(())
+    }
+
+    pub async fn test_transaction_write_query_telemetry(conn: Connection) -> Result<(), Error> {
+        let transaction = conn.start_transaction().await.unwrap();
+
+        let (transaction, res) =
+            TestQuery3::commented_query_with_transaction(transaction, "comment", &[(&44,), (&53,)])
+                .await?;
+
+        let opt_tel = res.query_telemetry().clone();
+        println!("QueryTelemetry: {opt_tel:#?}");
+
+        let tel = into_mysql_telemetry(opt_tel)?;
+
+        transaction.commit().await.unwrap();
+
+        check_query_telemetry_was_populated(&tel, vec![], vec!["foo"]);
+
+        Ok(())
+    }
+
     fn into_mysql_telemetry(opt_tel: Option<QueryTelemetry>) -> Result<MysqlQueryTelemetry> {
         match opt_tel {
             None => Err(anyhow!("QueryTelemetry is None")),

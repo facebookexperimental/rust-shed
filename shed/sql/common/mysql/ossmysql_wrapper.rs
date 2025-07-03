@@ -93,7 +93,7 @@ impl OssConnection {
 
         let last_insert_id = result.last_insert_id().unwrap_or(0);
         let rows_affected = result.affected_rows();
-        Ok(WriteResult::new(last_insert_id, rows_affected))
+        Ok(WriteResult::new(last_insert_id, rows_affected, None))
     }
 
     /// Begins transaction and returns Transaction object.

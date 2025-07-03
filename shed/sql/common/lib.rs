@@ -16,7 +16,7 @@
 pub mod mysql;
 pub mod sqlite;
 pub mod transaction;
-
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::Debug;
 
@@ -125,14 +125,20 @@ impl Debug for Connection {
 pub struct WriteResult {
     last_insert_id: Option<u64>,
     affected_rows: u64,
+    query_telemetry: Option<QueryTelemetry>,
 }
 
 impl WriteResult {
     /// Method made public for access from inside macros, you probably don't want to use it.
-    pub fn new(last_insert_id: Option<u64>, affected_rows: u64) -> Self {
+    pub fn new(
+        last_insert_id: Option<u64>,
+        affected_rows: u64,
+        query_telemetry: Option<QueryTelemetry>,
+    ) -> Self {
         WriteResult {
             last_insert_id,
             affected_rows,
+            query_telemetry,
         }
     }
 
@@ -151,6 +157,11 @@ impl WriteResult {
     pub fn affected_rows(&self) -> u64 {
         self.affected_rows
     }
+
+    /// Return number of rows affected by the `write` query
+    pub fn query_telemetry(&self) -> &Option<QueryTelemetry> {
+        &self.query_telemetry
+    }
 }
 
 /// Telemetry returned after a query is executed or transaction is committed.
@@ -167,5 +178,11 @@ pub enum QueryTelemetry {
 impl From<mysql::MysqlQueryTelemetry> for QueryTelemetry {
     fn from(telemetry: mysql::MysqlQueryTelemetry) -> Self {
         QueryTelemetry::MySQL(telemetry)
+    }
+}
+
+impl From<HashMap<String, String>> for QueryTelemetry {
+    fn from(oss_tel: HashMap<String, String>) -> Self {
+        QueryTelemetry::OssMySQL(oss_tel)
     }
 }

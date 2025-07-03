@@ -41,6 +41,7 @@ pub use ossmysql_wrapper::OssQueryTelemetry;
 use stats::prelude::*;
 
 use super::WriteResult as SqlWriteResult;
+use crate::QueryTelemetry;
 
 define_stats_struct! {
     ConnectionStats("sql.mysql_ffi.{}", label: String),
@@ -154,12 +155,22 @@ pub enum IsolationLevel {
 }
 
 /// Result returned by a write query
-pub struct WriteResult(u64, u64);
+#[cfg(fbcode_build)]
+pub struct WriteResult(u64, u64, Option<MysqlQueryTelemetry>);
+
+/// Result returned by a write query
+#[cfg(not(fbcode_build))]
+pub struct WriteResult(u64, u64, Option<OssQueryTelemetry>);
 
 impl WriteResult {
     /// Create result
-    pub fn new(last_insert_id: u64, rows_affected: u64) -> Self {
-        WriteResult(last_insert_id, rows_affected)
+    pub fn new(
+        last_insert_id: u64,
+        rows_affected: u64,
+        #[cfg(fbcode_build)] query_telemetry: Option<MysqlQueryTelemetry>,
+        #[cfg(not(fbcode_build))] query_telemetry: Option<OssQueryTelemetry>,
+    ) -> Self {
+        WriteResult(last_insert_id, rows_affected, query_telemetry)
     }
 
     /// Get last inserted id
@@ -175,7 +186,11 @@ impl WriteResult {
 
 impl From<WriteResult> for SqlWriteResult {
     fn from(result: WriteResult) -> Self {
-        Self::new(Some(result.last_insert_id()), result.rows_affected())
+        Self::new(
+            Some(result.last_insert_id()),
+            result.rows_affected(),
+            result.2.map(QueryTelemetry::from),
+        )
     }
 }
 
