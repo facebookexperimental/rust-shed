@@ -21,7 +21,11 @@ use sql::QueryTelemetry;
 use sql::Transaction;
 use sql::anyhow::Error;
 #[cfg(fbcode_build)]
+use sql::anyhow::Result;
+#[cfg(fbcode_build)]
 use sql::anyhow::anyhow;
+#[cfg(fbcode_build)]
+use sql::mysql::MysqlQueryTelemetry;
 use sql::mysql_async::FromValueError;
 use sql::mysql_async::Value;
 use sql::mysql_async::prelude::*;
@@ -230,16 +234,21 @@ pub async fn test_write_query(conn: Connection) {
 }
 
 #[cfg(fbcode_build)]
+fn into_mysql_telemetry(opt_tel: Option<QueryTelemetry>) -> Result<MysqlQueryTelemetry> {
+    match opt_tel {
+        None => Err(anyhow!("QueryTelemetry is None")),
+        Some(QueryTelemetry::MySQL(tel)) => Ok(tel),
+        Some(_) => Err(anyhow!("Only MySQL telemetry is supported")),
+    }
+}
+
+#[cfg(fbcode_build)]
 pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Error> {
     let (_res, opt_tel) = TestQuery4::commented_query(&conn, "comment", &1, &3).await?;
 
     println!("QueryTelemetry: {opt_tel:#?}");
 
-    let tel = match opt_tel {
-        None => Err(anyhow!("TestQuery4 QueryTelemetry is None")),
-        Some(QueryTelemetry::MySQL(tel)) => Ok(tel),
-        Some(_) => Err(anyhow!("These tests only work with MySQL backend")),
-    }?;
+    let tel = into_mysql_telemetry(opt_tel)?;
 
     assert!(tel.client_stats().is_some());
     // TODO(T223577767): look into why instance_type is not being returned
