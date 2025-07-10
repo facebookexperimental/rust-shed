@@ -58,7 +58,6 @@
 
 #[cfg(test)]
 mod tests;
-
 pub use anyhow;
 pub use cloned;
 pub use frunk::HList;

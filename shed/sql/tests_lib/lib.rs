@@ -323,12 +323,24 @@ pub async fn test_query_visibility_modifiers_compile(conn: Connection) {
 
 #[cfg(fbcode_build)]
 pub mod mysql_test_lib {
+    use std::sync::Arc;
+
+    use anyhow::Error;
+    use fbinit::FacebookInit;
+    use mysql_client::ConnectionPool;
+    use mysql_client::ConnectionPoolOptionsBuilder;
+    use mysql_client::DbLocator;
+    use mysql_client::InstanceRequirement;
+    use mysql_client::MysqlCppClient;
     use sql::QueryTelemetry;
     use sql::anyhow::Result;
     use sql::anyhow::anyhow;
+    use sql::mysql::Connection as MysqlConnection;
     use sql::mysql::MysqlQueryTelemetry;
+    use sql::sql_common::mysql::ConnectionStats as MysqlConnectionStats;
 
     use super::*;
+    use crate::Connection;
 
     pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Error> {
         let (_res, opt_tel) = TestQuery4::commented_query(&conn, "comment", &1, &3).await?;
@@ -413,5 +425,25 @@ pub mod mysql_test_lib {
         assert_eq!(tel.read_tables().iter().collect::<Vec<_>>(), read_tables);
         assert_eq!(tel.write_tables().iter().collect::<Vec<_>>(), write_tables);
         assert!(!tel.wait_stats().is_empty());
+    }
+
+    pub async fn setup_mysql_test_connection(
+        fb: FacebookInit,
+        table_creation_query: &str,
+    ) -> Result<Connection> {
+        let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;
+        let client = MysqlCppClient::new(fb)?;
+
+        client.query_raw(&locator, table_creation_query).await?;
+
+        let pool_options = ConnectionPoolOptionsBuilder::default()
+            .pool_limit(1)
+            .build()
+            .map_err(Error::msg)?;
+        let pool = ConnectionPool::new(&client, &pool_options)?.bind(locator);
+
+        let stats = Arc::new(MysqlConnectionStats::new("test".to_string()));
+        let conn = MysqlConnection::new(pool, stats);
+        Ok(Connection::from(conn))
     }
 }
