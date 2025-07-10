@@ -617,12 +617,12 @@ jobs:
        path: ${{ steps.paths.outputs.fb303_INSTALL }}
        key: ${{ steps.paths.outputs.fb303_CACHE_KEY }}-install
     - name: Build rust-shed
-      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages build --src-dir=. rust-shed  --project-install-prefix rust-shed:/usr/local
+      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages build --src-dir=. rust-shed --project-install-prefix rust-shed:/usr/local
     - name: Copy artifacts
-      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages fixup-dyn-deps --strip --src-dir=. rust-shed _artifacts/linux  --project-install-prefix rust-shed:/usr/local --final-install-prefix /usr/local
+      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages fixup-dyn-deps --strip --src-dir=. rust-shed _artifacts/linux --project-install-prefix rust-shed:/usr/local --final-install-prefix /usr/local
     - uses: actions/upload-artifact@v4
       with:
         name: rust-shed
         path: _artifacts
     - name: Test rust-shed
-      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages test --src-dir=. rust-shed  --project-install-prefix rust-shed:/usr/local
+      run: python3 build/fbcode_builder/getdeps.py --allow-system-packages test --src-dir=. rust-shed --project-install-prefix rust-shed:/usr/local
