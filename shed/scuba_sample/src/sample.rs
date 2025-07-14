@@ -85,7 +85,7 @@ impl ScubaSample {
     pub fn join_values_or_panic(&mut self, sample: &ScubaSample) {
         for (k, v) in sample.values.iter() {
             if self.values.insert(k.to_owned(), v.clone()).is_some() {
-                panic!("Duplicate value in scuba sample: {}", k);
+                panic!("Duplicate value in scuba sample: {k}");
             }
         }
     }

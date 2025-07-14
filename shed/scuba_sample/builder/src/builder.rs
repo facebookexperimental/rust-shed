@@ -178,10 +178,7 @@ impl ScubaSampleBuilder {
     /// Log the internally built sample to the previously configured log file while overriding its
     /// timestamp to the current time. Returns whether the sample passed sampling.
     pub fn log(&mut self) -> bool {
-        match self.try_log() {
-            Ok(passed_sampling) => passed_sampling,
-            Err(..) => true,
-        }
+        self.try_log().unwrap_or(true)
     }
 
     /// Log the internally built sample to the previously configured log file while overriding its

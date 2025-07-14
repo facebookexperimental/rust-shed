@@ -69,13 +69,11 @@ where
     }
 
     pub(crate) fn get(&self) -> Arc<T> {
-        let x = self
-            .update_receiver
+        self.update_receiver
             .read()
             .expect("lock poisoned")
             .borrow()
-            .clone();
-        x
+            .clone()
     }
 
     pub(crate) fn update_receiver(&self) -> Receiver<Arc<T>> {

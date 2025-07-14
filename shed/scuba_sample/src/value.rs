@@ -513,17 +513,14 @@ impl TryFrom<ScubaValue> for bool {
             #[allow(deprecated)]
             ScubaValue::Normal(v) | ScubaValue::Denorm(v) => v.parse::<bool>().map_err(|e| {
                 Error::InvalidTypeConversion(format!(
-                    "ScubaValue: {:?} expected to be bool. Details: {}.",
-                    v, e
+                    "ScubaValue: {v:?} expected to be bool. Details: {e}."
                 ))
             }),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected bool value for ScubaValue but got null: {:?}",
-                value
+                "Expected bool value for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be bool",
-                value
+                "ScubaValue: {value:?} expected to be bool"
             ))),
         }
     }
@@ -538,15 +535,13 @@ impl TryFrom<ScubaValue> for Option<bool> {
             ScubaValue::Normal(v) | ScubaValue::Denorm(v) => {
                 v.parse::<bool>().map(Some).map_err(|e| {
                     Error::InvalidTypeConversion(format!(
-                        "ScubaValue: {:?} expected to be Option<bool>. Details: {}.",
-                        v, e
+                        "ScubaValue: {v:?} expected to be Option<bool>. Details: {e}."
                     ))
                 })
             }
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be Option<bool>",
-                value
+                "ScubaValue: {value:?} expected to be Option<bool>"
             ))),
         }
     }
@@ -562,12 +557,10 @@ impl TryFrom<ScubaValue> for String {
             ScubaValue::Int(v) => Ok(v.to_string()),
             ScubaValue::Double(v) => Ok(v.to_string()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected String value for ScubaValue but got null: {:?}",
-                value
+                "Expected String value for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be String",
-                value
+                "ScubaValue: {value:?} expected to be String"
             ))),
         }
     }
@@ -584,8 +577,7 @@ impl TryFrom<ScubaValue> for Option<String> {
             ScubaValue::Double(v) => Ok(Some(v.to_string())),
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be Option<String>",
-                value
+                "ScubaValue: {value:?} expected to be Option<String>"
             ))),
         }
     }
@@ -600,8 +592,7 @@ impl<'a> TryFrom<&'a ScubaValue> for Option<&'a String> {
             ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(Some(v)),
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be Option<String>",
-                value
+                "ScubaValue: {value:?} expected to be Option<String>"
             ))),
         }
     }
@@ -615,12 +606,10 @@ impl<'a> TryFrom<&'a ScubaValue> for &'a str {
             #[allow(deprecated)]
             ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(v.as_str()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected &str value for ScubaValue but got null: {:?}",
-                value
+                "Expected &str value for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be &str",
-                value
+                "ScubaValue: {value:?} expected to be &str"
             ))),
         }
     }
@@ -635,8 +624,7 @@ impl<'a> TryFrom<&'a ScubaValue> for Option<&'a str> {
             ScubaValue::Normal(v) | ScubaValue::Denorm(v) => Ok(Some(v.as_str())),
             ScubaValue::Null(_) => Ok(None),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be &str",
-                value
+                "ScubaValue: {value:?} expected to be &str"
             ))),
         }
     }
@@ -649,12 +637,10 @@ impl<T: From<String>> TryFrom<ScubaValue> for Vec<T> {
         match value {
             ScubaValue::NormVector(v) => Ok(v.into_iter().map(T::from).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected Vec for ScubaValue but got null: {:?}",
-                value
+                "Expected Vec for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a Vec",
-                value
+                "ScubaValue: {value:?} expected to be a Vec"
             ))),
         }
     }
@@ -667,12 +653,10 @@ impl<T: From<String> + std::hash::Hash + std::cmp::Eq> TryFrom<ScubaValue> for H
         match value {
             ScubaValue::TagSet(v) => Ok(v.into_iter().map(T::from).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected Set for ScubaValue but got null: {:?}",
-                value
+                "Expected Set for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a Set",
-                value
+                "ScubaValue: {value:?} expected to be a Set"
             ))),
         }
     }
@@ -685,12 +669,10 @@ impl<'a> TryFrom<&'a ScubaValue> for HashSet<&'a str> {
         match value {
             ScubaValue::TagSet(v) => Ok(v.iter().map(|v| v.as_str()).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected Set for ScubaValue but got null: {:?}",
-                value
+                "Expected Set for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a Set",
-                value
+                "ScubaValue: {value:?} expected to be a Set"
             ))),
         }
     }
@@ -703,12 +685,10 @@ impl<T: From<String> + std::cmp::Ord> TryFrom<ScubaValue> for BTreeSet<T> {
         match value {
             ScubaValue::TagSet(v) => Ok(v.into_iter().map(T::from).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected Set for ScubaValue but got null: {:?}",
-                value
+                "Expected Set for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a Set",
-                value
+                "ScubaValue: {value:?} expected to be a Set"
             ))),
         }
     }
@@ -721,12 +701,10 @@ impl<'a> TryFrom<&'a ScubaValue> for BTreeSet<&'a str> {
         match value {
             ScubaValue::TagSet(v) => Ok(v.iter().map(|v| v.as_str()).collect()),
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected Set for ScubaValue but got null: {:?}",
-                value
+                "Expected Set for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a Set",
-                value
+                "ScubaValue: {value:?} expected to be a Set"
             ))),
         }
     }
@@ -745,14 +723,12 @@ impl<K: From<String> + std::hash::Hash + std::cmp::Eq, V: From<String>> TryFrom<
                         let mut iter = v.splitn(2, ':');
                         let key = iter.next().map(|v| v.to_string()).ok_or(
                             Error::InvalidTypeConversion(format!(
-                                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
-                                v
+                                "ScubaValue: {v:?} expected to be a HashMap encoded in norm vector"
                             )),
                         )?;
                         let value = iter.next().map(|v| v.to_string()).ok_or(
                             Error::InvalidTypeConversion(format!(
-                                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
-                                v
+                                "ScubaValue: {v:?} expected to be a HashMap encoded in norm vector"
                             )),
                         )?;
                         Ok((K::from(key), V::from(value)))
@@ -760,12 +736,10 @@ impl<K: From<String> + std::hash::Hash + std::cmp::Eq, V: From<String>> TryFrom<
                     .collect()
             }
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected HashMap encoded in norm vector for ScubaValue but got null: {:?}",
-                value
+                "Expected HashMap encoded in norm vector for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a HashMap encoded in norm vector",
-                value
+                "ScubaValue: {value:?} expected to be a HashMap encoded in norm vector"
             ))),
         }
     }
@@ -782,14 +756,12 @@ impl<K: From<String> + std::cmp::Ord, V: From<String>> TryFrom<ScubaValue> for B
                         let mut iter = v.splitn(2, ':');
                         let key = iter.next().map(|v| v.to_string()).ok_or(
                             Error::InvalidTypeConversion(format!(
-                                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
-                                v
+                                "ScubaValue: {v:?} expected to be a BTreeMap encoded in norm vector"
                             )),
                         )?;
                         let value = iter.next().map(|v| v.to_string()).ok_or(
                             Error::InvalidTypeConversion(format!(
-                                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
-                                v
+                                "ScubaValue: {v:?} expected to be a BTreeMap encoded in norm vector"
                             )),
                         )?;
                         Ok((K::from(key), V::from(value)))
@@ -797,12 +769,10 @@ impl<K: From<String> + std::cmp::Ord, V: From<String>> TryFrom<ScubaValue> for B
                     .collect()
             }
             ScubaValue::Null(_) => Err(Error::UnexpectedNull(format!(
-                "Expected BTreeMap encoded in norm vector for ScubaValue but got null: {:?}",
-                value
+                "Expected BTreeMap encoded in norm vector for ScubaValue but got null: {value:?}"
             ))),
             _ => Err(Error::InvalidTypeConversion(format!(
-                "ScubaValue: {:?} expected to be a BTreeMap encoded in norm vector",
-                value
+                "ScubaValue: {value:?} expected to be a BTreeMap encoded in norm vector"
             ))),
         }
     }
