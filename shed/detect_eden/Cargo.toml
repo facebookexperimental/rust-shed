@@ -11,7 +11,7 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-dunce = "1.0.2"
+dunce = "1.0.5"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 winapi = { version = "0.3", features = ["everything", "std"] }
