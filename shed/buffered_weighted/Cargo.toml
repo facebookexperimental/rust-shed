@@ -16,7 +16,7 @@ futures-util = { version = "0.3.30", features = ["compat"] }
 pin-project = "0.4.30"
 
 [dev-dependencies]
-futures = { version = "0.3.30", features = ["async-await", "compat"] }
+futures = { version = "0.3.31", features = ["async-await", "compat"] }
 proptest = "1.5"
 proptest-derive = "0.5"
 tokio = { version = "1.46.1", features = ["full", "test-util", "tracing"] }

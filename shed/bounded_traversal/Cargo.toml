@@ -11,7 +11,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 either = "1.5"
-futures = { version = "0.3.30", features = ["async-await", "compat"] }
+futures = { version = "0.3.31", features = ["async-await", "compat"] }
 smallvec = { version = "1.15", features = ["impl_bincode", "serde", "specialization", "union"] }
 thiserror = "2.0.12"
 

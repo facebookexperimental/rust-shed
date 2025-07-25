@@ -18,7 +18,7 @@ path = "tests/justknobs_in_unittest.rs"
 anyhow = "1.0.98"
 arc-swap = { version = "1.5", features = ["weak"] }
 cached_config = { version = "0.1.0", path = "../cached_config" }
-futures = { version = "0.3.30", features = ["async-await", "compat"] }
+futures = { version = "0.3.31", features = ["async-await", "compat"] }
 just_knobs_struct = { version = "0.1.0", path = "cached_config_thrift_struct" }
 serde = { version = "1.0.185", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "unbounded_depth"] }
