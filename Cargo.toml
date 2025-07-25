@@ -61,6 +61,7 @@ members = [
   "shed/futures_01_ext",
   "shed/futures_ext",
   "shed/futures_lazy_shared",
+  "shed/futures_retry",
   "shed/futures_stats",
   "shed/hash_memo",
   "shed/hlist_to_tuple",
