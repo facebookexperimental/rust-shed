@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.98"
 futures-util = { version = "0.3.30", features = ["compat"] }
-pin-project = "0.4.30"
+pin-project = "1.1.10"
 
 [dev-dependencies]
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
