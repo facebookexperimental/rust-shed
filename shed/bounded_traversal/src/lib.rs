@@ -8,9 +8,23 @@
  * above-listed licenses.
  */
 
-//! Read the documentation of [bounded_traversal](crate::bounded_traversal),
-//! [bounded_traversal_dag](crate::bounded_traversal_dag) and
-//! [bounded_traversal_stream](crate::bounded_traversal_stream)
+//! Bounded traversal of trees and dags.
+//!
+//! This crate implements generalized traversal over large trees and dags,
+//! limiting the number of concurrent processing steps.
+//!
+//! Use [`bounded_traversal`] to traverse and process a tree to a single
+//! result.  The tree will be unfolded to all leaves and then folded back
+//! together again to accumulate the result.
+//!
+//! Use [`bounded_traversal_dag`] to traverse a dag in the same way.
+//!
+//! Use [`bounded_traversal_stream`] to traverse a tree and produce a stream
+//! of items.  The tree is processed in an arbitrary order.
+//!
+//! Use [`bounded_traversal_ordered_stream`] to traverse a tree an produce an
+//! ordered stream of elements.  The tree is processed in order, however this
+//! requires additional processing and may be slower than unordered traversal.
 
 #[macro_use]
 mod error;

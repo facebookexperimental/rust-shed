@@ -12,7 +12,7 @@
 #![allow(elided_lifetimes_in_paths)]
 
 //! Contains logic for sampling items. For example for use in Scuba, see
-//! [`scuba_sample`].
+//! the `scuba_sample` crate.
 
 mod sample_result;
 mod sampleable;

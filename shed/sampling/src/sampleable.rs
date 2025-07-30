@@ -17,7 +17,7 @@ use std::num::NonZeroU64;
 pub trait Sampleable {
     /// Called to set the sample rate.
     ///
-    /// [`sampling::Sampling`] is used to determine if a sample should be
+    /// [`crate::sampling::Sampling`] is used to determine if a sample should be
     /// included or excluded in sampling. It can then be applied to a
     /// [`Sampleable`] item to attach its sample rate.
     ///

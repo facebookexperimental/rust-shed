@@ -56,7 +56,7 @@ impl Sampling {
         Self::SampledOut(new_sample_rate)
     }
 
-    /// Indicate whether a given [ScubaSample] should be logged, and modifies the sample
+    /// Indicate whether a given sample should be logged, and modifies the sample
     /// accordingly to report that it has been sampled.
     pub fn apply(&self, sample: &mut impl Sampleable) -> SampleResult {
         match &self {

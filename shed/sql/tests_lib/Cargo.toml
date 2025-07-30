@@ -19,3 +19,6 @@ chrono = { version = "0.4.41", features = ["clock", "serde", "std"], default-fea
 fbinit = { version = "0.2.0", path = "../../fbinit" }
 rand = { version = "0.8", features = ["small_rng"] }
 sql = { version = "0.1.0", path = ".." }
+
+[lints]
+rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
