@@ -65,6 +65,11 @@ where
         self.0.binary_search_by(|e| e.0.borrow().cmp(q))
     }
 
+    /// Returns a key-value pair by the index of the key.
+    pub fn get_key_value_at_index(&self, index: usize) -> Option<(&K, &V)> {
+        self.0.get(index).map(|(k, v)| (k, v))
+    }
+
     /// Returns a reference to the value corresponding to the key.
     pub fn get<Q>(&self, q: &Q) -> Option<&V>
     where
