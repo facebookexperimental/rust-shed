@@ -28,3 +28,13 @@ pub fn set_cached<T>(
 ) -> Result<bool> {
     Ok(false)
 }
+
+/// Encodes an item via bincode, and then inserts it into a volatile pool, replacing any pre-existing data.
+pub fn set_or_replace_cached<T>(
+    _cache_pool: &VolatileLruCachePool,
+    _cache_key: &str,
+    _entry: &T,
+    _ttl: Option<Duration>,
+) -> Result<()> {
+    Ok(())
+}
