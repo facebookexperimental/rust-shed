@@ -342,6 +342,8 @@ pub mod mysql_test_lib {
     use super::*;
     use crate::Connection;
 
+    pub const TEST_XDB_NAME: &str = "xdb.dbclient_test.1";
+
     pub async fn test_basic_read_query_telemetry(conn: Connection) -> Result<(), Error> {
         let (_res, opt_tel) = TestQuery4::commented_query(&conn, "comment", &1, &3).await?;
 
@@ -431,7 +433,7 @@ pub mod mysql_test_lib {
         fb: FacebookInit,
         table_creation_query: &str,
     ) -> Result<Connection> {
-        let locator = DbLocator::new("xdb.dbclient_test.1", InstanceRequirement::Master)?;
+        let locator = DbLocator::new(TEST_XDB_NAME, InstanceRequirement::Master)?;
         let client = MysqlCppClient::new(fb)?;
 
         client.query_raw(&locator, table_creation_query).await?;
