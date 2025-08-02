@@ -20,7 +20,7 @@ chrono = { version = "0.4.41", features = ["clock", "serde", "std"], default-fea
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
 ordered-float = { version = "3.7", features = ["serde"] }
 paste = "1.0.14"
-serde = { version = "1.0.185", features = ["derive", "rc"] }
+serde = { version = "1.0.219", features = ["derive", "rc"] }
 serde_derive = "1.0.185"
 thiserror = "2.0.12"
 uuid = { version = "1.2", features = ["serde", "v4", "v5", "v6", "v7", "v8"] }
