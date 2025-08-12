@@ -16,7 +16,7 @@ bytes = { version = "1.10", features = ["serde"] }
 flate2 = { version = "1.0.33", features = ["rust_backend"], default-features = false }
 libc = "0.2.139"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
-serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "unbounded_depth"] }
+serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
 zstd = { version = "0.13", features = ["experimental", "zstdmt"] }
 
 [dev-dependencies]

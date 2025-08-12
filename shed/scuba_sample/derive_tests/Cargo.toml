@@ -16,4 +16,4 @@ path = "test.rs"
 
 [dev-dependencies]
 scuba_sample = { version = "0.1.0", path = ".." }
-serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "unbounded_depth"] }
+serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }

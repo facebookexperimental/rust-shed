@@ -17,7 +17,7 @@ libc = "0.2.139"
 openssl = "0.10.72"
 openssl-sys = "0.9.99"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
-serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "unbounded_depth"] }
+serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
 slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
 tracing_slog_compat = { version = "0.1.0", path = "../tracing_slog_compat" }
 
