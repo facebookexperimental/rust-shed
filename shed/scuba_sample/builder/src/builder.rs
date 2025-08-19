@@ -117,7 +117,7 @@ impl ScubaSampleBuilder {
     }
 
     /// Call the internal sample's [super::sample::ScubaSample::entry] method
-    pub fn entry<K: Into<String>>(&mut self, key: K) -> Entry<String, ScubaValue> {
+    pub fn entry<K: Into<String>>(&mut self, key: K) -> Entry<'_, String, ScubaValue> {
         self.sample.entry(key)
     }
 
