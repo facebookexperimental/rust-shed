@@ -96,17 +96,35 @@ impl JustKnobs for JustKnobsCombinedImpl {
     }
 }
 
-// There is no way to `pub use` implementation of a trait. I wish we could
-// pub use <JustKnobsCombinedImpl as Justknobs>::*;
-// instead of boilerplate code below.
+/// Evaluate a Boolean knob.
+///
+/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
+/// returned.  If this function returns an error then that may indicate a real
+/// problem (e.g. the JK has not been created or has been misspelled).
+/// Failures are not cached, so performance of failures is significantly worse
+/// than successful lookups.
 pub fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
     JustKnobsCombinedImpl::eval(name, hash_val, switch_val)
 }
 
+/// Evaluate a numeric knob.
+///
+/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
+/// returned.  If this function returns an error then that may indicate a real
+/// problem (e.g. the JK has not been created or has been misspelled).
+/// Failures are not cached, so performance of failures is significantly worse
+/// than successful lookups.
 pub fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
     JustKnobsCombinedImpl::get(name, switch_val)
 }
 
+/// Evaluate a numeric knob as a particular type.
+///
+/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
+/// returned.  If this function returns an error then that may indicate a real
+/// problem (e.g. the JK has not been created or has been misspelled).
+/// Failures are not cached, so performance of failures is significantly worse
+/// than successful lookups.
 pub fn get_as<T>(name: &str, switch_val: Option<&str>) -> Result<T>
 where
     T: TryFrom<i64>,
