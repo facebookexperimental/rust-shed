@@ -251,7 +251,7 @@ where
     /// # Panics
     ///
     /// Panics if the range start is after the range end.
-    pub fn range<Q, R>(&self, range: R) -> Iter<K, V>
+    pub fn range<Q, R>(&self, range: R) -> Iter<'_, K, V>
     where
         K: Borrow<Q>,
         Q: Ord + ?Sized,
@@ -270,7 +270,7 @@ where
     /// # Panics
     ///
     /// Panics if the range start is after the range end.
-    pub fn range_mut<Q, R>(&mut self, range: R) -> IterMut<K, V>
+    pub fn range_mut<Q, R>(&mut self, range: R) -> IterMut<'_, K, V>
     where
         K: Borrow<Q>,
         Q: Ord + ?Sized,
@@ -286,7 +286,7 @@ where
 
     /// Gets the given key's corresponding entry in the map for in-place
     /// manipulation.
-    pub fn entry(&mut self, key: K) -> Entry<K, V> {
+    pub fn entry(&mut self, key: K) -> Entry<'_, K, V> {
         match self.find_index(&key) {
             Ok(index) => Entry::Occupied(OccupiedEntry { map: self, index }),
             Err(index) => Entry::Vacant(VacantEntry {
@@ -336,28 +336,28 @@ where
     }
 
     /// Returns an iterator over the pairs of entries in the map.
-    pub fn iter(&self) -> Iter<K, V> {
+    pub fn iter(&self) -> Iter<'_, K, V> {
         Iter(self.0.iter())
     }
 
     /// Returns a mutable iterator over the pairs of entries in the map.
-    pub fn iter_mut(&mut self) -> IterMut<K, V> {
+    pub fn iter_mut(&mut self) -> IterMut<'_, K, V> {
         IterMut(self.0.iter_mut())
     }
 
     /// Returns an iterator over the keys of the map, in sorted order.
-    pub fn keys(&self) -> Keys<K, V> {
+    pub fn keys(&self) -> Keys<'_, K, V> {
         Keys(self.0.iter())
     }
 
     /// Returns an iterator over the values of the map, in order by key.
-    pub fn values(&self) -> Values<K, V> {
+    pub fn values(&self) -> Values<'_, K, V> {
         Values(self.0.iter())
     }
 
     /// Returns a mutable iterator over the values of the map, in order
     /// by key.
-    pub fn values_mut(&mut self) -> ValuesMut<K, V> {
+    pub fn values_mut(&mut self) -> ValuesMut<'_, K, V> {
         ValuesMut(self.0.iter_mut())
     }
 

@@ -137,7 +137,7 @@ where
     /// # Panics
     ///
     /// Panics if the range start is after the range end.
-    pub fn range<Q, R>(&self, range: R) -> std::slice::Iter<T>
+    pub fn range<Q, R>(&self, range: R) -> std::slice::Iter<'_, T>
     where
         T: Borrow<Q>,
         Q: Ord + ?Sized,
@@ -295,7 +295,7 @@ where
     }
 
     /// Returns an iterator over the values in the map, in sorted order
-    pub fn iter(&self) -> std::slice::Iter<T> {
+    pub fn iter(&self) -> std::slice::Iter<'_, T> {
         self.0.iter()
     }
 
