@@ -191,12 +191,12 @@ impl ScubaSampleBuilder {
             return Ok(false);
         }
 
-        if let Some(ref log_file) = self.log_file
-            && let Ok(sample) = self.to_json()
-        {
-            let mut log_file = log_file.lock().expect("Poisoned lock");
-            log_file.write_all(sample.to_string().as_bytes())?;
-            log_file.write_all(b"\n")?;
+        if let Some(ref log_file) = self.log_file {
+            if let Ok(sample) = self.to_json() {
+                let mut log_file = log_file.lock().expect("Poisoned lock");
+                log_file.write_all(sample.to_string().as_bytes())?;
+                log_file.write_all(b"\n")?;
+            }
         }
 
         Ok(true)
@@ -212,12 +212,12 @@ impl ScubaSampleBuilder {
             return false;
         }
 
-        if let Some(ref log_file) = self.log_file
-            && let Ok(sample) = self.sample.to_json()
-        {
-            let mut log_file = log_file.lock().expect("Poisoned lock");
-            let _ = log_file.write_all(sample.to_string().as_bytes());
-            let _ = log_file.write_all(b"\n");
+        if let Some(ref log_file) = self.log_file {
+            if let Ok(sample) = self.sample.to_json() {
+                let mut log_file = log_file.lock().expect("Poisoned lock");
+                let _ = log_file.write_all(sample.to_string().as_bytes());
+                let _ = log_file.write_all(b"\n");
+            }
         }
 
         true
