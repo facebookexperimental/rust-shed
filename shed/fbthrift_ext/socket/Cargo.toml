@@ -20,7 +20,7 @@ fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbth
 fbthrift_framed = { version = "0.1.0", path = "../framed" }
 fbthrift_util = { version = "0.1.0", path = "../util" }
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
-tokio = { version = "1.46.1", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
 tokio-tower = "0.6"
 tokio-util = { version = "0.7.15", features = ["full"] }
 tower-service = "0.3.3"
