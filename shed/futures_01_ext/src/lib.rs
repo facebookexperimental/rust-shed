@@ -648,7 +648,7 @@ impl<In: Stream> Stream for ReturnRemainder<In> {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! handle_nb {
-    ($e:expr_2021) => {
+    ($e:expr) => {
         match $e {
             Ok(t) => Ok(::futures::Async::Ready(t)),
             Err(ref e) if e.kind() == ::std::io::ErrorKind::WouldBlock => {
@@ -665,7 +665,7 @@ macro_rules! handle_nb {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_boxfuture {
-    ($e:expr_2021) => {
+    ($e:expr) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::FutureExt::boxify($crate::futures_reexport::future::err(e.into())),
@@ -679,7 +679,7 @@ macro_rules! try_boxfuture {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_boxstream {
-    ($e:expr_2021) => {
+    ($e:expr) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::StreamExt::boxify($crate::futures_reexport::stream::once(Err(e.into()))),
@@ -693,7 +693,7 @@ macro_rules! try_boxstream {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! ensure_boxfuture {
-    ($cond:expr_2021, $e:expr_2021) => {
+    ($cond:expr, $e:expr) => {
         if !($cond) {
             return $crate::FutureExt::boxify(::futures::future::err($e.into()));
         }
@@ -706,7 +706,7 @@ macro_rules! ensure_boxfuture {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! ensure_boxstream {
-    ($cond:expr_2021, $e:expr_2021) => {
+    ($cond:expr, $e:expr) => {
         if !($cond) {
             return $crate::StreamExt::boxify(::futures::stream::once(Err($e.into())));
         }
@@ -719,7 +719,7 @@ macro_rules! ensure_boxstream {
 #[macro_export]
 #[rustfmt::skip]
 macro_rules! try_left_future {
-    ($e:expr_2021) => {
+    ($e:expr) => {
         match $e {
             Ok(t) => t,
             Err(e) => return $crate::futures_reexport::future::err(e.into()).left_future(),

@@ -138,32 +138,32 @@ impl From<slog::Logger> for Logger {
 
 #[macro_export]
 macro_rules! compat_tracing_event {
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ ] ) => {
         $crate::tracing::event!( $tracing_level, $( $tracing_kv )* $( $msg ),* );
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => %$value:expr_2021 ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => %$value:expr ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = %$value, ]; [ ] )
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => ?$value:expr_2021 ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => ?$value:expr ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = ?$value, ]; [ ] )
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => $value:expr_2021 ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => $value:expr ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = $value, ]; [ ] )
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => %$value:expr_2021, $( $kv:tt )* ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => %$value:expr, $( $kv:tt )* ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = %$value, ]; [ $( $kv )* ] )
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => ?$value:expr_2021, $( $kv:tt )* ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => ?$value:expr, $( $kv:tt )* ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = ?$value, ]; [ $( $kv )* ] )
     };
-    ( $tracing_level:expr_2021; $( $msg:expr_2021 ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr_2021 => $value:expr_2021, $( $kv:tt )* ] ) => {
+    ( $tracing_level:expr; $( $msg:expr ),*; [ $( $tracing_kv:tt )* ]; [ $key:expr => $value:expr, $( $kv:tt )* ] ) => {
         $crate::compat_tracing_event!( $tracing_level; $( $msg ),*; [ $( $tracing_kv )* $key = $value, ]; [ $( $kv )* ] )
     };
 }
 
 #[macro_export]
 macro_rules! event {
-    ($logger:expr_2021 => $slog_level:expr_2021, $tracing_level:expr_2021, $slog_tag:expr_2021; $( $msg:expr_2021 ),* $(,)? $( ; $( $kv:tt )* )? ) => {
+    ($logger:expr => $slog_level:expr, $tracing_level:expr, $slog_tag:expr; $( $msg:expr ),* $(,)? $( ; $( $kv:tt )* )? ) => {
         if let Some(logger) = $crate::IntoSlogLogger::into_slog_logger(&$logger).as_ref() {
             $crate::slog::log!(logger, $slog_level, $slog_tag, $( $msg ),* $( ; $( $kv )* )? );
         } else {
@@ -174,50 +174,50 @@ macro_rules! event {
 
 #[macro_export]
 macro_rules! error {
-    ($logger:expr_2021, #$slog_tag:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, #$slog_tag:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Error, $crate::tracing::Level::ERROR, $slog_tag; $( $item )* )
     };
-    ($logger:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Error, $crate::tracing::Level::ERROR, ""; $( $item )* )
     };
 }
 
 #[macro_export]
 macro_rules! warn {
-    ($logger:expr_2021, #$slog_tag:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, #$slog_tag:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Warning, $crate::tracing::Level::WARN, $slog_tag; $( $item )* )
     };
-    ($logger:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Warning, $crate::tracing::Level::WARN, ""; $( $item )* )
     };
 }
 
 #[macro_export]
 macro_rules! info {
-    ($logger:expr_2021, #$slog_tag:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, #$slog_tag:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Info, $crate::tracing::Level::INFO, $slog_tag; $( $item )* )
     };
-    ($logger:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Info, $crate::tracing::Level::INFO, ""; $( $item )* )
     }
 }
 
 #[macro_export]
 macro_rules! debug {
-    ($logger:expr_2021, #$slog_tag:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, #$slog_tag:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Debug, $crate::tracing::Level::DEBUG, $slog_tag; $( $item )* )
     };
-    ($logger:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Debug, $crate::tracing::Level::DEBUG, ""; $( $item )* )
     };
 }
 
 #[macro_export]
 macro_rules! trace {
-    ($logger:expr_2021, #$slog_tag:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, #$slog_tag:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Trace, $crate::tracing::Level::TRACE, $slog_tag; $( $item )* )
     };
-    ($logger:expr_2021, $( $item:tt )*) => {
+    ($logger:expr, $( $item:tt )*) => {
         $crate::event!($logger => $crate::slog::Level::Trace, $crate::tracing::Level::TRACE, ""; $( $item )* )
     };
 }

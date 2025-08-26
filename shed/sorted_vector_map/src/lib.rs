@@ -19,7 +19,7 @@ pub use set::SortedVectorSet;
 #[doc(hidden)]
 #[macro_export]
 macro_rules! replace_expr {
-    ($_t:tt $sub:expr_2021) => {
+    ($_t:tt $sub:expr) => {
         $sub
     };
 }

@@ -783,7 +783,7 @@ where
 
 #[macro_export]
 macro_rules! sorted_vector_set {
-    ( $( $value:expr_2021 ),* $( , )? ) => {
+    ( $( $value:expr ),* $( , )? ) => {
         {
             let size = <[()]>::len(&[ $( $crate::replace_expr!( ( $value ) () ) ),* ]);
             let mut set = $crate::SortedVectorSet::with_capacity(size);

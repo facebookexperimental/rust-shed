@@ -50,7 +50,7 @@ the Query whose results are held by `row`.
 */
 #[macro_export]
 macro_rules! sql_field {
-    ($row:expr_2021, $some_struct:ident, $field:expr_2021) => {{
+    ($row:expr, $some_struct:ident, $field:expr) => {{
         $crate::TryFromRowField::try_from($row.get_by_field_name($field).map_err(|e| {
             ::mysql_client::MysqlError::SchemaError(format!(
                 "Could not find column '{}' on struct '{}'. Perhaps a typo? Original Error: {}",
@@ -96,7 +96,7 @@ the Query whose results are held by `row`.
 */
 #[macro_export]
 macro_rules! option_sql_field {
-    ($row:expr_2021, $some_struct:ident, $field:expr_2021) => {{
+    ($row:expr, $some_struct:ident, $field:expr) => {{
         $crate::OptionalTryFromRowField::try_from_opt($row.get_by_field_name($field).map_err(
             |e| {
                 ::mysql_client::MysqlError::SchemaError(format!(

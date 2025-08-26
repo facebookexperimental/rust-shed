@@ -789,7 +789,7 @@ mod tests {
     use super::*;
 
     macro_rules! test_int_conv {
-        ( $x:expr_2021 ) => {
+        ( $x:expr ) => {
             let value = ScubaValue::from($x);
 
             let correct_from = match &value {
@@ -804,7 +804,7 @@ mod tests {
     }
 
     macro_rules! test_float_conv {
-        ( $x:expr_2021 ) => {
+        ( $x:expr ) => {
             #[allow(clippy::float_cmp)]
             {
                 let value = ScubaValue::from($x);

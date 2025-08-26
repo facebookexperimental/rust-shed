@@ -36,7 +36,7 @@ impl<'a, C: KVCategorizer> CollectorSerializer<'a, C> {
 
 /// Define a macro to implement serializer emit functions.
 macro_rules! impl_emit_body(
-    ($s:expr_2021, $k:expr_2021, $v:expr_2021) => {
+    ($s:expr, $k:expr, $v:expr) => {
         if $s.1.ignore($k) {
             return Ok(())
         }

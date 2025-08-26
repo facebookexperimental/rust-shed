@@ -123,21 +123,21 @@ impl<T: AsSql> AsSql for SqlList<'_, T> {
 /// mysql_query!("SELECT foo FROM table WHERE col1 = {my_var} AND col = {id}", id = "foo"; my_var = "@bar");
 #[macro_export]
 macro_rules! mysql_query {
-    ($query:expr_2021) => {
+    ($query:expr) => {
         ::sql::mysql::MySqlQuery::new(format!($query))
     };
-    ($query:expr_2021, $($key:tt = $value:expr_2021),*) => {
+    ($query:expr, $($key:tt = $value:expr),*) => {
         ::sql::mysql::MySqlQuery::new(format!(
                 $query,
                 $( $key = &::sql::mysql::AsSql::as_sql(&$value, false) ),*
         ))
     };
-    ($query:expr_2021, $($arg:expr_2021),*) => {
+    ($query:expr, $($arg:expr),*) => {
         ::sql::mysql::MySqlQuery::new(format!(
                 $query, $( &::sql::mysql::AsSql::as_sql(&$arg, false) ),*
         ))
     };
-    ($query:expr_2021, $($key:ident = $value:expr_2021),* ; $($key2:ident = $variable:expr_2021),*) => {
+    ($query:expr, $($key:ident = $value:expr),* ; $($key2:ident = $variable:expr),*) => {
         ::sql::mysql::MySqlQuery::new(format!(
                 $query,
                 $( $key = &::sql::mysql::AsSql::as_sql(&$value, false), )*

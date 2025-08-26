@@ -1031,7 +1031,7 @@ where
 
 #[macro_export]
 macro_rules! sorted_vector_map {
-    ( $( $key:expr_2021 => $value:expr_2021 ),* $( , )? ) => {
+    ( $( $key:expr => $value:expr ),* $( , )? ) => {
         {
             let size = <[()]>::len(&[ $( $crate::replace_expr!( ($value) () ) ),* ]);
             let mut map = $crate::SortedVectorMap::with_capacity(size);

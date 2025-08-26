@@ -34,17 +34,17 @@
 #[macro_export]
 macro_rules! err_downcast_ref {
     // Base case - all patterns consumed
-    ( $err:expr_2021 ) => {
+    ( $err:expr ) => {
         { let _ = $err; None }
     };
     // Eliminate trailing comma
-    ( $err:expr_2021, $($v:ident : $ty:ty => $action:expr_2021),* , ) => {
+    ( $err:expr, $($v:ident : $ty:ty => $action:expr),* , ) => {
         err_downcast_ref!($err, $($v : $ty => $action),*)
     };
     // Default case - match one type pattern, and recur with the rest of the list.
     // The rest of the list consumes the , separating it from the first pattern and
     // is itself comma-separated, with no trailing comma
-    ( $err:expr_2021, $v:ident : $ty:ty => $action:expr_2021 $(, $rv:ident : $rty:ty => $raction:expr_2021)* ) => {{
+    ( $err:expr, $v:ident : $ty:ty => $action:expr $(, $rv:ident : $rty:ty => $raction:expr)* ) => {{
         match $err.downcast_ref::<$ty>() {
             Some($v) => Some($action),
             None => err_downcast_ref!($err $(, $rv : $rty => $raction)*),
@@ -78,17 +78,17 @@ macro_rules! err_downcast_ref {
 #[macro_export]
 macro_rules! err_downcast {
     // Base case - all patterns consumed
-    ( $err:expr_2021 ) => {
+    ( $err:expr ) => {
         Err($err)
     };
     // Eliminate trailing comma
-    ( $err:expr_2021, $($v:ident : $ty:ty => $action:expr_2021),* , ) => {
+    ( $err:expr, $($v:ident : $ty:ty => $action:expr),* , ) => {
         err_downcast!($err, $($v : $ty => $action),*)
     };
     // Default case - match one type pattern, and recur with the rest of the list.
     // The rest of the list consumes the , separating it from the first pattern and
     // is itself comma-separated, with no trailing comma
-    ( $err:expr_2021, $v:ident : $ty:ty => $action:expr_2021 $(, $rv:ident : $rty:ty => $raction:expr_2021)* ) => {{
+    ( $err:expr, $v:ident : $ty:ty => $action:expr $(, $rv:ident : $rty:ty => $raction:expr)* ) => {{
         match $err.downcast::<$ty>() {
             Ok($v) => Ok($action),
             Err(other) => err_downcast!(other $(, $rv : $rty => $raction)*),

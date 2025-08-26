@@ -114,7 +114,7 @@ impl_to_sql_for_sql_common_values_ref!(str);
 impl_to_sql_for_sql_common_values!(bool);
 
 macro_rules! impl_to_sql_for_arrays {
-    ($($n:expr_2021,)*) => {
+    ($($n:expr,)*) => {
         $(impl_to_sql_for_sql_common_values!([u8; $n]);)*
     }
 }
