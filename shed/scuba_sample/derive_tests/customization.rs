@@ -85,3 +85,52 @@ fn test_customized_parser() {
 
     assert_eq!(actual, expected);
 }
+
+#[derive(StructuredSample)]
+struct FlattenedSample {
+    foo: i64,
+    fizz: bool,
+}
+
+struct DynamicColumns(HashMap<String, i64>);
+
+impl From<DynamicColumns> for ScubaSample {
+    fn from(value: DynamicColumns) -> Self {
+        let mut sample = ScubaSample::new();
+        for (key, value) in value.0 {
+            sample.add(format!("dynamic_{key}"), value);
+        }
+        sample
+    }
+}
+
+#[derive(StructuredSample)]
+struct CustomizedWithFlatten {
+    #[scuba(flatten)]
+    flattened: FlattenedSample,
+    bar: String,
+    #[scuba(flatten)]
+    dynamic_fields: DynamicColumns,
+}
+
+#[test]
+fn test_flattened_sample() {
+    let sample: ScubaSample = CustomizedWithFlatten {
+        flattened: FlattenedSample { foo: 5, fizz: true },
+        bar: "bar".into(),
+        dynamic_fields: DynamicColumns(HashMap::from_iter([("x".into(), 10), ("y".into(), 20)])),
+    }
+    .into();
+
+    assert_eq!(sample.get("foo"), Some(ScubaValue::Int(5)).as_ref());
+    assert_eq!(
+        sample.get("fizz"),
+        Some(ScubaValue::Normal("true".into())).as_ref()
+    );
+    assert_eq!(
+        sample.get("bar"),
+        Some(ScubaValue::Normal("bar".into())).as_ref()
+    );
+    assert_eq!(sample.get("dynamic_x"), Some(ScubaValue::Int(10)).as_ref());
+    assert_eq!(sample.get("dynamic_y"), Some(ScubaValue::Int(20)).as_ref());
+}

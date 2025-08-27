@@ -126,9 +126,8 @@ fn impl_structured_sample(ast: &DeriveInput) -> Result<TokenStream2> {
     propagate_errors(errors)?;
 
     let name = &ast.ident;
-    let field_name = get_field_names(&fields);
-    let field_renames = get_field_renames(&fields);
     let ty_gen = get_lifetime(ast);
+    let adders = fields.iter().map(|field| field.get_adder());
 
     Ok(quote! {
         impl ::scuba_sample::StructuredSample for #name #ty_gen {}
@@ -136,9 +135,7 @@ fn impl_structured_sample(ast: &DeriveInput) -> Result<TokenStream2> {
         impl ::core::convert::From<#name #ty_gen> for ::scuba_sample::ScubaSample {
             fn from(thingy: #name #ty_gen) -> Self {
                 let mut sample = ::scuba_sample::ScubaSample::new();
-                #(
-                    sample.add(#field_renames, thingy.#field_name);
-                )*
+                #(#adders)*
                 sample
             }
         }
@@ -257,12 +254,14 @@ struct SampleField {
     rename: Option<LitStr>,
     skip: bool,
     custom_parser: Option<ExprPath>,
+    flatten: bool,
 }
 
 impl SampleField {
     fn from_field(field: &Field) -> Result<Self> {
         let mut rename = None;
         let mut skip = false;
+        let mut flatten = false;
         let mut custom_parser = None;
         for attr in &field.attrs {
             // Parse #[scuba(...)]
@@ -281,6 +280,10 @@ impl SampleField {
                         let lit: LitStr = meta.value()?.parse()?;
                         custom_parser = Some(lit.parse()?);
                         Ok(())
+                    } else if meta.path.is_ident("flatten") {
+                        // #[scuba(flatten)]
+                        flatten = true;
+                        Ok(())
                     } else {
                         Err(meta.error("unrecognized scuba attribute"))
                     }
@@ -294,6 +297,7 @@ impl SampleField {
             rename,
             skip,
             custom_parser,
+            flatten,
         })
     }
 
@@ -314,6 +318,21 @@ impl SampleField {
             None => quote! {
                 <::scuba_sample::ScubaValue as ::core::convert::TryInto<#ty>>::try_into(#field_name)?
             },
+        }
+    }
+
+    fn get_adder(&self) -> TokenStream2 {
+        let field_name = &self.ident;
+        let ty = &self.ty;
+        let scuba_column_name = self.scuba_column_name();
+        if self.flatten {
+            quote! {
+                sample.join_values(&<#ty as ::core::convert::Into<::scuba_sample::ScubaSample>>::into(thingy.#field_name));
+            }
+        } else {
+            quote! {
+                sample.add(#scuba_column_name, thingy.#field_name);
+            }
         }
     }
 }
