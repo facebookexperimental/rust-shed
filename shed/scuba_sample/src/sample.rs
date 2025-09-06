@@ -143,6 +143,11 @@ impl ScubaSample {
         self.values.get(&key.into())
     }
 
+    /// Returns all keys in the sample.
+    pub fn keys(&self) -> impl Iterator<Item = String> {
+        self.values.keys().cloned()
+    }
+
     /// Set the [subset] of this sample.
     ///
     /// [subset]: https://fburl.com/qa/xqm9hsxx
@@ -504,5 +509,51 @@ mod tests {
 
         assert_eq!(sampling.apply(&mut sample), SampleResult::Include);
         assert_eq!(sample.get("sample_rate"), Some(&ScubaValue::Int(10)));
+    }
+
+    #[test]
+    fn test_keys_function() {
+        // Test empty sample
+        let empty_sample = ScubaSample::new();
+        assert_eq!(empty_sample.keys().count(), 0);
+
+        // Test sample with various value types
+        let mut sample = ScubaSample::new();
+        sample.add("int_key", 42);
+        sample.add("string_key", "hello");
+        sample.add("double_key", std::f64::consts::PI);
+        sample.add("vector_key", vec!["a", "b", "c"]);
+        sample.add("null_key", ScubaValue::Null(NullScubaValue::Int));
+
+        assert_eq!(
+            sample.keys().collect::<HashSet<_>>(),
+            vec![
+                "int_key",
+                "string_key",
+                "double_key",
+                "vector_key",
+                "null_key",
+            ]
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect::<HashSet<_>>()
+        );
+
+        // Test after adding and removing values
+        sample.add("new_key", "new_value");
+        sample.remove("int_key");
+
+        let updated_keys: HashSet<String> = sample.keys().collect();
+        assert!(!updated_keys.contains("int_key"));
+        assert!(updated_keys.contains("new_key"));
+        assert_eq!(updated_keys.len(), 5);
+
+        // Test that iterator collects a snapshot of keys at the time of creation
+        let keys_before_addition = sample.keys().collect::<Vec<_>>();
+        sample.add("another_key", "another_value");
+        let keys_after_addition = sample.keys();
+
+        assert_eq!(keys_before_addition.len(), 5);
+        assert_eq!(keys_after_addition.count(), 6);
     }
 }
