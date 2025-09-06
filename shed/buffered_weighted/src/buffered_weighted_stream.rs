@@ -211,15 +211,17 @@ where
     }
 }
 
+/// A future which has a weight associated with it.
 #[must_use = "futures do nothing unless polled"]
 #[pin_project]
-struct FutureWithWeight<Fut> {
+pub struct FutureWithWeight<Fut> {
     #[pin]
     future: Fut,
     weight: usize,
 }
 
 impl<Fut> FutureWithWeight<Fut> {
+    /// Creates a new `FutureWithWeight`.
     pub fn new(weight: usize, future: Fut) -> Self {
         Self { future, weight }
     }

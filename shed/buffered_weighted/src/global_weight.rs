@@ -10,33 +10,38 @@
 
 /// Global weight implementation, shared between FutureQueue and FutureQueueGrouped.
 #[derive(Debug)]
-pub(crate) struct GlobalWeight {
+pub struct GlobalWeight {
     max: usize,
     current: usize,
 }
 
 impl GlobalWeight {
-    pub(crate) fn new(max: usize) -> Self {
+    /// Create a new GlobalWeight with the given max weight.
+    pub fn new(max: usize) -> Self {
         Self { max, current: 0 }
     }
 
+    /// Get the max weight.
     #[inline]
-    pub(crate) fn max(&self) -> usize {
+    pub fn max(&self) -> usize {
         self.max
     }
 
+    /// Get the current weight.
     #[inline]
-    pub(crate) fn current(&self) -> usize {
+    pub fn current(&self) -> usize {
         self.current
     }
 
+    /// Check if there is enough space for the given weight.
     #[inline]
-    pub(crate) fn has_space_for(&self, weight: usize) -> bool {
+    pub fn has_space_for(&self, weight: usize) -> bool {
         let weight = weight.min(self.max);
         self.current <= self.max - weight
     }
 
-    pub(crate) fn add_weight(&mut self, weight: usize) {
+    /// Add the given weight to the current weight.
+    pub fn add_weight(&mut self, weight: usize) {
         let weight = weight.min(self.max);
         self.current = self.current.checked_add(weight).unwrap_or_else(|| {
             panic!(
@@ -46,7 +51,8 @@ impl GlobalWeight {
         });
     }
 
-    pub(crate) fn sub_weight(&mut self, weight: usize) {
+    /// Subtract the given weight from the current weight.
+    pub fn sub_weight(&mut self, weight: usize) {
         let weight = weight.min(self.max);
         self.current = self.current.checked_sub(weight).unwrap_or_else(|| {
             panic!(
