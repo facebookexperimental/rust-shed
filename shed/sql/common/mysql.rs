@@ -49,7 +49,7 @@ define_stats_struct! {
     raw_query_ms: histogram(100, 0, 5_000, Average, Count; P 50; P 95; P 99),
     total_query_ms: histogram(100, 0, 5_000, Average, Count; P 50; P 95; P 99),
     get_connection_retries: timeseries(Sum, Average, Rate, Count),
-    success: timeseries(Sum, Average, Rate, Count),
+    get_connection_success: timeseries(Sum, Average, Rate, Count),
 }
 
 /// A simple wrapper struct around a SQL string, just to add some type
