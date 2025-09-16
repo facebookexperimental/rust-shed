@@ -431,12 +431,15 @@ pub mod mysql_test_lib {
 
     pub async fn setup_mysql_test_connection(
         fb: FacebookInit,
-        table_creation_query: &str,
+        table_creation_query: Option<&str>,
+        instance_requirement: InstanceRequirement,
     ) -> Result<Connection> {
-        let locator = DbLocator::new(TEST_XDB_NAME, InstanceRequirement::Master)?;
+        let locator = DbLocator::new(TEST_XDB_NAME, instance_requirement)?;
         let client = MysqlCppClient::new(fb)?;
 
-        client.query_raw(&locator, table_creation_query).await?;
+        if let Some(table_creation_query) = table_creation_query {
+            client.query_raw(&locator, table_creation_query).await?;
+        };
 
         let pool_options = ConnectionPoolOptionsBuilder::default()
             .pool_limit(1)

@@ -82,6 +82,7 @@ mod mysql {
 
     use anyhow::Result;
     use fbinit::FacebookInit;
+    use mysql_client::InstanceRequirement;
     use sql_tests_lib::mysql_test_lib::setup_mysql_test_connection;
     use sql_tests_lib::mysql_test_lib::test_basic_read_query_telemetry;
     use sql_tests_lib::mysql_test_lib::test_basic_write_query_telemetry;
@@ -95,13 +96,16 @@ mod mysql {
     async fn setup_connection(fb: FacebookInit) -> Result<Connection> {
         setup_mysql_test_connection(
             fb,
-            "CREATE TABLE IF NOT EXISTS foo(
+            Some(
+                "CREATE TABLE IF NOT EXISTS foo(
                 x INT,
                 y DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 test CHAR(64),
                 id INT AUTO_INCREMENT,
                 PRIMARY KEY(id)
             )",
+            ),
+            InstanceRequirement::Master,
         )
         .await
     }
