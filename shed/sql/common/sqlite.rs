@@ -44,6 +44,22 @@ impl crate::Connection {
     ) -> Self {
         SqliteMultithreaded::new_with_callbacks(con, callbacks).into()
     }
+
+    /// Given a `rusqlite::Connection` create a connection to Sqlite database that might be used
+    /// by this crate, plus a function that returns the HLC from the replica
+    /// that serves reads.
+    pub fn with_sqlite_hlc_provider_and_callbacks(
+        con: SqliteConnection,
+        hlc_provider: Arc<Box<SqliteHlcProvider>>,
+        callbacks: Box<dyn SqliteCallbacks>,
+    ) -> Self {
+        SqliteMultithreaded::new_with_sqlite_hlc_provider_and_callbacks(
+            con,
+            hlc_provider,
+            callbacks,
+        )
+        .into()
+    }
 }
 
 /// Sqlite query categorization to allow callbacks to perform different
@@ -79,10 +95,14 @@ pub trait SqliteCallbacks: Send + Sync {
     async fn after_transaction_commit(&self) {}
 }
 
+/// Callback to provide the HLC from the last update to the DB. Used in tests
+pub type SqliteHlcProvider = dyn Fn() -> i64 + Send + Sync;
+
 /// Wrapper around rusqlite connection that makes it fully thread safe (but not deadlock safe)
 #[derive(Clone)]
 pub struct SqliteMultithreaded {
     inner: Arc<SqliteMultithreadedInner>,
+    hlc_provider: Option<Arc<Box<SqliteHlcProvider>>>,
 }
 
 /// Shared inner part of SqliteMultithreded plus any active connection guard.
@@ -184,6 +204,7 @@ impl SqliteMultithreaded {
                 condvar: Condvar::new(),
                 callbacks: None,
             }),
+            hlc_provider: None,
         }
     }
 
@@ -199,6 +220,24 @@ impl SqliteMultithreaded {
                 condvar: Condvar::new(),
                 callbacks: Some(callbacks),
             }),
+            hlc_provider: None,
+        }
+    }
+
+    /// Create a new instance wrapping the provided sqlite connection, and
+    /// with callbacks that are called when sqlite operations happen.
+    pub fn new_with_sqlite_hlc_provider_and_callbacks(
+        connection: SqliteConnection,
+        hlc_provider: Arc<Box<SqliteHlcProvider>>,
+        callbacks: Box<dyn SqliteCallbacks>,
+    ) -> Self {
+        Self {
+            inner: Arc::new(SqliteMultithreadedInner {
+                connection: Mutex::new(Some(connection)),
+                condvar: Condvar::new(),
+                callbacks: Some(callbacks),
+            }),
+            hlc_provider: Some(hlc_provider),
         }
     }
 
@@ -217,5 +256,24 @@ impl SqliteMultithreaded {
             callbacks.query_start(query_type).await?;
         }
         Ok(SqliteConnectionGuard::new(self.inner.clone()))
+    }
+
+    /// Get the timestamp of the last write to the database.
+    /// Used only in tests.
+    pub fn hlc_ts_lower_bound(&self) -> Option<i64> {
+        self.hlc_provider.clone().map(|prov| prov())
+    }
+}
+/// Query Telemetry for Sqlite queries
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SqliteQueryTelemetry {
+    /// Timestamp of the last update to the database
+    pub hlc_ts_lower_bound: i64,
+}
+
+impl SqliteQueryTelemetry {
+    /// Create a new instance of SqliteQueryTelemetry
+    pub fn new(hlc_ts_lower_bound: i64) -> Self {
+        Self { hlc_ts_lower_bound }
     }
 }

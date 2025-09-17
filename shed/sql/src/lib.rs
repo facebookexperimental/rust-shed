@@ -421,8 +421,10 @@ macro_rules! _query_common {
         use $crate::rusqlite::types::ToSql as ToSqliteValue;
         use $crate::sql_common::QueryTelemetry;
         use $crate::sql_common::mysql::OssConnection;
+        use $crate::sql_common::sqlite;
         use $crate::sqlite::SqliteConnectionGuard;
         use $crate::sqlite::SqliteMultithreaded;
+        use $crate::sqlite::SqliteQueryTelemetry;
         use $crate::sqlite::SqliteQueryType;
 
         #[allow(unused_imports)]
@@ -450,7 +452,12 @@ macro_rules! _read_query_impl {
                     let res = sqlite_query(multithread_con $( , $pname )* $( , $lname )*).await?;
 
                     // Sqlite doesn't support query telemetry
-                    Ok((res, None))
+                    let sqlite_tel = multithread_con
+                        .hlc_ts_lower_bound()
+                        .map(SqliteQueryTelemetry::new)
+                        .map(QueryTelemetry::Sqlite);
+
+                    Ok((res, sqlite_tel))
                 }
                 Connection::Mysql(conn) => {
                     let mut query = mysql_query($( $pname, )* $( $lname, )*);

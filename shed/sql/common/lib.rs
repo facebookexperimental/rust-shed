@@ -172,6 +172,8 @@ pub enum QueryTelemetry {
     MySQL(mysql::MysqlQueryTelemetry),
     /// OSS MySQL
     OssMySQL(mysql::OssQueryTelemetry),
+    /// Sqlite telemetry to be used in tests
+    Sqlite(sqlite::SqliteQueryTelemetry),
 }
 
 #[cfg(fbcode_build)]
@@ -184,5 +186,11 @@ impl From<mysql::MysqlQueryTelemetry> for QueryTelemetry {
 impl From<HashMap<String, String>> for QueryTelemetry {
     fn from(oss_tel: HashMap<String, String>) -> Self {
         QueryTelemetry::OssMySQL(oss_tel)
+    }
+}
+
+impl From<sqlite::SqliteQueryTelemetry> for QueryTelemetry {
+    fn from(telemetry: sqlite::SqliteQueryTelemetry) -> Self {
+        QueryTelemetry::Sqlite(telemetry)
     }
 }
