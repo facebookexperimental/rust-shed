@@ -46,6 +46,7 @@ members = [
   "shed/abomonable_string",
   "shed/ascii_ext",
   "shed/async_once_cell",
+  "shed/async_process_traits",
   "shed/borrowed",
   "shed/bounded_traversal",
   "shed/buffered_weighted",
