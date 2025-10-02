@@ -280,9 +280,14 @@ impl<'a> IntoIterator for &'a mut ScubaSample {
 /// An error returned when attempting to do RFE to ScubaSample conversions.
 #[derive(Error, Debug)]
 pub enum Error {
-    /// column expected but not found in scuba query results
-    #[error("column expected but not found in scuba query results")]
-    MissingColumn(String),
+    /// Error when a required column is missing from the sample data
+    #[error("Could not find '{missing_column}' in columns: {columns}")]
+    MissingColumn {
+        /// Name of the column that was expected but not found
+        missing_column: String,
+        /// List of available columns
+        columns: String,
+    },
     /// got null value where a value was expected to be present
     #[error("got null value where a value was expected to be present")]
     UnexpectedNull(String),

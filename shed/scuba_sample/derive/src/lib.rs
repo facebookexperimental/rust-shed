@@ -81,22 +81,16 @@ pub fn structured_sample_derive(input: TokenStream) -> TokenStream {
 ///     ) -> ::core::result::Result<Self, ::scuba_sample::Error> {
 ///         let bar = sample
 ///             .retrieve("bar")
-///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn({
-///                 let res = ::alloc::fmt::format(format_args!(
-///                     "Could not find {0} in ScubaSample {1:?}",
-///                     "\"bar\"", sample
-///                 ));
-///                 res
-///             }))?;
+///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn {
+///                 missing_column: "bar".to_string(),
+///                 columns: sample.keys().collect::<Vec<_>>().join(", "),
+///             })?;
 ///         let map = sample
 ///             .retrieve("foo")
-///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn({
-///                 let res = ::alloc::fmt::format(format_args!(
-///                     "Could not find {0} in ScubaSample {1:?}",
-///                     "\"foo\"", sample
-///                 ));
-///                 res
-///             }))?;
+///             .ok_or_else(|| ::scuba_sample::Error::MissingColumn {
+///                 missing_column: "foo".to_string(),
+///                 columns: sample.keys().collect::<Vec<_>>().join(", "),
+///             })?;
 ///         ::core::result::Result::Ok(Foo {
 ///             bar: <::scuba_sample::ScubaValue as ::core::convert::TryInto<i32>>::try_into(bar)?,
 ///             map: my_custom_parser(map.try_into()?).map_err(|e| {
@@ -167,13 +161,10 @@ fn impl_try_from_sample(ast: &DeriveInput) -> Result<TokenStream2> {
                 #(
                     let #field_name = sample
                         .retrieve(#field_renames)
-                        .ok_or_else(|| ::scuba_sample::Error::MissingColumn(
-                            ::std::format!(
-                                "Could not find {:?} in ScubaSample {:?}",
-                                #field_renames,
-                                sample,
-                            ),
-                        ))?;
+                        .ok_or_else(|| ::scuba_sample::Error::MissingColumn {
+                            missing_column: #field_renames.to_string(),
+                            columns: sample.keys().collect::<Vec<_>>().join(", "),
+                        })?;
                 )*
                 ::core::result::Result::Ok(#name {
                     #(
