@@ -10,6 +10,7 @@
 
 use std::fmt;
 
+use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use mysql_common::value::Value;
 
@@ -246,6 +247,13 @@ impl OptionalTryFromRowField for NaiveDateTime {
     }
 }
 
+/// Use NaiveDate values in Rust along with DATE columns in MySQL.
+impl OptionalTryFromRowField for NaiveDate {
+    fn try_from_opt(field: RowField) -> Result<Option<Self>, ValueError> {
+        opt_try_from_rowfield(field)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -260,6 +268,18 @@ mod test {
             .unwrap()
         );
         println!("ok");
+        Ok(())
+    }
+
+    #[test]
+    fn test_naive_date() -> Result<(), ValueError> {
+        assert_eq!(
+            NaiveDate::from_ymd_opt(2022, 5, 30).unwrap(),
+            <NaiveDate as TryFromRowField>::try_from(RowField::Bytes(
+                "2022-05-30".as_bytes().to_vec()
+            ))
+            .unwrap()
+        );
         Ok(())
     }
 }

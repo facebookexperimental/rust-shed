@@ -10,6 +10,7 @@
 
 use std::borrow::Cow;
 
+use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use mysql_common::value::convert::ToValue;
 use seq_macro::seq;
@@ -188,6 +189,17 @@ impl ToSQL for NaiveDateTime {
     }
 }
 
+impl ToSQL for NaiveDate {
+    fn to_sql_string(&self) -> Cow<str> {
+        Cow::Owned(
+            self.format("%Y-%m-%d")
+                .to_string()
+                .to_sql_string()
+                .to_string(),
+        )
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -196,5 +208,11 @@ mod test {
     fn test_naive_date_time() {
         let value = NaiveDateTime::parse_from_str("2022-05-30T13:39:58.012345Z", "%+").unwrap();
         assert_eq!(value.to_sql_string(), "'2022-05-30 13:39:58.012345'");
+    }
+
+    #[test]
+    fn test_naive_date() {
+        let value = NaiveDate::from_ymd_opt(2022, 5, 30).unwrap();
+        assert_eq!(value.to_sql_string(), "'2022-05-30'");
     }
 }
