@@ -277,11 +277,11 @@ mod tests {
     #[test]
     fn test_ignoring() {
         let mut rng: StdRng = SeedableRng::from_seed([2; 32]);
-        let normal = vec![
+        let normal = [
             TestKv::new("test1", &mut rng),
             TestKv::new("test2", &mut rng),
         ];
-        let ignore = vec![
+        let ignore = [
             TestKv::new("ignore1", &mut rng),
             TestKv::new("ignore2", &mut rng),
         ];

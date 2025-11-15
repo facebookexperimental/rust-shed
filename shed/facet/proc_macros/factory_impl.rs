@@ -555,27 +555,24 @@ impl Facets {
     }
 
     fn extract_facet_return_type(sig: &mut Signature) -> Result<(Type, Fallibility), Error> {
-        if let ReturnType::Type(_, ty) = &mut sig.output {
-            if let Type::Path(type_path) = &mut **ty {
-                if let Some(segment) = type_path.path.segments.last_mut() {
-                    match &mut segment.arguments {
-                        PathArguments::None => {
-                            // The type path should be directly to the facet.
-                            let facet_ty = (**ty).clone();
-                            return Ok((facet_ty, Fallibility::Infallible));
-                        }
-                        PathArguments::AngleBracketed(arguments) => {
-                            if let Some(GenericArgument::Type(first_ty)) =
-                                arguments.args.first_mut()
-                            {
-                                // This type should be directly to the facet.
-                                let facet_ty = first_ty.clone();
-                                return Ok((facet_ty, Fallibility::Fallible));
-                            }
-                        }
-                        _ => {}
+        if let ReturnType::Type(_, ty) = &mut sig.output
+            && let Type::Path(type_path) = &mut **ty
+            && let Some(segment) = type_path.path.segments.last_mut()
+        {
+            match &mut segment.arguments {
+                PathArguments::None => {
+                    // The type path should be directly to the facet.
+                    let facet_ty = (**ty).clone();
+                    return Ok((facet_ty, Fallibility::Infallible));
+                }
+                PathArguments::AngleBracketed(arguments) => {
+                    if let Some(GenericArgument::Type(first_ty)) = arguments.args.first_mut() {
+                        // This type should be directly to the facet.
+                        let facet_ty = first_ty.clone();
+                        return Ok((facet_ty, Fallibility::Fallible));
                     }
                 }
+                _ => {}
             }
         }
         Err(Error::new_spanned(
@@ -621,10 +618,10 @@ impl FactoryParam {
 }
 
 fn extract_type_ident(ty: &Type) -> Result<Ident, Error> {
-    if let Type::Path(type_path) = ty {
-        if let Some(ident) = type_path.path.get_ident() {
-            return Ok(ident.clone());
-        }
+    if let Type::Path(type_path) = ty
+        && let Some(ident) = type_path.path.get_ident()
+    {
+        return Ok(ident.clone());
     }
     Err(Error::new_spanned(
         ty,
