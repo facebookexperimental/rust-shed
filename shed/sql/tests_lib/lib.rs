@@ -442,7 +442,7 @@ pub mod mysql_test_lib {
         };
 
         let pool_options = ConnectionPoolOptionsBuilder::default()
-            .pool_limit(1)
+            .pool_limit(2)
             .build()
             .map_err(Error::msg)?;
         let pool = ConnectionPool::new(&client, &pool_options)?.bind(locator);
