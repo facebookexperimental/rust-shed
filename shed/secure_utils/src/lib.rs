@@ -151,3 +151,9 @@ impl IntoLogger for tracing_slog_compat::Logger {
         self
     }
 }
+
+impl IntoLogger for () {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        tracing_slog_compat::Logger::Tracing
+    }
+}

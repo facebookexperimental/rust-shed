@@ -92,3 +92,12 @@ impl IntoOptionLogger for slog::slog::Logger {
         Some(slog::Logger::Slog(self))
     }
 }
+
+impl IntoOptionLogger for bool {
+    fn into_option_logger(self) -> Option<slog::Logger> {
+        match self {
+            true => Some(slog::Logger::Tracing),
+            false => None,
+        }
+    }
+}
