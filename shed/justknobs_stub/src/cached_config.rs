@@ -201,6 +201,12 @@ impl IntoLogger for tracing_slog_compat::Logger {
     }
 }
 
+impl IntoLogger for () {
+    fn into_logger(self) -> tracing_slog_compat::Logger {
+        tracing_slog_compat::Logger::Tracing
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::thread;
