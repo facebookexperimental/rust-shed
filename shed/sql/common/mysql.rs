@@ -47,12 +47,12 @@ use crate::QueryTelemetry;
 // from the pool, query times, retries
 define_stats_struct! {
     ConnectionStats("sql.mysql_ffi.{}", label: String),
-    get_connection_ms: quantile_stat(Average, Count; P 50, P 99; Duration::from_secs(60)),
+    get_connection_ms: quantile_stat(Average, Count; P 50, P 99; Duration::from_mins(1)),
     // Time from a single query. Each retry will publish a new sample.
-    raw_query_ms: quantile_stat(Average, Count; P 50, P 99; Duration::from_secs(60)),
+    raw_query_ms: quantile_stat(Average, Count; P 50, P 99; Duration::from_mins(1)),
     // Total elapsed time from getting a connection and running a **successful**
     // query.
-    total_query_ms: quantile_stat(Average; P 50, P 95, P 99; Duration::from_secs(60)),
+    total_query_ms: quantile_stat(Average; P 50, P 95, P 99; Duration::from_mins(1)),
     // Number of retries when getting a connection and running the query
     query_retries: timeseries(Sum, Average, Count),
     // Whether the connection was successfully fetched from the pool

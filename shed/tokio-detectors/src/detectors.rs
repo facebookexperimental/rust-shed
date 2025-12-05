@@ -87,7 +87,7 @@ use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
 /// the maximum duration for tokio workers to be blocked after which the process is considered a lost cause, and we will panic.
-const PANIC_WORKER_BLOCK_DURATION_DEFAULT: Duration = Duration::from_secs(60);
+const PANIC_WORKER_BLOCK_DURATION_DEFAULT: Duration = Duration::from_mins(1);
 
 fn get_panic_worker_block_duration() -> Duration {
     let duration_str =
