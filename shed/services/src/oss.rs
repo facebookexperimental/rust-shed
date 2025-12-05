@@ -24,6 +24,6 @@ pub fn run_service_framework<T: Into<Vec<u8>>>(
     _: Box<dyn Fb303Service>,
 ) -> Result<!, ServicesError> {
     loop {
-        sleep(Duration::from_secs(3600))
+        sleep(Duration::from_hours(1))
     }
 }
