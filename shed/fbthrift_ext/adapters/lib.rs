@@ -89,6 +89,7 @@ pub mod arcbstr;
 pub mod bstr;
 pub mod chrono;
 pub mod duration;
+pub mod host;
 pub mod ipv4;
 pub mod ipv6;
 pub mod nonnegative;
@@ -107,6 +108,8 @@ pub use crate::arcbstr::ArcBStringAdapter;
 pub use crate::bstr::BStringAdapter;
 #[doc(inline)]
 pub use crate::duration::*;
+#[doc(inline)]
+pub use crate::host::HostAdapter;
 #[doc(inline)]
 pub use crate::ipv4::Ipv4AddressAdapter;
 #[doc(inline)]
