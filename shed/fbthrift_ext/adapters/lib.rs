@@ -98,6 +98,7 @@ pub mod path;
 pub mod redacted;
 pub mod socket_addr;
 pub mod unsigned_int;
+pub mod url;
 pub mod uuid;
 
 #[doc(inline)]
@@ -131,5 +132,7 @@ pub use crate::unsigned_int::UnsignedIntAdapter;
 #[cfg(target_pointer_width = "64")]
 #[doc(inline)]
 pub use crate::unsigned_int::UsizeAdapter;
+#[doc(inline)]
+pub use crate::url::UrlAdapter;
 #[doc(inline)]
 pub use crate::uuid::UuidAdapter;
