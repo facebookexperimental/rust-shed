@@ -11,7 +11,7 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-rand = { version = "0.8", features = ["small_rng"] }
+rand = { version = "0.9", features = ["small_rng"] }
 tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]

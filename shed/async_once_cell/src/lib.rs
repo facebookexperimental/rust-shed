@@ -181,7 +181,7 @@ mod test {
     use std::time::Duration;
 
     use rand::Rng;
-    use rand::thread_rng;
+    use rand::rng;
 
     use super::*;
 
@@ -245,8 +245,8 @@ mod test {
     #[tokio::test]
     async fn concurrent_get_or_init() {
         let aoc: AsyncOnceCell<i32> = AsyncOnceCell::new();
-        let delay1 = Duration::from_millis(thread_rng().gen_range(0..100));
-        let delay2 = Duration::from_millis(thread_rng().gen_range(0..100));
+        let delay1 = Duration::from_millis(rng().random_range(0..100));
+        let delay2 = Duration::from_millis(rng().random_range(0..100));
         let count = AtomicUsize::new(0);
         let f = futures::future::join(
             async {

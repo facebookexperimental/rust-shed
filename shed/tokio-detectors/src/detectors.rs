@@ -82,7 +82,7 @@ use std::thread::ThreadId;
 use std::time::Duration;
 
 use rand::Rng;
-use rand::thread_rng;
+use rand::rng;
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
 
@@ -380,11 +380,11 @@ impl LongRunningTaskDetector {
         let interval = self.interval;
         let workers = Arc::clone(&self.workers);
         thread::spawn(move || {
-            let mut rng = thread_rng();
+            let mut rng = rng();
             while !*stop_flag.lock().unwrap() {
                 probe(&runtime, detection_time, &workers, &action);
                 thread::sleep(Duration::from_micros(
-                    rng.gen_range(10..=interval.as_micros().try_into().unwrap()),
+                    rng.random_range(10..=interval.as_micros().try_into().unwrap()),
                 ));
             }
         });

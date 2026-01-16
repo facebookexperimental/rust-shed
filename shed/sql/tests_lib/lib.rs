@@ -13,8 +13,8 @@
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use rand::Rng;
-use rand::distributions::Alphanumeric;
-use rand::thread_rng;
+use rand::distr::Alphanumeric;
+use rand::rng;
 use sql::Connection;
 use sql::Transaction;
 use sql::anyhow::Error;
@@ -113,7 +113,7 @@ queries! {
 }
 
 pub async fn test_basic_query(conn: Connection) -> Result<(), Error> {
-    let rng = thread_rng();
+    let rng = rng();
     let test: String = rng
         .sample_iter(Alphanumeric)
         .take(64)
@@ -130,7 +130,7 @@ pub async fn test_basic_query(conn: Connection) -> Result<(), Error> {
 }
 
 pub async fn test_basic_transaction(conn: Connection) {
-    let rng = thread_rng();
+    let rng = rng();
     let test: String = rng
         .sample_iter(Alphanumeric)
         .take(64)
