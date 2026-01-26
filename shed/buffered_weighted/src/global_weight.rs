@@ -8,17 +8,61 @@
  * above-listed licenses.
  */
 
+use std::fmt;
+use std::sync::Arc;
+
+/// Trait for observing weight changes in buffered streams.
+///
+/// Implement this trait to receive callbacks when futures are scheduled
+/// (weight added) or completed (weight removed) in a BufferedWeighted stream.
+pub trait WeightObserver: Send + Sync {
+    /// Called when a future is scheduled and its weight is added to the buffer.
+    ///
+    /// # Arguments
+    /// * `weight` - The weight that was added (clamped to max_weight)
+    fn on_weight_added(&self, weight: usize);
+
+    /// Called when a future completes and its weight is removed from the buffer.
+    ///
+    /// # Arguments
+    /// * `weight` - The weight that was removed (clamped to max_weight)
+    fn on_weight_removed(&self, weight: usize);
+}
+
 /// Global weight implementation, shared between FutureQueue and FutureQueueGrouped.
-#[derive(Debug)]
 pub struct GlobalWeight {
     max: usize,
     current: usize,
+    observer: Option<Arc<dyn WeightObserver>>,
+}
+
+impl fmt::Debug for GlobalWeight {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("GlobalWeight")
+            .field("max", &self.max)
+            .field("current", &self.current)
+            .field("observer", &self.observer.as_ref().map(|_| "<observer>"))
+            .finish()
+    }
 }
 
 impl GlobalWeight {
     /// Create a new GlobalWeight with the given max weight.
     pub fn new(max: usize) -> Self {
-        Self { max, current: 0 }
+        Self {
+            max,
+            current: 0,
+            observer: None,
+        }
+    }
+
+    /// Create a new GlobalWeight with the given max weight and observer.
+    pub fn with_observer(max: usize, observer: Arc<dyn WeightObserver>) -> Self {
+        Self {
+            max,
+            current: 0,
+            observer: Some(observer),
+        }
     }
 
     /// Get the max weight.
@@ -49,6 +93,9 @@ impl GlobalWeight {
                 weight, self.current,
             )
         });
+        if let Some(ref observer) = self.observer {
+            observer.on_weight_added(weight);
+        }
     }
 
     /// Subtract the given weight from the current weight.
@@ -60,5 +107,8 @@ impl GlobalWeight {
                 weight, self.current,
             )
         });
+        if let Some(ref observer) = self.observer {
+            observer.on_weight_removed(weight);
+        }
     }
 }

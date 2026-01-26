@@ -10,6 +10,7 @@
 
 use std::fmt;
 use std::pin::Pin;
+use std::sync::Arc;
 use std::task::Context;
 use std::task::Poll;
 
@@ -21,6 +22,7 @@ use futures_util::stream::FuturesOrdered;
 use pin_project::pin_project;
 
 use crate::global_weight::GlobalWeight;
+use crate::global_weight::WeightObserver;
 use crate::memory_bound::MemoryBound;
 use crate::peekable_fused::PeekableFused;
 
@@ -60,10 +62,26 @@ where
     St::Item: WeightedFuture,
 {
     pub(crate) fn new(stream: St, max_weight: usize, bound: Option<u64>) -> Self {
+        Self::with_observer(stream, max_weight, bound, None)
+    }
+
+    /// Create a new BufferedWeighted with an optional weight observer.
+    ///
+    /// The observer will be notified whenever weights are added or removed from the buffer.
+    pub(crate) fn with_observer(
+        stream: St,
+        max_weight: usize,
+        bound: Option<u64>,
+        observer: Option<Arc<dyn WeightObserver>>,
+    ) -> Self {
+        let global_weight = match observer {
+            Some(obs) => GlobalWeight::with_observer(max_weight, obs),
+            None => GlobalWeight::new(max_weight),
+        };
         Self {
             stream: PeekableFused::new(stream.fuse()),
             in_progress_queue: FuturesOrdered::new(),
-            global_weight: GlobalWeight::new(max_weight),
+            global_weight,
             bound: MemoryBound::new(bound),
         }
     }

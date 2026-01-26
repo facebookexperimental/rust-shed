@@ -76,7 +76,7 @@
 //! let (send_two, recv_two) = oneshot::channel();
 //!
 //! let stream_of_futures = stream::iter(vec![(1, recv_one), (2, recv_two)]);
-//! let mut buffered = stream_of_futures.buffered_weighted(5);
+//! let mut buffered = stream_of_futures.buffered_weighted(5, None);
 //!
 //! // Send the second one before the first one. The result should still appear
 //! // in the order they were enqueued in the stream, i.e. "world" then "hello".
@@ -97,9 +97,12 @@ mod peekable_fused;
 #[cfg(test)]
 mod tests;
 
+use std::sync::Arc;
+
 pub use crate::buffered_weighted_stream::BufferedWeighted;
 pub use crate::buffered_weighted_stream::FutureWithWeight;
 pub use crate::global_weight::GlobalWeight;
+pub use crate::global_weight::WeightObserver;
 pub use crate::memory_bound::MemoryBound;
 
 /// Traits to aid in type definitions.
@@ -136,15 +139,24 @@ pub trait StreamExt: Stream {
     ///
     /// The returned stream will be a stream of each future's output.
     ///
+    /// An optional `observer` can be provided to receive callbacks when futures are scheduled
+    /// (weight added) or completed (weight removed). This is useful for tracking memory usage.
+    ///
     /// # Examples
     ///
     /// See [the crate documentation](crate#examples) for an example.
-    fn buffered_weighted<Fut>(self, max_weight: usize) -> BufferedWeighted<Self>
+    fn buffered_weighted<Fut>(
+        self,
+        max_weight: usize,
+        observer: Option<Arc<dyn WeightObserver>>,
+    ) -> BufferedWeighted<Self>
     where
         Self: Sized + Stream<Item = (usize, Fut)>,
         Fut: Future,
     {
-        assert_stream::<Fut::Output, _>(BufferedWeighted::new(self, max_weight, None))
+        assert_stream::<Fut::Output, _>(BufferedWeighted::with_observer(
+            self, max_weight, None, observer,
+        ))
     }
 
     /// An adaptor for creating an ordered queue of pending futures, where each future has a
@@ -156,16 +168,25 @@ pub trait StreamExt: Stream {
     /// `max_weight`, this adaptor will also enforce a memory bound before scheduling any new future for
     /// execution. The memory bound serves as a free memory limit that the combinator must honor while
     /// scheduling new futures in the stream.
+    ///
+    /// An optional `observer` can be provided to receive callbacks when futures are scheduled
+    /// (weight added) or completed (weight removed). This is useful for tracking memory usage.
     fn buffered_weighted_bounded<Fut>(
         self,
         max_weight: usize,
         memory_bound: u64,
+        observer: Option<Arc<dyn WeightObserver>>,
     ) -> BufferedWeighted<Self>
     where
         Self: Sized + Stream<Item = (usize, Fut)>,
         Fut: Future,
     {
-        assert_stream::<Fut::Output, _>(BufferedWeighted::new(self, max_weight, Some(memory_bound)))
+        assert_stream::<Fut::Output, _>(BufferedWeighted::with_observer(
+            self,
+            max_weight,
+            Some(memory_bound),
+            observer,
+        ))
     }
 }
 

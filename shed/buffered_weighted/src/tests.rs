@@ -95,7 +95,7 @@ impl StreamSpec for () {
     where
         St: Stream<Item = Self::Item> + Send + 'static,
     {
-        Box::pin(stream.buffered_weighted(state.max_weight))
+        Box::pin(stream.buffered_weighted(state.max_weight, None))
     }
 
     fn create_stream_item(
