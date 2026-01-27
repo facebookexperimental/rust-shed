@@ -22,7 +22,7 @@ futures = { version = "0.3.31", features = ["async-await", "compat"] }
 just_knobs_struct = { version = "0.1.0", path = "cached_config_thrift_struct" }
 serde = { version = "1.0.219", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
-slog = { version = "2.7", features = ["max_level_trace", "nested-values"] }
+slog = { version = "2.8.2", features = ["max_level_trace", "nested-values"] }
 tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
 tracing_slog_compat = { version = "0.1.0", path = "../tracing_slog_compat" }
 
