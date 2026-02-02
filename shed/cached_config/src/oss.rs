@@ -29,7 +29,7 @@ impl ConfigStore {
     pub fn configerator(
         _: FacebookInit,
         _: impl crate::IntoOptionLogger,
-        _: impl Into<Option<Duration>>,
+        _: bool,
         _: Duration,
     ) -> Result<Self> {
         fb_unimplemented!()
@@ -41,7 +41,7 @@ impl ConfigStore {
         _: FacebookInit,
         _: impl crate::IntoOptionLogger,
         _: HashMap<String, String>,
-        _: impl Into<Option<Duration>>,
+        _: bool,
         _: Duration,
     ) -> Result<Self> {
         fb_unimplemented!()
@@ -53,7 +53,7 @@ impl ConfigStore {
         _: FacebookInit,
         _: impl crate::IntoOptionLogger,
         _: Vec<(String, String)>,
-        _: impl Into<Option<Duration>>,
+        _: bool,
         _: Duration,
     ) -> Result<Self> {
         fb_unimplemented!()

@@ -17,6 +17,7 @@ use std::sync::Arc;
 use std::sync::Condvar;
 use std::sync::Mutex;
 use std::sync::Weak;
+use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
@@ -77,6 +78,34 @@ impl ConfigStore {
                 })
                 .expect("Can't spawn cached_config updates poller");
         }
+
+        this
+    }
+
+    /// Create a new instance of the ConfigStore with its own updating thread
+    /// which will be run whenever a message is received on the provided channel.
+    ///
+    /// Unlike `new`, the bacground updater thread in this case will be stopped
+    /// once the channel is closed.
+    pub fn with_notification_channel(
+        source: Arc<dyn Source + Sync + Send>,
+        receiver: mpsc::Receiver<()>,
+        logger: impl crate::IntoOptionLogger,
+    ) -> Self {
+        let this = Self {
+            source,
+            clients: Arc::new(Mutex::new(HashMap::new())),
+            kick: Arc::new(Condvar::new()),
+            logger: logger.into_option_logger(),
+        };
+
+        thread::Builder::new()
+            .name("rust-cfgr-updates".into())
+            .spawn({
+                let this = this.clone();
+                move || this.notification_updater_thread(receiver)
+            })
+            .expect("Can't spawn cached_config updates poller");
 
         this
     }
@@ -210,6 +239,16 @@ impl ConfigStore {
         loop {
             self.updater_thread_iteration();
             thread::sleep(poll_interval);
+        }
+    }
+
+    fn notification_updater_thread(&self, receiver: mpsc::Receiver<()>) {
+        loop {
+            self.updater_thread_iteration();
+            if receiver.recv().is_err() {
+                // Channel closed
+                break;
+            }
         }
     }
 
