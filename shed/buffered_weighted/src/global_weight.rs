@@ -86,11 +86,11 @@ impl GlobalWeight {
 
     /// Add the given weight to the current weight.
     pub fn add_weight(&mut self, weight: usize) {
-        let weight = weight.min(self.max);
-        self.current = self.current.checked_add(weight).unwrap_or_else(|| {
+        let clamped_weight = weight.min(self.max);
+        self.current = self.current.checked_add(clamped_weight).unwrap_or_else(|| {
             panic!(
                 "future_queue_grouped: added weight {} to current {}, overflowed",
-                weight, self.current,
+                clamped_weight, self.current,
             )
         });
         if let Some(ref observer) = self.observer {
@@ -100,11 +100,11 @@ impl GlobalWeight {
 
     /// Subtract the given weight from the current weight.
     pub fn sub_weight(&mut self, weight: usize) {
-        let weight = weight.min(self.max);
-        self.current = self.current.checked_sub(weight).unwrap_or_else(|| {
+        let clamped_weight = weight.min(self.max);
+        self.current = self.current.checked_sub(clamped_weight).unwrap_or_else(|| {
             panic!(
                 "future_queue_grouped: subtracted weight {} from current {}, overflowed",
-                weight, self.current,
+                clamped_weight, self.current,
             )
         });
         if let Some(ref observer) = self.observer {
