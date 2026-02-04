@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.98"
-bytes = { version = "1.10", features = ["serde"] }
+bytes = { version = "1.11.1", features = ["serde"] }
 chrono = { version = "0.4.41", features = ["clock", "serde", "std"], default-features = false }
 fbinit = { version = "0.2.0", path = "../fbinit" }
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
