@@ -61,10 +61,6 @@ where
     St: Stream,
     St::Item: WeightedFuture,
 {
-    pub(crate) fn new(stream: St, max_weight: usize, bound: Option<u64>) -> Self {
-        Self::with_observer(stream, max_weight, bound, None)
-    }
-
     /// Create a new BufferedWeighted with an optional weight observer.
     ///
     /// The observer will be notified whenever weights are added or removed from the buffer.
