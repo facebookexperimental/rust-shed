@@ -13,5 +13,5 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 dunce = "1.0.5"
 
-[target.'cfg(target_os = "windows")'.dependencies]
+[target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["everything", "std"] }
