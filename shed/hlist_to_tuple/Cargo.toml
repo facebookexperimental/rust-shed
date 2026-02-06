@@ -11,4 +11,4 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-frunk = "0.4.2"
+frunk = "0.4.4"
