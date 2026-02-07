@@ -50,7 +50,7 @@ anyhow = "1.0.98"
 async-trait = "0.1.86"
 facet_proc_macros = { version = "0.1.0", path = "proc_macros" }
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
-thiserror = "2.0.12"
+thiserror = "2.0.18"
 trait-set = "0.3.0"
 
 [dev-dependencies]

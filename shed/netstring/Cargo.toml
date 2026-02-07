@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.98"
 bytes = { version = "1.11.1", features = ["serde"] }
-thiserror = "2.0.12"
+thiserror = "2.0.18"
 tokio-util = { version = "0.7.15", features = ["full"] }
 
 [dev-dependencies]

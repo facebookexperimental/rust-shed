@@ -27,7 +27,7 @@ rusqlite = { version = "0.37.0", features = ["backup", "blob", "bundled", "colum
 serde = { version = "1.0.219", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
 stats = { version = "0.1.0", path = "../../stats" }
-thiserror = "2.0.12"
+thiserror = "2.0.18"
 time_ext = { version = "0.1.0", path = "../../time_ext" }
 tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
 vec1 = { version = "1", features = ["serde"] }
