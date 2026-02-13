@@ -80,7 +80,7 @@ pub enum SlogKVErrorKey {
     Error,
     /// Root cause of the chain of errors
     RootCause,
-    /// Backtrace taken when error occured
+    /// Backtrace taken when error occurred
     Backtrace,
     /// One of causes in a chain of errors
     Cause,
