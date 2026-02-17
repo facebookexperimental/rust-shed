@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.100"
 chrono = { version = "0.4.41", features = ["clock", "serde", "std"], default-features = false }
 fbinit = { version = "0.2.0", path = "../../fbinit" }
 rand = { version = "0.9", features = ["small_rng"] }
