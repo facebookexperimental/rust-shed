@@ -99,10 +99,11 @@ mod tests;
 
 use std::sync::Arc;
 
+pub use weight_observer::WeightObserver;
+
 pub use crate::buffered_weighted_stream::BufferedWeighted;
 pub use crate::buffered_weighted_stream::FutureWithWeight;
 pub use crate::global_weight::GlobalWeight;
-pub use crate::global_weight::WeightObserver;
 pub use crate::memory_bound::MemoryBound;
 
 /// Traits to aid in type definitions.

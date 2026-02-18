@@ -20,9 +20,9 @@ use futures_util::StreamExt as _;
 use futures_util::stream::Fuse;
 use futures_util::stream::FuturesOrdered;
 use pin_project::pin_project;
+use weight_observer::WeightObserver;
 
 use crate::global_weight::GlobalWeight;
-use crate::global_weight::WeightObserver;
 use crate::memory_bound::MemoryBound;
 use crate::peekable_fused::PeekableFused;
 

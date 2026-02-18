@@ -119,6 +119,7 @@ members = [
   "shed/tokio-uds-compat",
   "shed/tracing_slog_compat",
   "shed/tracing_slog_compat/example",
+  "shed/weight_observer",
 ]
 resolver = "2"
 
