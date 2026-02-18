@@ -27,26 +27,32 @@ use quickcheck::Gen;
 /// macros exported by this crate. `#[fbinit::main]` is placed on your main
 /// function and will call initFacebook and provide the resulting proof:
 ///
-///     #[fbinit::main]
-///     fn main(fb: fbinit::FacebookInit) {
-///         /* ... */
-///     }
+/// ```no_run
+/// #[fbinit::main]
+/// fn main(fb: fbinit::FacebookInit) {
+///     /* ... */
+/// }
+/// ```
 ///
 /// The proof argument is optional. If you don't need it, this is fine too:
 ///
-///     #[fbinit::main]
-///     fn main() {
-///         /* ... */
-///     }
+/// ```no_run
+/// #[fbinit::main]
+/// fn main() {
+///     /* ... */
+/// }
+/// ```
 ///
 /// If main is async, the attribute behaves like `#\[tokio::main\].
 ///
-///     #[fbinit::main]
-///     async fn main(fb: fbinit::FacebookInit) {
-///         yay().await;
-///     }
+/// ```no_run
+/// #[fbinit::main]
+/// async fn main(fb: fbinit::FacebookInit) {
+///     yay().await;
+/// }
 ///
-///     async fn yay() {}
+/// async fn yay() {}
+/// ```
 ///
 /// There is also `#\[fbinit::test\]` which behaves like `#\[test\]` or
 /// `#\[tokio::test\]`.
