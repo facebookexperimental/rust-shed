@@ -20,7 +20,7 @@ futures = { version = "0.3.31", features = ["async-await", "compat"] }
 proptest = "1.5"
 proptest-derive = "0.5"
 tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
-tokio-stream = { version = "0.1.17", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
+tokio-stream = { version = "0.1.18", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 procfs = "0.15.1"
