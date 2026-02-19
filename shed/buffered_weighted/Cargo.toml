@@ -16,7 +16,7 @@ pin-project = "1.1.10"
 weight_observer = "0.1.0"
 
 [dev-dependencies]
-futures = { version = "0.3.31", features = ["async-await", "compat"] }
+futures = { version = "0.3.32", features = ["async-await", "compat"] }
 proptest = "1.5"
 proptest-derive = "0.5"
 tokio = { version = "1.47.1", features = ["full", "test-util", "tracing"] }
