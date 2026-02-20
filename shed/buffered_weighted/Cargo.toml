@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 futures-util = { version = "0.3.30", features = ["compat"] }
 pin-project = "1.1.10"
-weight_observer = { path = "../weight_observer" }
+weight_observer = { version = "0.1.0", path = "../weight_observer" }
 
 [dev-dependencies]
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
