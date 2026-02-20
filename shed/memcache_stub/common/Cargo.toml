@@ -13,6 +13,6 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.101"
 bytes = { version = "1.11.1", features = ["serde"] }
 fbinit = { version = "0.2.0", path = "../../fbinit" }
