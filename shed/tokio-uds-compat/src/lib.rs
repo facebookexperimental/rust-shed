@@ -22,6 +22,10 @@ mod windows {
     use std::future::Future;
     use std::io;
     use std::net::Shutdown;
+    use std::os::windows::io::AsRawSocket;
+    use std::os::windows::io::AsSocket;
+    use std::os::windows::io::BorrowedSocket;
+    use std::os::windows::io::RawSocket;
     use std::path::Path;
     use std::pin::Pin;
     use std::sync::Arc;
@@ -33,6 +37,30 @@ mod windows {
     use tokio::io::AsyncRead;
     use tokio::io::AsyncWrite;
     use tokio::io::ReadBuf;
+
+    /// Wrapper for uds_windows::UnixListener that implements AsSocket.
+    /// This is needed because async-io 2.x requires AsSocket for Async::new().
+    #[derive(Debug)]
+    struct UnixListenerWrapper(uds_windows::UnixListener);
+
+    impl AsSocket for UnixListenerWrapper {
+        fn as_socket(&self) -> BorrowedSocket<'_> {
+            // SAFETY: The raw socket is valid for the lifetime of self
+            unsafe { BorrowedSocket::borrow_raw(self.0.as_raw_socket()) }
+        }
+    }
+
+    impl AsRawSocket for UnixListenerWrapper {
+        fn as_raw_socket(&self) -> RawSocket {
+            self.0.as_raw_socket()
+        }
+    }
+
+    impl UnixListenerWrapper {
+        fn accept(&self) -> io::Result<(uds_windows::UnixStream, uds_windows::SocketAddr)> {
+            self.0.accept()
+        }
+    }
 
     /// Helper function to prevent vtable mismatches in optimized builds by cloning
     /// the waker at the async-io runtime boundary. This ensures consistent waker
@@ -141,10 +169,6 @@ mod windows {
             &self.0
         }
 
-        fn inner_mut(self: Pin<&mut Self>) -> Pin<&mut Async<uds_windows::UnixStream>> {
-            Pin::new(&mut self.get_mut().0)
-        }
-
         pub fn into_split(self) -> (OwnedReadHalf, OwnedWriteHalf) {
             let this = Arc::new(self);
             (OwnedReadHalf::new(this.clone()), OwnedWriteHalf::new(this))
@@ -192,13 +216,13 @@ mod windows {
             buf: &[u8],
         ) -> Poll<Result<usize, io::Error>> {
             with_cloned_waker(cx, |preserving_cx| {
-                futures::AsyncWrite::poll_write(self.inner_mut(), preserving_cx, buf)
+                futures::AsyncWrite::poll_write(Pin::new(&mut self.async_ref()), preserving_cx, buf)
             })
         }
 
         fn poll_flush(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<(), io::Error>> {
             with_cloned_waker(cx, |preserving_cx| {
-                futures::AsyncWrite::poll_flush(self.inner_mut(), preserving_cx)
+                futures::AsyncWrite::poll_flush(Pin::new(&mut self.async_ref()), preserving_cx)
             })
         }
 
@@ -207,18 +231,19 @@ mod windows {
             cx: &mut Context<'_>,
         ) -> Poll<Result<(), io::Error>> {
             with_cloned_waker(cx, |preserving_cx| {
-                futures::AsyncWrite::poll_close(self.inner_mut(), preserving_cx)
+                futures::AsyncWrite::poll_close(Pin::new(&mut self.async_ref()), preserving_cx)
             })
         }
     }
 
     #[derive(Debug)]
-    pub struct UnixListener(Async<uds_windows::UnixListener>);
+    pub struct UnixListener(Async<UnixListenerWrapper>);
 
     impl UnixListener {
         pub fn bind<P: AsRef<Path>>(path: P) -> io::Result<Self> {
             let listener = uds_windows::UnixListener::bind(path)?;
-            let listener = Async::new(listener)?;
+            let wrapper = UnixListenerWrapper(listener);
+            let listener = Async::new(wrapper)?;
 
             Ok(UnixListener(listener))
         }
