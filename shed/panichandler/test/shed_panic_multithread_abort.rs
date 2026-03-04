@@ -20,7 +20,7 @@ extern "C" fn sighandler(_sig: std::os::raw::c_int) {
 fn main() {
     #[cfg(unix)]
     unsafe {
-        libc::signal(libc::SIGABRT, sighandler as libc::size_t);
+        libc::signal(libc::SIGABRT, sighandler as *const () as libc::size_t);
     }
 
     println!("I'm on an adventure!");
