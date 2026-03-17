@@ -123,7 +123,7 @@ fn handler(panic: &PanicHookInfo<'_>, fate: Fate) {
     };
 }
 
-/// This funcion should be used to set the hook to be triggered when a panic
+/// This function should be used to set the hook to be triggered when a panic
 /// happens. The [Fate] parameter will define what this handler will do when
 /// panicing.
 pub fn set_panichandler(fate: Fate) {
