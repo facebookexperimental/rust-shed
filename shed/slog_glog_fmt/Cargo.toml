@@ -18,7 +18,7 @@ path = "example/main.rs"
 anyhow = "1.0.102"
 chrono = { version = "0.4.44", features = ["clock", "serde", "std"], default-features = false }
 failure_ext = { version = "0.1.0", path = "../failure_ext" }
-hostname = "0.4"
+hostname = "0.4.2"
 itertools = "0.14.0"
 slog = { version = "2.8.2", features = ["max_level_trace", "nested-values"] }
 slog-term = "2.9.2"
