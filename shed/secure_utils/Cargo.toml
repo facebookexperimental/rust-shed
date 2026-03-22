@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.102"
 hex = { version = "0.4.3", features = ["alloc"] }
-libc = "0.2.139"
+libc = "0.2.183"
 openssl = "0.10.72"
 openssl-sys = "0.9.99"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
