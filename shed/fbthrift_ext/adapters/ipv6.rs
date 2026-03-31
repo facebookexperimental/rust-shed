@@ -10,57 +10,38 @@
 
 //! Adapters that interpret thrift types as [`Ipv6Addr`]s.
 
-use std::marker::PhantomData;
-use std::net::AddrParseError;
 use std::net::Ipv6Addr;
-use std::str::FromStr;
 
-use fbthrift::adapter::ThriftAdapter;
+use fbthrift::adapter::FromStrAdapter;
 
 /// Adapts thrift strings as [`Ipv6Addr`]s.
-///
-/// For more information, see implementation documentation.
-pub struct Ipv6AddressAdapter<T> {
-    inner: PhantomData<T>,
-}
-
-/// Implementation for adapting a thrift string.
-///
-/// This adapter can perform round-trip serialization and deserialization
-/// without transforming data for all non-empty inputs.
 ///
 /// # Examples
 ///
 /// ```thrift
 /// include "thrift/annotation/rust.thrift";
 ///
-/// @rust.Adapter{name = "::fbthrift_adapters::Ipv6AddressAdapter<>"}
+/// @rust.Adapter{name = "::fbthrift_adapters::Ipv6AddressAdapter"}
 /// typedef string Ipv6Address;
 ///
 /// struct CreateWorkflowRequest {
 ///   1: Ipv6Address target;
 /// }
 /// ```
-impl ThriftAdapter for Ipv6AddressAdapter<String> {
-    type StandardType = String;
-    type AdaptedType = Ipv6Addr;
-
-    type Error = AddrParseError;
-
-    fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
-        value.to_string()
-    }
-
-    fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-        Ipv6Addr::from_str(&value)
-    }
-}
+// NOTE: Generic `T` (defaulted to `String`) is present in order to preserve
+// backwards compatibility with users of the adapter passing the generic type
+// parameter (`@rust.Adapter{name = "::fbthrift_adapters::Ipv6AddressAdapter<>"}`).
+// Once all users have migrated to the format without the generic type parameter
+// then the generic from the type alias can be removed.
+// If `T` generic is removed, we will be able to remove the redundant generic from
+// `FromStrAdapter` as well.
+pub type Ipv6AddressAdapter<T = String> = FromStrAdapter<Ipv6Addr, T>;
 
 #[cfg(test)]
 mod string_impl {
-    use super::*;
+    use fbthrift::adapter::ThriftAdapter;
 
-    type Ipv6AddressAdapter = super::Ipv6AddressAdapter<String>;
+    use super::*;
 
     #[test]
     fn round_trip() {

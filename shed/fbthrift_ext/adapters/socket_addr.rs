@@ -10,57 +10,31 @@
 
 //! Adapters that interpret thrift types as [`SocketAddr`]s.
 
-use std::marker::PhantomData;
-use std::net::AddrParseError;
 use std::net::SocketAddr;
-use std::str::FromStr;
 
-use fbthrift::adapter::ThriftAdapter;
+use fbthrift::adapter::FromStrAdapter;
 
 /// Adapts thrift strings as [`SocketAddr`]s.
-///
-/// For more information, see implementation documentation.
-pub struct SocketAddrAdapter<T> {
-    inner: PhantomData<T>,
-}
-
-/// Implementation for adapting a thrift string.
-///
-/// This adapter can perform round-trip serialization and deserialization
-/// without transforming data for all non-empty inputs.
 ///
 /// # Examples
 ///
 /// ```thrift
 /// include "thrift/annotation/rust.thrift";
 ///
-/// @rust.Adapter{name = "::fbthrift_adapters::SocketAddrAdapter<>"}
+/// @rust.Adapter{name = "::fbthrift_adapters::SocketAddrAdapter"}
 /// typedef string SocketAddr;
 ///
 /// struct CreateWorkflowRequest {
 ///   1: SocketAddr target;
 /// }
 /// ```
-impl ThriftAdapter for SocketAddrAdapter<String> {
-    type StandardType = String;
-    type AdaptedType = SocketAddr;
-
-    type Error = AddrParseError;
-
-    fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
-        value.to_string()
-    }
-
-    fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-        SocketAddr::from_str(&value)
-    }
-}
+pub type SocketAddrAdapter = FromStrAdapter<SocketAddr>;
 
 #[cfg(test)]
 mod string_impl {
-    use super::*;
+    use fbthrift::adapter::ThriftAdapter;
 
-    type SocketAddrAdapter = super::SocketAddrAdapter<String>;
+    use super::*;
 
     #[test]
     fn round_trip_ipv4() {

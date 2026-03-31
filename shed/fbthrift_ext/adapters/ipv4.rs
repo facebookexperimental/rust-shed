@@ -10,57 +10,38 @@
 
 //! Adapters that interpret thrift types as [`Ipv4Addr`]s.
 
-use std::marker::PhantomData;
-use std::net::AddrParseError;
 use std::net::Ipv4Addr;
-use std::str::FromStr;
 
-use fbthrift::adapter::ThriftAdapter;
+use fbthrift::adapter::FromStrAdapter;
 
 /// Adapts thrift strings as [`Ipv4Addr`]s.
-///
-/// For more information, see implementation documentation.
-pub struct Ipv4AddressAdapter<T> {
-    inner: PhantomData<T>,
-}
-
-/// Implementation for adapting a thrift string.
-///
-/// This adapter can perform round-trip serialization and deserialization
-/// without transforming data for all non-empty inputs.
 ///
 /// # Examples
 ///
 /// ```thrift
 /// include "thrift/annotation/rust.thrift";
 ///
-/// @rust.Adapter{name = "::fbthrift_adapters::Ipv4AddressAdapter<>"}
+/// @rust.Adapter{name = "::fbthrift_adapters::Ipv4AddressAdapter"}
 /// typedef string Ipv4Address;
 ///
 /// struct CreateWorkflowRequest {
 ///   1: Ipv4Address target;
 /// }
 /// ```
-impl ThriftAdapter for Ipv4AddressAdapter<String> {
-    type StandardType = String;
-    type AdaptedType = Ipv4Addr;
-
-    type Error = AddrParseError;
-
-    fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
-        value.to_string()
-    }
-
-    fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-        Ipv4Addr::from_str(&value)
-    }
-}
+// NOTE: Generic `T` (defaulted to `String`) is present in order to preserve
+// backwards compatibility with users of the adapter passing the generic type
+// parameter (`@rust.Adapter{name = "::fbthrift_adapters::Ipv4AddressAdapter<>"}`).
+// Once all users have migrated to the format without the generic type parameter
+// then the generic from the type alias can be removed.
+// If `T` generic is removed, we will be able to remove the redundant generic from
+// `FromStrAdapter` as well.
+pub type Ipv4AddressAdapter<T = String> = FromStrAdapter<Ipv4Addr, T>;
 
 #[cfg(test)]
 mod string_impl {
-    use super::*;
+    use fbthrift::adapter::ThriftAdapter;
 
-    type Ipv4AddressAdapter = super::Ipv4AddressAdapter<String>;
+    use super::*;
 
     #[test]
     fn round_trip() {
