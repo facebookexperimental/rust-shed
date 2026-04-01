@@ -33,7 +33,7 @@ impl Sampling {
     /// sample_rate samples will be sampled in.
     #[must_use]
     pub fn subsampled<R: Rng>(&self, rng: &mut R, sample_rate: NonZeroU64) -> Self {
-        let val = rng.gen_range(0..sample_rate.get());
+        let val = rng.random_range(0..sample_rate.get());
 
         let previous_sample_rate = match self {
             Self::NoSampling => const { NonZeroU64::new(1).unwrap() },
