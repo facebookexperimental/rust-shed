@@ -21,12 +21,12 @@ lru-disk-cache = { git = "https://github.com/mozilla/sccache", rev = "fdbf843d17
 minijail = { git = "https://chromium.googlesource.com/chromiumos/platform/minijail", rev = "fc020fd4672b3340ee706e192d043e12df8c8578" }
 modcholesky = { git = "https://github.com/argmin-rs/modcholesky", rev = "0ef5ed8f589ec77ff348d98747431aefa369f942" }
 murmur3 = { git = "https://github.com/stusmall/murmur3", rev = "f363bf6dd1d668988bf798c320823f8ceaedf5aa" }
-opentelemetry = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
-opentelemetry-http = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
-opentelemetry-otlp = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
-opentelemetry-proto = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
-opentelemetry-stdout = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
-opentelemetry_sdk = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "30bb49533c56d41e79c82961a55e77002bc7d3d5" }
+opentelemetry = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
+opentelemetry-http = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
+opentelemetry-otlp = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
+opentelemetry-proto = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
+opentelemetry-stdout = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
+opentelemetry_sdk = { git = "https://github.com/open-telemetry/opentelemetry-rust", rev = "b998a568632baaa424793a000dfb015f28b5aa5c" }
 pcap = { git = "https://github.com/qrnch-jan/pcap", rev = "0c6ed076c84ef0c63198d384a24d66b737b24e4a" }
 perf-event = { version = "0.4", git = "https://github.com/Nero5023/perf-event.git", rev = "6dae86b6d4807acec081e6dc0a53167f57f8c0f4" }
 perf-event-open-sys = { version = "5.0", git = "https://github.com/Nero5023/perf-event.git", rev = "6dae86b6d4807acec081e6dc0a53167f57f8c0f4" }
