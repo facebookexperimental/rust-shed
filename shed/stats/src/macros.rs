@@ -202,6 +202,10 @@ macro_rules! define_stats {
         #[allow(non_snake_case, non_upper_case_globals, unused_imports, clippy::redundant_pub_crate)]
         pub(crate) mod STATS {
             use $crate::macros::common_macro_prelude::*;
+            // Import caller's symbols so that custom types (e.g. newtypes implementing
+            // Display) can be used as dynamic stat key parameters without requiring
+            // `super::` or fully qualified paths.
+            use super::*;
 
             static STATS_MAP: LazyLock<Arc<ThreadMap<BoxStatsManager>>> = LazyLock::new(|| create_map());
             static STATS_MANAGER: LazyLock<BoxStatsManager> = LazyLock::new(|| create_stats_manager());
