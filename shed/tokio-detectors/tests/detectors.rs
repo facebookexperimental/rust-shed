@@ -252,7 +252,12 @@ mod unix_lrtd_tests {
             tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
             println!("Done");
         });
-        assert!(to_assert_blocking.contains_symbol("std::thread::sleep"));
+        // On Linux the symbol is "std::thread::sleep", on Darwin it's
+        // "std::thread::functions::sleep".
+        assert!(
+            to_assert_blocking.contains_symbol("std::thread::sleep")
+                || to_assert_blocking.contains_symbol("std::thread::functions::sleep")
+        );
         lrtd.stop()
     }
 }
