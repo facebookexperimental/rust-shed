@@ -102,7 +102,7 @@ pub fn expand(mode: Mode, args: Args, mut function: ItemFn) -> Result<TokenStrea
 
     let perform_init = match args.disable_fatal_signals {
         DisableFatalSignals::Default => {
-            // 8002 is 1 << 15 (SIGTERM) | 1 << 2 (SIGINT)
+            // 8002 is 1 << 15 (SIGTERM) | 1 << 1 (SIGINT)
             quote! {
                 fbinit::perform_init_with_disable_signals(0x8002)
             }
