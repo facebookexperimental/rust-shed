@@ -1,6 +1,6 @@
 [patch.crates-io]
 abomonation = { git = "https://github.com/markbt/abomonation", rev = "0f43346d2afa2aedc64d61f3f4273e8d1e454642" }
-audio_streams = { git = "https://github.com/google/crosvm", rev = "7d2e877a2a0a772c199fe8b6b51aec7c1b166467" }
+audio_streams = { git = "https://github.com/google/crosvm", rev = "299c1e7c3d5a1b98106212c20f58b9fdb7b1b1ea" }
 backtrace = { git = "https://github.com/rust-lang/backtrace-rs", rev = "df979dcf80027eb047d7bb9e0874710c15009f31" }
 base64urlsafedata = { git = "https://github.com/kanidm/webauthn-rs.git", rev = "d278c56adfa39a0723c79bdcd461644194bc5138" }
 bf-tree = { git = "https://github.com/ddrcoder/bf-tree.git", rev = "5b66d45329ba1c992c247983c0803baf38bbb55f" }
@@ -16,7 +16,7 @@ imgui = { git = "https://github.com/imgui-rs/imgui-rs.git", rev = "2abba18c08fb5
 imgui-sys = { git = "https://github.com/imgui-rs/imgui-rs.git", rev = "2abba18c08fb5e70c699ba7992342e7ff8573b09" }
 js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
 k = { git = "https://github.com/prnthp-meta/k", rev = "f06b504c563a4763dbf2d47366b868f67d5c9dd2" }
-libcras = { git = "https://github.com/google/crosvm", rev = "7d2e877a2a0a772c199fe8b6b51aec7c1b166467" }
+libcras = { git = "https://github.com/google/crosvm", rev = "299c1e7c3d5a1b98106212c20f58b9fdb7b1b1ea" }
 lru-disk-cache = { git = "https://github.com/mozilla/sccache", rev = "fdbf843d174c6796d736b2b61dab0297670390f8" }
 minijail = { git = "https://chromium.googlesource.com/chromiumos/platform/minijail", rev = "fc020fd4672b3340ee706e192d043e12df8c8578" }
 modcholesky = { git = "https://github.com/argmin-rs/modcholesky", rev = "0ef5ed8f589ec77ff348d98747431aefa369f942" }
