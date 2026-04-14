@@ -11,6 +11,7 @@
 use std::num::NonZeroU64;
 
 use rand::Rng;
+use rand::RngExt as _;
 
 use crate::SampleResult;
 use crate::Sampleable;
