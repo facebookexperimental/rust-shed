@@ -12,7 +12,7 @@
 
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
-use rand::Rng;
+use rand::RngExt as _;
 use rand::distr::Alphanumeric;
 use rand::rng;
 use sql::Connection;

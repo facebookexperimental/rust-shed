@@ -90,6 +90,7 @@ impl<C: KVCategorizer> Serializer for CollectorSerializer<'_, C> {
 mod tests {
     use itertools::assert_equal;
     use rand::Rng;
+    use rand::RngExt as _;
     use rand::SeedableRng;
     use rand::rngs::StdRng;
     use slog::KV;

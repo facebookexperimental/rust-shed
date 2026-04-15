@@ -20,7 +20,7 @@ use anyhow::Result;
 use anyhow::anyhow;
 use blake3::Hash;
 use clap::Parser;
-use rand::RngCore;
+use rand::Rng as _;
 
 const BENCH_DIR_NAME: &str = "__fsiomicrobench__";
 const COMBINED_DATA_FILE_NAME: &str = "__combined_data__";

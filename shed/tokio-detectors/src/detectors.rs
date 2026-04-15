@@ -81,7 +81,7 @@ use std::thread;
 use std::thread::ThreadId;
 use std::time::Duration;
 
-use rand::Rng;
+use rand::RngExt as _;
 use rand::rng;
 use tokio::runtime::Builder;
 use tokio::runtime::Runtime;
