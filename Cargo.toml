@@ -14,7 +14,6 @@ cxx-build = { git = "https://github.com/facebookexperimental/cxx.git", rev = "87
 displaydoc = { git = "https://github.com/yaahc/displaydoc", rev = "7dc6e324b1788a6b7fb9f3a1953c512923a3e9f0" }
 imgui = { git = "https://github.com/imgui-rs/imgui-rs.git", rev = "2abba18c08fb5e70c699ba7992342e7ff8573b09" }
 imgui-sys = { git = "https://github.com/imgui-rs/imgui-rs.git", rev = "2abba18c08fb5e70c699ba7992342e7ff8573b09" }
-js-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
 k = { git = "https://github.com/prnthp-meta/k", rev = "f06b504c563a4763dbf2d47366b868f67d5c9dd2" }
 libcras = { git = "https://github.com/google/crosvm", rev = "299c1e7c3d5a1b98106212c20f58b9fdb7b1b1ea" }
 lru-disk-cache = { git = "https://github.com/mozilla/sccache", rev = "fdbf843d174c6796d736b2b61dab0297670390f8" }
@@ -56,15 +55,6 @@ tokio-postgres = { git = "https://github.com/neondatabase/rust-postgres.git", re
 tonic = { git = "https://github.com/hyperium/tonic", rev = "322ed793ea14c6f8a53381234cc1d4a296021cad" }
 vm-allocator = { git = "https://github.com/rust-vmm/vm-allocator", rev = "5fb545cc6e41fdc9f27d48d97ed26274a35bc6c6" }
 warp = { git = "https://github.com/jdthomas/warp.git", rev = "c794232d182abaa3add8184e7d661e084cc516c5" }
-wasm-bindgen = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-cli = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-cli-support = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-futures = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-macro = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-macro-support = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-shared = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-wasm-bindgen-test-shared = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
-web-sys = { git = "https://github.com/wasm-bindgen/wasm-bindgen", rev = "cbd0b73baa436c29cc258c62c11f0b46ed2e17c3" }
 zbus = { git = "https://github.com/z-galaxy/zbus", rev = "40d8995fa012652c1b1e1e9bd96e54327024be09" }
 zbus_macros = { git = "https://github.com/z-galaxy/zbus", rev = "40d8995fa012652c1b1e1e9bd96e54327024be09" }
 zvariant = { git = "https://github.com/z-galaxy/zbus", rev = "40d8995fa012652c1b1e1e9bd96e54327024be09" }
