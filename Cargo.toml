@@ -6,8 +6,6 @@ base64urlsafedata = { git = "https://github.com/kanidm/webauthn-rs.git", rev = "
 bf-tree = { git = "https://github.com/ddrcoder/bf-tree.git", rev = "5b66d45329ba1c992c247983c0803baf38bbb55f" }
 bindgen = { git = "https://github.com/jsgf/rust-bindgen", rev = "4d385d21c160e6ee1f443aeb7e00528a1dc7fd44" }
 bindgen-cli = { git = "https://github.com/jsgf/rust-bindgen", rev = "4d385d21c160e6ee1f443aeb7e00528a1dc7fd44" }
-bytemuck = { git = "https://github.com/jsgf/bytemuck", rev = "e7ba210910d49dee833773b2a3e0f5e39805ba08" }
-bytemuck_derive = { git = "https://github.com/jsgf/bytemuck", rev = "e7ba210910d49dee833773b2a3e0f5e39805ba08" }
 c2pa = { git = "https://github.com/peekmoar/c2pa-rs", rev = "6bcd530a0b681d828e1b07430058c13427fe8bb1" }
 cxx = { git = "https://github.com/facebookexperimental/cxx.git", rev = "870ebbecad0f6be394d4f9fb9bd62b551662651a" }
 cxx-build = { git = "https://github.com/facebookexperimental/cxx.git", rev = "870ebbecad0f6be394d4f9fb9bd62b551662651a" }
