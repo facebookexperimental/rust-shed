@@ -63,6 +63,49 @@ impl Drop for WeightGuard {
     }
 }
 
+/// Wraps an item with a `WeightGuard` so that its tracked weight is
+/// automatically removed when the item is dropped. This makes weight
+/// leaks structurally impossible — if a stream is dropped mid-way,
+/// all remaining guards fire and clean up.
+pub struct WeightedItem<T> {
+    inner: T,
+    _guard: WeightGuard,
+}
+
+impl<T> WeightedItem<T> {
+    /// Wrap an item, call `on_weight_added`, and create a guard that
+    /// will call `on_weight_removed` when this wrapper is dropped.
+    pub fn tracked(inner: T, observer: &Option<Arc<dyn WeightObserver>>, weight: usize) -> Self {
+        if let Some(obs) = observer {
+            obs.on_weight_added(weight);
+        }
+        Self {
+            inner,
+            _guard: WeightGuard {
+                observer: observer.clone(),
+                weight,
+            },
+        }
+    }
+
+    /// Wrap an item with no weight tracking (for unweighted paths).
+    pub fn untracked(inner: T) -> Self {
+        Self {
+            inner,
+            _guard: WeightGuard {
+                observer: None,
+                weight: 0,
+            },
+        }
+    }
+
+    /// Destructure into the inner item and the guard.
+    /// The guard fires `on_weight_removed` when it goes out of scope.
+    pub fn into_parts(self) -> (T, WeightGuard) {
+        (self.inner, self._guard)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::sync::atomic::AtomicUsize;
@@ -146,6 +189,43 @@ mod tests {
         add_only.on_weight_removed(100);
         assert_eq!(inner.total_removed.load(Ordering::Relaxed), 0);
         assert_eq!(inner.net_weight(), 100);
+    }
+
+    #[test]
+    fn weighted_item_tracked_adds_and_removes() {
+        let observer = MockWeightObserver::new_arc();
+        {
+            let _item = WeightedItem::tracked(42u64, &Some(observer.clone()), 200);
+            assert_eq!(observer.net_weight(), 200);
+        }
+        assert_eq!(observer.net_weight(), 0);
+    }
+
+    #[test]
+    fn weighted_item_untracked_no_side_effects() {
+        let observer = MockWeightObserver::new_arc();
+        {
+            let _item = WeightedItem::untracked(42u64);
+        }
+        assert_eq!(observer.net_weight(), 0);
+    }
+
+    #[test]
+    fn weighted_item_into_parts_guard_fires_on_drop() {
+        let observer = MockWeightObserver::new_arc();
+        let item = WeightedItem::tracked("hello", &Some(observer.clone()), 50);
+        assert_eq!(observer.net_weight(), 50);
+        {
+            let (inner, _guard) = item.into_parts();
+            assert_eq!(inner, "hello");
+            assert_eq!(observer.net_weight(), 50);
+        }
+        assert_eq!(observer.net_weight(), 0);
+    }
+
+    #[test]
+    fn weighted_item_none_observer() {
+        let _item = WeightedItem::tracked(99u32, &None, 100);
     }
 
     #[test]
