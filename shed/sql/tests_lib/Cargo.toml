@@ -17,7 +17,7 @@ path = "lib.rs"
 anyhow = "1.0.102"
 chrono = { version = "0.4.44", features = ["clock", "serde", "std"], default-features = false }
 fbinit = { version = "0.2.0", path = "../../fbinit" }
-rand = "0.10"
+rand = "0.10.1"
 sql = { version = "0.1.0", path = ".." }
 
 [lints]

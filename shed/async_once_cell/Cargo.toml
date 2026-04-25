@@ -14,4 +14,4 @@ tokio = { version = "1.52.1", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
-rand = "0.10"
+rand = "0.10.1"
