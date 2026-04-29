@@ -10,6 +10,9 @@
 
 use futures::Future;
 
+#[cfg(all(fbcode_build, target_os = "linux"))]
+mod facebook;
+
 pub fn tokio_test<F>(tokio_workers: Option<usize>, f: F) -> <F as Future>::Output
 where
     F: Future,
@@ -32,5 +35,7 @@ where
     if let Some(tokio_workers) = tokio_workers {
         runtime.worker_threads(tokio_workers);
     }
+    #[cfg(all(fbcode_build, target_os = "linux"))]
+    facebook::maybe_install_request_context_hooks(&mut runtime);
     runtime.enable_all().build().unwrap().block_on(f)
 }
