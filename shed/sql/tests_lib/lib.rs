@@ -443,8 +443,7 @@ pub mod mysql_test_lib {
 
         let pool_options = ConnectionPoolOptionsBuilder::default()
             .pool_limit(2)
-            .build()
-            .map_err(Error::msg)?;
+            .build();
         let pool = ConnectionPool::new(&client, &pool_options)?.bind(locator);
 
         let stats = Arc::new(MysqlConnectionStats::new("test".to_string()));
