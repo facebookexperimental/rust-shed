@@ -276,8 +276,15 @@ mod test {
         assert!(CachedConfigJustKnobs::eval("my/config:knob1", None, None).unwrap());
         assert!(CachedConfigJustKnobs::eval("my/config:knob2", None, None).is_err());
 
-        assert!(justknobs::eval("my/config:knob1", None, None).unwrap());
-        assert!(justknobs::eval("my/config:knob2", None, None).is_err());
+        assert!(justknobs::eval("my/config:knob1", None, None));
+
+        // knob2 is not configured, so the wrapper should panic when reading it.
+        let panic_result =
+            std::panic::catch_unwind(|| justknobs::eval("my/config:knob2", None, None));
+        assert!(
+            panic_result.is_err(),
+            "Expected panic when evaluating a missing JustKnob"
+        );
         Ok(())
     }
 }

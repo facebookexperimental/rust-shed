@@ -21,8 +21,8 @@ fn test_jk_override() -> Result<()> {
         }),
         || {
             (
-                justknobs::eval("my/config:knob1", None, None).unwrap(),
-                justknobs::get("my/config:knob2", None).unwrap(),
+                justknobs::eval("my/config:knob1", None, None),
+                justknobs::get("my/config:knob2", None),
             )
         },
     );

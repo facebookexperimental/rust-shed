@@ -53,7 +53,7 @@ trait JustKnobs {
         T: TryFrom<i64>,
         <T as TryFrom<i64>>::Error: std::error::Error + Send + Sync + 'static,
     {
-        Ok(get(name, switch_val)?.try_into()?)
+        Ok(get(name, switch_val).try_into()?)
     }
 }
 
@@ -98,37 +98,40 @@ impl JustKnobs for JustKnobsCombinedImpl {
 
 /// Evaluate a Boolean knob.
 ///
-/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
-/// returned.  If this function returns an error then that may indicate a real
-/// problem (e.g. the JK has not been created or has been misspelled).
-/// Failures are not cached, so performance of failures is significantly worse
-/// than successful lookups.
-pub fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> Result<bool> {
+/// Panics if the read fails (e.g. the JK has not been created or has been
+/// misspelled). Defaults belong in `just_knobs.json`, not at the call site —
+/// silently swallowing a failed read masks misconfiguration. Failures are not
+/// cached, so performance of failures is significantly worse than successful
+/// lookups.
+pub fn eval(name: &str, hash_val: Option<&str>, switch_val: Option<&str>) -> bool {
     JustKnobsCombinedImpl::eval(name, hash_val, switch_val)
+        .unwrap_or_else(|e| panic!("JustKnobs eval failed for {name}: {e:#}"))
 }
 
 /// Evaluate a numeric knob.
 ///
-/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
-/// returned.  If this function returns an error then that may indicate a real
-/// problem (e.g. the JK has not been created or has been misspelled).
-/// Failures are not cached, so performance of failures is significantly worse
-/// than successful lookups.
-pub fn get(name: &str, switch_val: Option<&str>) -> Result<i64> {
+/// Panics if the read fails (e.g. the JK has not been created or has been
+/// misspelled). Defaults belong in `just_knobs.json`, not at the call site —
+/// silently swallowing a failed read masks misconfiguration. Failures are not
+/// cached, so performance of failures is significantly worse than successful
+/// lookups.
+pub fn get(name: &str, switch_val: Option<&str>) -> i64 {
     JustKnobsCombinedImpl::get(name, switch_val)
+        .unwrap_or_else(|e| panic!("JustKnobs get failed for {name}: {e:#}"))
 }
 
 /// Evaluate a numeric knob as a particular type.
 ///
-/// Do not use `unwrap_or` or otherwise ignore errors on the `Result` that is
-/// returned.  If this function returns an error then that may indicate a real
-/// problem (e.g. the JK has not been created or has been misspelled).
-/// Failures are not cached, so performance of failures is significantly worse
-/// than successful lookups.
-pub fn get_as<T>(name: &str, switch_val: Option<&str>) -> Result<T>
+/// Panics if the read fails (e.g. the JK has not been created or has been
+/// misspelled) or if the value cannot be converted to `T`. Defaults belong in
+/// `just_knobs.json`, not at the call site — silently swallowing a failed read
+/// masks misconfiguration. Failures are not cached, so performance of failures
+/// is significantly worse than successful lookups.
+pub fn get_as<T>(name: &str, switch_val: Option<&str>) -> T
 where
     T: TryFrom<i64>,
     <T as TryFrom<i64>>::Error: std::error::Error + Send + Sync + 'static,
 {
     JustKnobsCombinedImpl::get_as(name, switch_val)
+        .unwrap_or_else(|e| panic!("JustKnobs get_as failed for {name}: {e:#}"))
 }
