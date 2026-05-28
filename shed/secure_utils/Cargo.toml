@@ -14,8 +14,8 @@ license = "MIT OR Apache-2.0"
 anyhow = "1.0.102"
 hex = { version = "0.4.3", features = ["alloc"] }
 libc = "0.2.186"
-openssl = "0.10.72"
-openssl-sys = "0.9.99"
+openssl = "0.10.80"
+openssl-sys = "0.9.116"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
 serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
 slog = { version = "2.8.2", features = ["max_level_trace", "nested-values"] }
