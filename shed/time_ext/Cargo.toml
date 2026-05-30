@@ -15,4 +15,4 @@ anyhow = "1.0.102"
 thiserror = "2.0.18"
 
 [dev-dependencies]
-quickcheck = "1.0"
+quickcheck = "1.1"

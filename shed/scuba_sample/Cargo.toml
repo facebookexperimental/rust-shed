@@ -20,4 +20,4 @@ thiserror = "2.0.18"
 [dev-dependencies]
 assert_matches = "1.5"
 nonzero_ext = "0.2"
-quickcheck = "1.0"
+quickcheck = "1.1"
