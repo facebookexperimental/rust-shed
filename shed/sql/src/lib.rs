@@ -1281,50 +1281,40 @@ macro_rules! _prepare_sqlite_params {
 }
 
 #[macro_export]
-/// Given types `T`, `Intermediate`, and `Raw` as macro arguments:
-///   * Define `FromValue` for `T` with `Intermedate` set as the associated type.
-///   * Define `From<T>` for `Value` in terms of `impl From<T> for Raw`
-///   * Derive an impl for `ConvIr<T>` for `Intermediate` by delegating to the
-///     `ConvIr<Raw>` impl
+/// Given types `T` and `Raw` as macro arguments:
+///   * Define `FromValue` for `T` using `T` itself as the intermediate.
+///   * Define `TryFrom<Value>` for `T` by parsing a `Raw` and converting it via
+///     `impl From<Raw> for T`.
+///   * Define `From<T>` for `Value` in terms of `impl Into<Raw> for T`.
 ///
 /// Requires the following constraints:
-///    * `Intermediate` already implements `ConvIr<Raw>`
+///    * `Raw` implements `FromValue`
 ///    * `T` implements both `From<Raw>` and `Into<Raw>`
 ///
 /// # Example:
 /// ```ignore
 /// use derive_more::{From, Into};
-/// use mysql_common::value::convert::ParseIr;
 ///
 /// #[derive(From, Into, mysql::OptTryFromRowField)]
 /// pub struct MyID(u64);
-/// sql::proxy_conv_ir!(MyID, ParseIr<u64>, u64);
-/// ```
-/// will expand to the equivalent of:
-/// ```ignore
-/// use derive_more::{From, Into};
-/// use mysql_common::value::convert::ParseIr;
-///
-/// #[derive(From, Into, mysql::OptTryFromRowField)]
-/// pub struct MyID(u64);
-/// impl mysql_async::prelude::FromValue for MyId {
-///    type Intermediate = ParseIr<u64>
-/// }
-/// impl From<MyId> for mysql_async::Value {
-///     fn from(f: MyId) -> mysql_async::Value {
-///         let r: u64 = f.into();
-///         r.into()
-///     }
-/// }
-/// impl mysql_async::prelude::ConvIr<MyId> for ParseIr<u64> {
-///   // delegates `new`, `commit` and `rollback` from ConvIr<MyId> to ConvIr<u64>
-///   // Includes type conversions between u64 and MyId via `into` where needed
-/// }
+/// sql::proxy_conv_ir!(MyID, u64);
 /// ```
 macro_rules! proxy_conv_ir {
-    ($t:ty, $intermediate:ty, $raw:ty) => {
+    ($t:ty, $raw:ty) => {
         impl $crate::mysql_async::prelude::FromValue for $t {
-            type Intermediate = $intermediate;
+            type Intermediate = $t;
+        }
+
+        impl ::std::convert::TryFrom<$crate::mysql_async::Value> for $t {
+            type Error = $crate::mysql_async::FromValueError;
+
+            #[inline(always)]
+            fn try_from(
+                v: $crate::mysql_async::Value,
+            ) -> ::std::result::Result<$t, $crate::mysql_async::FromValueError> {
+                let raw: $raw = $crate::mysql_async::prelude::FromValue::from_value_opt(v)?;
+                ::std::result::Result::Ok(<$t as ::std::convert::From<$raw>>::from(raw))
+            }
         }
 
         impl From<$t> for $crate::mysql_async::Value {
@@ -1332,25 +1322,6 @@ macro_rules! proxy_conv_ir {
             fn from(f: $t) -> $crate::mysql_async::Value {
                 let r: $raw = f.into();
                 r.into()
-            }
-        }
-
-        impl $crate::mysql_async::prelude::ConvIr<$t> for $intermediate {
-            #[inline(always)]
-            fn new(
-                v: $crate::mysql_async::Value,
-            ) -> Result<$intermediate, $crate::mysql_async::FromValueError> {
-                $crate::mysql_async::prelude::ConvIr::<$raw>::new(v)
-            }
-
-            #[inline(always)]
-            fn commit(self) -> $t {
-                $crate::mysql_async::prelude::ConvIr::<$raw>::commit(self).into()
-            }
-
-            #[inline(always)]
-            fn rollback(self) -> $crate::mysql_async::Value {
-                $crate::mysql_async::prelude::ConvIr::<$raw>::rollback(self)
             }
         }
     };

@@ -20,7 +20,7 @@ cloned = { version = "0.1.0", path = "../../cloned" }
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
 futures_stats = { version = "0.1.0", path = "../../futures_stats" }
 itertools = "0.14.0"
-mysql_async = "0.31.2"
+mysql_async = "0.33.0"
 mysql_client_traits = { version = "0.1.0", path = "../mysql_client_traits" }
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.37.0", features = ["backup", "blob", "bundled", "column_decltype", "functions", "limits", "modern_sqlite", "serde_json"] }

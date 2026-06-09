@@ -36,20 +36,20 @@ impl ToValue for A {
 pub struct B;
 pub struct IntB;
 
-impl ConvIr<B> for IntB {
-    fn new(v: Value) -> Result<Self, FromValueError> {
+impl TryFrom<Value> for IntB {
+    type Error = FromValueError;
+
+    fn try_from(v: Value) -> Result<Self, FromValueError> {
         match v {
             Value::NULL => Ok(IntB),
             v => Err(FromValueError(v)),
         }
     }
+}
 
-    fn commit(self) -> B {
+impl From<IntB> for B {
+    fn from(_: IntB) -> B {
         B
-    }
-
-    fn rollback(self) -> Value {
-        Value::NULL
     }
 }
 
