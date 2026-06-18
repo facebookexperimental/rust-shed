@@ -19,7 +19,7 @@ camino = { version = "1.2.2", features = ["serde1"] }
 chrono = { version = "0.4.45", features = ["clock", "serde", "std"], default-features = false }
 either = "1.16.0"
 fbthrift = { version = "0.0.1+unstable", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
-ordered-float = { version = "4.6.0", features = ["serde"] }
+ordered-float = { version = "5.3.0", features = ["serde"] }
 paste = "1.0.14"
 serde = { version = "1.0.219", features = ["derive", "rc"] }
 serde_derive = "1.0.185"
