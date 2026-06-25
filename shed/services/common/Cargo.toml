@@ -18,5 +18,5 @@ path = "lib.rs"
 cxx = "1.0.194"
 thiserror = "2.0.18"
 
-[lints]
-rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}

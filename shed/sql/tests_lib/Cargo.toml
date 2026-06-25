@@ -20,5 +20,5 @@ fbinit = { version = "0.2.0", path = "../../fbinit" }
 rand = "0.10.1"
 sql = { version = "0.1.0", path = ".." }
 
-[lints]
-rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}

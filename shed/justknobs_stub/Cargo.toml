@@ -31,5 +31,5 @@ fbinit = { version = "0.2.0", path = "../fbinit" }
 maplit = "1.0"
 slog_glog_fmt = { version = "0.1.0", path = "../slog_glog_fmt" }
 
-[lints]
-rust = { unexpected_cfgs = { check-cfg = ["cfg(fbcode_build)"], level = "warn" } }
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}

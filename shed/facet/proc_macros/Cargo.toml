@@ -21,5 +21,5 @@ proc-macro2 = { version = "1.0.106", features = ["span-locations"] }
 quote = "1.0.45"
 syn = { version = "2.0.118", features = ["extra-traits", "fold", "full", "visit", "visit-mut"] }
 
-[lints]
-rust = { unexpected_cfgs = { check-cfg = ["cfg(fb_buck_build)"], level = "warn" } }
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fb_buck_build)"]}
