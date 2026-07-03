@@ -303,6 +303,8 @@ pub enum ServerData {
     JobHandle,
     /// Tupperware TaskHandle of the service
     TaskHandle,
+    /// Kernel release of the server
+    Kernel,
     /// Build revision of the current binary
     BuildRevision,
     /// Build rule of the current binary
@@ -335,6 +337,7 @@ impl ServerData {
             ServerData::CanaryId => "tw_canary_id",
             ServerData::JobHandle => "tw_handle",
             ServerData::TaskHandle => "tw_task_handle",
+            ServerData::Kernel => "kernel",
             ServerData::BuildRevision => "build_revision",
             ServerData::BuildRule => "build_rule",
             ServerData::ScheduledJobCluster => "chronos_cluster",
