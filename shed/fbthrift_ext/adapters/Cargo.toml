@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-bstr = { version = "1.10.0", features = ["serde", "std", "unicode"] }
+bstr = { version = "1.12.3", features = ["serde", "std", "unicode"] }
 camino = { version = "1.2.2", features = ["serde1"] }
 chrono = { version = "0.4.45", features = ["clock", "serde", "std"], default-features = false }
 either = "1.16.0"
