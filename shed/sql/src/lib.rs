@@ -465,19 +465,9 @@ macro_rules! _read_query_impl {
                         query.insert_str(0, &format!("/* {} */", comment));
                     }
                     let (res, tel) = conn.read_query(query).map_err(Error::from).await?;
-
-
-                    // TODO(T223577767): return telemetry after updating read_query return type
-                    #[cfg(fbcode_build)]
-                    {
-
-                        Ok((res, tel.map(QueryTelemetry::MySQL)))
-                    }
-
-                    #[cfg(not(fbcode_build))]
-                    {
-                        Ok((res, tel))
-                    }
+                    // `From`, not a cfg: `queries!` expands in consumer crates that
+                    // don't carry the backend cfg.
+                    Ok((res, tel.map(QueryTelemetry::from)))
                 }
                 Connection::OssMysql(conn) => {
                     let query = mysql_query($( $pname, )* $( $lname, )*);
@@ -542,16 +532,7 @@ macro_rules! _read_query_impl {
                     let mut tr = transaction.take()
                         .expect("should be Some before transaction ended");
                     let (result, tel) = tr.read_query(query).map_err(Error::from).await?;
-
-                    // TODO(T223577767): return telemetry after updating read_query return type
-                    #[cfg(fbcode_build)]
-                    {
-                        Ok((Transaction::Mysql(Some(tr)), (result, tel.map(QueryTelemetry::MySQL))))
-                    }
-                    #[cfg(not(fbcode_build))]
-                    {
-                        Ok((Transaction::Mysql(Some(tr)), (result, None)))
-                    }
+                    Ok((Transaction::Mysql(Some(tr)), (result, tel.map(QueryTelemetry::from))))
 
 
                 }

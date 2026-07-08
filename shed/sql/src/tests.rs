@@ -76,7 +76,7 @@ async fn test_visibility_modifiers_compile_with_sqlite() {
     test_query_visibility_modifiers_compile(prepare_sqlite_con()).await;
 }
 
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 #[cfg(test)]
 mod mysql {
 

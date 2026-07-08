@@ -21,4 +21,4 @@ rand = "0.10.2"
 sql = { version = "0.1.0", path = ".." }
 
 [lints.rust]
-unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)", "cfg(shed_sql_mysql)"]}

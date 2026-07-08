@@ -10,18 +10,18 @@
 
 //! Module provides an abstraction layer over Facebook Mysql client.
 
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 mod facebook;
-#[cfg(not(fbcode_build))]
+#[cfg(not(shed_sql_mysql))]
 mod mysql_stub;
 mod ossmysql_wrapper;
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 pub use facebook::Connection;
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 pub use facebook::MysqlError;
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 pub use facebook::MysqlQueryTelemetry;
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 pub use facebook::Transaction;
 pub use mysql_client_traits::OptionalTryFromRowField;
 pub use mysql_client_traits::RowField;
@@ -30,11 +30,11 @@ pub use mysql_client_traits::ValueError;
 pub use mysql_client_traits::opt_try_from_rowfield;
 pub use mysql_derive::OptTryFromRowField;
 pub use mysql_derive::TryFromRowField;
-#[cfg(not(fbcode_build))]
+#[cfg(not(shed_sql_mysql))]
 pub use mysql_stub::Connection;
-#[cfg(not(fbcode_build))]
+#[cfg(not(shed_sql_mysql))]
 pub use mysql_stub::MysqlError;
-#[cfg(not(fbcode_build))]
+#[cfg(not(shed_sql_mysql))]
 pub use mysql_stub::Transaction;
 pub use ossmysql_wrapper::OssConnection;
 pub use ossmysql_wrapper::OssQueryTelemetry;
@@ -167,11 +167,11 @@ pub enum IsolationLevel {
 }
 
 /// Result returned by a write query
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 pub struct WriteResult(u64, u64, Option<MysqlQueryTelemetry>);
 
 /// Result returned by a write query
-#[cfg(not(fbcode_build))]
+#[cfg(not(shed_sql_mysql))]
 pub struct WriteResult(u64, u64, Option<OssQueryTelemetry>);
 
 impl WriteResult {
@@ -179,8 +179,8 @@ impl WriteResult {
     pub fn new(
         last_insert_id: u64,
         rows_affected: u64,
-        #[cfg(fbcode_build)] query_telemetry: Option<MysqlQueryTelemetry>,
-        #[cfg(not(fbcode_build))] query_telemetry: Option<OssQueryTelemetry>,
+        #[cfg(shed_sql_mysql)] query_telemetry: Option<MysqlQueryTelemetry>,
+        #[cfg(not(shed_sql_mysql))] query_telemetry: Option<OssQueryTelemetry>,
     ) -> Self {
         WriteResult(last_insert_id, rows_affected, query_telemetry)
     }

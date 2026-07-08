@@ -167,7 +167,7 @@ impl WriteResult {
 /// Telemetry returned after a query is executed or transaction is committed.
 #[derive(Debug, Clone)]
 pub enum QueryTelemetry {
-    #[cfg(fbcode_build)]
+    #[cfg(shed_sql_mysql)]
     /// Internal MySQL
     MySQL(mysql::MysqlQueryTelemetry),
     /// OSS MySQL
@@ -176,7 +176,7 @@ pub enum QueryTelemetry {
     Sqlite(sqlite::SqliteQueryTelemetry),
 }
 
-#[cfg(fbcode_build)]
+#[cfg(shed_sql_mysql)]
 impl From<mysql::MysqlQueryTelemetry> for QueryTelemetry {
     fn from(telemetry: mysql::MysqlQueryTelemetry) -> Self {
         QueryTelemetry::MySQL(telemetry)
