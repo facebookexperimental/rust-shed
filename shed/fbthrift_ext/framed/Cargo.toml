@@ -15,7 +15,7 @@ path = "lib.rs"
 
 [dependencies]
 byteorder = "1.5"
-bytes = { version = "1.12.0", features = ["serde"] }
+bytes = { version = "1.12.1", features = ["serde"] }
 tokio-util = { version = "0.7.18", features = ["full"] }
 
 [dev-dependencies]
