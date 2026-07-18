@@ -20,4 +20,4 @@ tokio-util = { version = "0.7.18", features = ["full"] }
 
 [dev-dependencies]
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
-tokio = { version = "1.52.3", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.52.4", features = ["full", "test-util", "tracing"] }

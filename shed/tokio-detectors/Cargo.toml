@@ -12,7 +12,7 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 rand = "0.10.2"
-tokio = { version = "1.52.3", features = ["full", "test-util", "tracing"] }
+tokio = { version = "1.52.4", features = ["full", "test-util", "tracing"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2.186"
