@@ -22,7 +22,7 @@ slog = { package = "tracing_slog_compat", version = "0.1.0", path = "../tracing_
 tokio = { version = "1.52.4", features = ["full", "test-util", "tracing"] }
 
 [dev-dependencies]
-serde_derive = "1.0.185"
+serde_derive = "1.0.229"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}
