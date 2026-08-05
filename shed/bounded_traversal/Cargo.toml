@@ -16,7 +16,7 @@ smallvec = { version = "1.15.2", features = ["const_generics", "impl_bincode", "
 thiserror = "2.0.19"
 
 [dev-dependencies]
-anyhow = "1.0.103"
+anyhow = "1.0.104"
 cloned = { version = "0.1.0", path = "../cloned" }
 lock_ext = { version = "0.1.0", path = "../lock_ext" }
 maplit = "1.0"

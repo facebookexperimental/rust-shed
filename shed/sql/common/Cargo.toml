@@ -14,7 +14,7 @@ license = "MIT OR Apache-2.0"
 path = "lib.rs"
 
 [dependencies]
-anyhow = "1.0.103"
+anyhow = "1.0.104"
 async-trait = "0.1.91"
 cloned = { version = "0.1.0", path = "../../cloned" }
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
