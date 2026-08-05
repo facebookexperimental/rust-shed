@@ -25,7 +25,7 @@ mysql_client_traits = { version = "0.1.0", path = "../mysql_client_traits" }
 mysql_derive = { version = "0.1.0", path = "../derive" }
 rusqlite = { version = "0.37.0", features = ["backup", "blob", "bundled", "column_decltype", "functions", "limits", "modern_sqlite", "serde_json", "vtab"] }
 serde = { version = "1.0.229", features = ["derive", "rc"] }
-serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
+serde_json = { version = "1.0.151", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
 stats = { version = "0.1.0", path = "../../stats" }
 thiserror = "2.0.19"
 time_ext = { version = "0.1.0", path = "../../time_ext" }

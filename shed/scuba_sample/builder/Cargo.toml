@@ -15,4 +15,4 @@ fbinit = { version = "0.2.0", path = "../../fbinit" }
 rand = "0.10.2"
 sampling = { version = "0.1.0", path = "../../sampling" }
 scuba_sample = { version = "0.1.0", path = ".." }
-serde_json = { version = "1.0.140", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
+serde_json = { version = "1.0.151", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
