@@ -16,7 +16,7 @@ path = "lib.rs"
 
 [dependencies]
 cxx = "1.0.194"
-thiserror = "2.0.18"
+thiserror = "2.0.19"
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ["cfg(fbcode_build)"]}
