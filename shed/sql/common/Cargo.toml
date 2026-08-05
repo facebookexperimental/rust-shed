@@ -15,7 +15,7 @@ path = "lib.rs"
 
 [dependencies]
 anyhow = "1.0.103"
-async-trait = "0.1.86"
+async-trait = "0.1.91"
 cloned = { version = "0.1.0", path = "../../cloned" }
 futures = { version = "0.3.31", features = ["async-await", "compat"] }
 futures_stats = { version = "0.1.0", path = "../../futures_stats" }
