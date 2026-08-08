@@ -11,6 +11,6 @@ license = "MIT OR Apache-2.0"
 
 [dependencies]
 anyhow = "1.0.104"
-blake3 = { version = "=1.8.5", features = ["mmap", "rayon", "traits-preview"] }
+blake3 = { version = "=1.8.6", features = ["mmap", "rayon", "traits-preview"] }
 clap = { version = "4.6.2", features = ["derive", "env", "string", "unicode", "wrap_help"] }
 rand = "0.10.2"
