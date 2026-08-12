@@ -30,6 +30,13 @@ impl Display for MysqlError {
     }
 }
 
+impl MysqlError {
+    #[expect(missing_docs, reason = "stub method mirrors the Meta MySQL client")]
+    pub fn is_timeout(&self) -> bool {
+        false
+    }
+}
+
 /// Connection object.
 #[derive(Clone)]
 pub struct Connection;
