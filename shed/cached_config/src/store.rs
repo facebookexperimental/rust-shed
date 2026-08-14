@@ -181,7 +181,11 @@ impl ConfigStore {
         self.updater_thread_iteration();
     }
 
-    fn get_config_handle_with_deserializer<T>(
+    /// Like `get_config_handle`, but parses each fetched value with a custom
+    /// `deserializer` -- use it when a config needs multi-stage parsing (e.g. a
+    /// thrift struct whose field holds a differently-encoded payload). The
+    /// deserializer runs once per snapshot, so reads return the cached result.
+    pub fn get_config_handle_with_deserializer<T>(
         &self,
         path: String,
         deserializer: fn(Bytes) -> Result<T>,
