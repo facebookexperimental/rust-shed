@@ -10,7 +10,7 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-async-trait = "0.1.91"
+async-trait = "0.1.92"
 tokio = { version = "1.53.1", features = ["full", "test-util", "tracing"] }
 
 [target.'cfg(target_os = "linux")'.dependencies]
