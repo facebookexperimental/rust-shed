@@ -11,7 +11,7 @@ repository = "https://github.com/facebookexperimental/rust-shed"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-futures-util = { version = "0.3.30", features = ["compat"] }
+futures-util = { version = "0.3.34", features = ["compat"] }
 pin-project = "1.1.13"
 weight_observer = { version = "0.1.0", path = "../weight_observer" }
 
