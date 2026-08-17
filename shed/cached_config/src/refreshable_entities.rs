@@ -20,6 +20,7 @@ use tokio::sync::watch::channel;
 
 use crate::Entity;
 use crate::ModificationTime;
+use crate::handle::ConfigVersionInfo;
 
 // Type-erasure trick. I don't actually care about T for RegisteredConfigEntity,
 /// so hide it via a trait object
@@ -30,16 +31,21 @@ pub(crate) trait Refreshable {
 
 /// The type contained in a `ConfigHandle` when it's obtained from a `ConfigStore`
 pub(crate) struct RegisteredConfigEntity<T> {
-    contents: RwLock<CachedConfigEntity>,
+    contents: RwLock<CachedConfigEntity<T>>,
     path: String,
     deserializer: fn(Bytes) -> Result<T>,
     update_sender: RwLock<Sender<Arc<T>>>,
     update_receiver: RwLock<Receiver<Arc<T>>>,
 }
 
-struct CachedConfigEntity {
+/// A single config snapshot: the deserialized contents together with the
+/// version metadata they were parsed from. All fields are committed in the
+/// same write-lock critical section during `refresh`, so readers holding the
+/// read lock always observe contents and version that correspond.
+struct CachedConfigEntity<T> {
     mod_time: ModificationTime,
     version: String,
+    contents: Arc<T>,
 }
 
 impl<T> RegisteredConfigEntity<T>
@@ -57,10 +63,14 @@ where
             contents,
         } = entity;
         let contents = Arc::new(deserializer(contents.unwrap_or_else(Bytes::new))?);
-        let (update_sender, update_receiver) = channel(contents);
+        let (update_sender, update_receiver) = channel(contents.clone());
 
         Ok(Self {
-            contents: RwLock::new(CachedConfigEntity { mod_time, version }),
+            contents: RwLock::new(CachedConfigEntity {
+                mod_time,
+                version,
+                contents,
+            }),
             path,
             deserializer,
             update_sender: RwLock::new(update_sender),
@@ -74,6 +84,21 @@ where
             .expect("lock poisoned")
             .borrow()
             .clone()
+    }
+
+    /// Get the current contents together with the version metadata they were
+    /// parsed from. Both are read under a single read-lock acquisition, so
+    /// they are guaranteed to correspond to the same config snapshot even if
+    /// a refresh is in flight.
+    pub(crate) fn get_with_version(&self) -> (Arc<T>, ConfigVersionInfo) {
+        let locked = self.contents.read().expect("lock poisoned");
+        (
+            locked.contents.clone(),
+            ConfigVersionInfo {
+                version: locked.version.clone(),
+                mod_time: locked.mod_time.clone(),
+            },
+        )
     }
 
     pub(crate) fn update_receiver(&self) -> Receiver<Arc<T>> {
@@ -98,7 +123,11 @@ where
         if has_changed {
             let contents = Arc::new((self.deserializer)(entity.contents.unwrap_or_default())?);
             let update_sender = self.update_sender.write().expect("lock poisoned");
-            if update_sender.send(contents).is_err() {
+            // Deliberate ordering: the watch channel is updated before the
+            // snapshot lock below is committed, so watchers/get() can briefly
+            // see newer contents than get_with_version(). Each accessor family
+            // is self-consistent; do not "fix" the order.
+            if update_sender.send(contents.clone()).is_err() {
                 bail!(
                     "No subscriber for config updates at path {}",
                     self.get_path()
@@ -109,6 +138,7 @@ where
                 *locked = CachedConfigEntity {
                     mod_time: entity.mod_time,
                     version: entity.version,
+                    contents,
                 };
                 Ok(true)
             }

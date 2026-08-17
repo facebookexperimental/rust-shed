@@ -17,7 +17,23 @@ use serde::de::DeserializeOwned;
 use serde_json::from_str;
 use tokio::sync::watch::Receiver;
 
+use crate::ModificationTime;
 use crate::refreshable_entities::RegisteredConfigEntity;
+
+/// Versioning metadata for a config snapshot, as reported by the config
+/// source (e.g. configerator's Entity version). For configerator-backed
+/// sources the version uniquely identifies the config snapshot; other
+/// `Source` impls (e.g. `TestSource` without explicit versions) may reuse
+/// versions across changing contents — pair with `mod_time` when identity
+/// matters.
+#[derive(Clone, Debug, PartialEq, Eq)]
+#[non_exhaustive]
+pub struct ConfigVersionInfo {
+    /// Version of the config as reported by the config source
+    pub version: String,
+    /// Modification time of the config, e.g. file modification time
+    pub mod_time: ModificationTime,
+}
 
 /// A configuration handle, with self-refresh and wait-on-update if obtained
 /// from a `ConfigStore`. If your type `T` implements `Default`, then this
@@ -77,6 +93,22 @@ where
         match &self.inner {
             ConfigHandleImpl::Registered(handle) => handle.get(),
             ConfigHandleImpl::Fixed(contents) => contents.clone(),
+        }
+    }
+
+    /// Fetch the current version of the config referred to by this handle
+    /// together with its versioning metadata. Both halves of the returned
+    /// tuple are read atomically from the same snapshot, so the version info
+    /// always corresponds to the returned contents, even if the config is
+    /// concurrently refreshed. Fixed (static) configs, e.g. obtained via
+    /// `from_json` or `default`, have no version and return `None`.
+    pub fn get_with_version(&self) -> (Arc<T>, Option<ConfigVersionInfo>) {
+        match &self.inner {
+            ConfigHandleImpl::Registered(handle) => {
+                let (contents, version_info) = handle.get_with_version();
+                (contents, Some(version_info))
+            }
+            ConfigHandleImpl::Fixed(contents) => (contents.clone(), None),
         }
     }
 

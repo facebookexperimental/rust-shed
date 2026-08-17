@@ -55,13 +55,25 @@ impl TestSource {
 
     /// Insert config value into the `TestSource`, overwriting existing one
     pub fn insert_config(&self, key: &str, contents: &str, mod_time: ModificationTime) {
+        self.insert_config_with_version(key, contents, mod_time, "");
+    }
+
+    /// Insert config value with an explicit version into the `TestSource`,
+    /// overwriting existing one
+    pub fn insert_config_with_version(
+        &self,
+        key: &str,
+        contents: &str,
+        mod_time: ModificationTime,
+        version: &str,
+    ) {
         let mut map = self.path_to_config.lock().expect("poisoned lock");
         map.insert(
             key.to_owned(),
             Entity {
                 contents: Some(Bytes::copy_from_slice(contents.as_bytes())),
                 mod_time,
-                version: String::new(),
+                version: version.to_owned(),
             },
         );
     }

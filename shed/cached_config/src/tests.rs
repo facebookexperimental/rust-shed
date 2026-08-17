@@ -110,6 +110,121 @@ fn test_config_store() {
 }
 
 #[test]
+fn test_get_with_version_registered() {
+    let test_source = {
+        let test_source = TestSource::new();
+        test_source.insert_config_with_version(
+            "some1",
+            r#"{ "value": 1 }"#,
+            ModificationTime::UnixTimestamp(1),
+            "v1",
+        );
+        Arc::new(test_source)
+    };
+
+    // No poll interval: refreshes happen only via force_update_configs, so the
+    // test is deterministic.
+    let store = ConfigStore::new(test_source.clone(), None::<Duration>, None);
+
+    let handle = get_test_handle(&store, "some1").expect("Failed to get handle");
+
+    let (contents, info) = handle.get_with_version();
+    assert_eq!(
+        *contents,
+        TestConfig { value: 1 },
+        "contents should match the initially inserted config"
+    );
+    let info = info.expect("registered handles should always report version info");
+    assert_eq!(
+        info.version, "v1",
+        "version should match the inserted config's version"
+    );
+    assert_eq!(
+        info.mod_time,
+        ModificationTime::UnixTimestamp(1),
+        "mod_time should match the inserted config's mod_time"
+    );
+
+    // Update the config and refresh; contents and version from ONE call must
+    // correspond to the same snapshot.
+    test_source.insert_config_with_version(
+        "some1",
+        r#"{ "value": 2 }"#,
+        ModificationTime::UnixTimestamp(2),
+        "v2",
+    );
+    test_source.insert_to_refresh("some1".to_owned());
+    store.force_update_configs();
+
+    let (contents, info) = handle.get_with_version();
+    let info = info.expect("registered handles should always report version info");
+    assert_eq!(
+        *contents,
+        TestConfig { value: 2 },
+        "contents should reflect the refreshed config"
+    );
+    assert_eq!(
+        info.version, "v2",
+        "version must correspond to the contents returned by the same call"
+    );
+    assert_eq!(
+        info.mod_time,
+        ModificationTime::UnixTimestamp(2),
+        "mod_time must correspond to the contents returned by the same call"
+    );
+
+    // get() must be unaffected by the new accessor
+    assert_eq!(
+        *handle.get(),
+        TestConfig { value: 2 },
+        "get() should still return the refreshed config"
+    );
+}
+
+#[test]
+fn test_get_with_version_legacy_insert_config() {
+    let test_source = {
+        let test_source = TestSource::new();
+        test_source.insert_config(
+            "legacy",
+            r#"{ "value": 3 }"#,
+            ModificationTime::UnixTimestamp(1),
+        );
+        Arc::new(test_source)
+    };
+    let store = ConfigStore::new(test_source, None::<Duration>, None);
+
+    let handle = get_test_handle(&store, "legacy").expect("Failed to get handle");
+    let (contents, info) = handle.get_with_version();
+    assert_eq!(
+        *contents,
+        TestConfig { value: 3 },
+        "contents should match the inserted config"
+    );
+    let info = info.expect("registered handles should always report version info");
+    assert_eq!(
+        info.version, "",
+        "legacy insert_config must keep reporting an empty version for backward compatibility"
+    );
+}
+
+#[test]
+fn test_get_with_version_fixed() {
+    let handle = ConfigHandle::<TestConfig>::from_json(r#"{ "value": 44 }"#)
+        .expect("failed to deserialize json");
+    let (contents, info) = handle.get_with_version();
+    assert_eq!(
+        *contents,
+        TestConfig { value: 44 },
+        "contents should match the fixed JSON config"
+    );
+    assert!(
+        info.is_none(),
+        "fixed (from_json/default) handles must return None version info, not a sentinel"
+    );
+}
+
+#[test]
 fn test_config_handle_from_json() {
     let result = ConfigHandle::<TestConfig>::from_json(r#"{ "value": 44 }"#)
         .expect("failed to deserialize json")
