@@ -56,6 +56,15 @@ where
         self.0.clear()
     }
 
+    /// Reserves capacity for at least `additional` more elements to be
+    /// inserted. The collection may reserve more space to speculatively avoid
+    /// frequent reallocations. After calling `reserve`, capacity will be
+    /// greater than or equal to `self.len() + additional`. Does nothing if
+    /// capacity is already sufficient.
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional);
+    }
+
     /// Utility function to binary search for an index using the key.
     fn find_index<Q>(&self, q: &Q) -> Result<usize, usize>
     where

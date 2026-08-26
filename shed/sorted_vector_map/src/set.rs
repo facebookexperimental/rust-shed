@@ -56,6 +56,15 @@ where
         self.0.clear()
     }
 
+    /// Reserves capacity for at least `additional` more elements to be
+    /// inserted. The collection may reserve more space to speculatively avoid
+    /// frequent reallocations. After calling `reserve`, capacity will be
+    /// greater than or equal to `self.len() + additional`. Does nothing if
+    /// capacity is already sufficient.
+    pub fn reserve(&mut self, additional: usize) {
+        self.0.reserve(additional);
+    }
+
     /// Returns `true` if the set is empty.
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
