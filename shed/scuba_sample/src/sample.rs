@@ -17,6 +17,9 @@ use std::time::SystemTime;
 use std::time::UNIX_EPOCH;
 
 use sampling::Sampleable;
+use serde::Serialize;
+use serde::Serializer;
+use serde::ser::SerializeMap;
 use serde_json::Error as SerdeError;
 use serde_json::Map;
 use serde_json::Number;
@@ -190,25 +193,7 @@ impl ScubaSample {
                 continue;
             }
 
-            let section = match value {
-                ScubaValue::Int(_) => INT_KEY,
-                ScubaValue::Double(_) => DOUBLE_KEY,
-                ScubaValue::Normal(_) => NORMAL_KEY,
-                #[allow(deprecated)]
-                ScubaValue::Denorm(_) => DENORM_KEY,
-                ScubaValue::NormVector(_) => NORMVECTOR_KEY,
-                ScubaValue::TagSet(_) => TAGSET_KEY,
-                ScubaValue::Null(v) => match v {
-                    NullScubaValue::Int => INT_KEY,
-                    NullScubaValue::Double => DOUBLE_KEY,
-                    NullScubaValue::Normal => NORMAL_KEY,
-                    #[allow(deprecated)]
-                    NullScubaValue::Denorm => DENORM_KEY,
-                    NullScubaValue::NormVector => NORMVECTOR_KEY,
-                    NullScubaValue::TagSet => TAGSET_KEY,
-                },
-            }
-            .to_string();
+            let section = json_section(value).to_string();
 
             let object = json.entry(section).or_insert(Value::Object(Map::new()));
             if let Value::Object(ref mut map) = *object {
@@ -235,6 +220,94 @@ impl ScubaSample {
         }
 
         Ok(Value::Object(json))
+    }
+
+    /// Serialize the sample directly to Scuba JSON, borrowing its keys and values
+    /// instead of constructing an intermediate [`Value`]. Sections and columns
+    /// are sorted by name, as in [`Self::to_json`]'s default JSON representation.
+    pub fn to_json_string(&self) -> Result<String, SerdeError> {
+        serde_json::to_string(&JsonSample(self))
+    }
+}
+
+fn json_section(value: &ScubaValue) -> &'static str {
+    match value {
+        ScubaValue::Int(_) | ScubaValue::Null(NullScubaValue::Int) => INT_KEY,
+        ScubaValue::Double(_) | ScubaValue::Null(NullScubaValue::Double) => DOUBLE_KEY,
+        ScubaValue::Normal(_) | ScubaValue::Null(NullScubaValue::Normal) => NORMAL_KEY,
+        #[expect(
+            deprecated,
+            reason = "Existing samples can still contain denorm columns"
+        )]
+        ScubaValue::Denorm(_) | ScubaValue::Null(NullScubaValue::Denorm) => DENORM_KEY,
+        ScubaValue::NormVector(_) | ScubaValue::Null(NullScubaValue::NormVector) => NORMVECTOR_KEY,
+        ScubaValue::TagSet(_) | ScubaValue::Null(NullScubaValue::TagSet) => TAGSET_KEY,
+    }
+}
+
+#[derive(Serialize)]
+#[serde(untagged)]
+enum JsonValue<'a> {
+    Column(&'a ScubaValue),
+    Timestamp(u64),
+}
+
+struct JsonColumn<'a> {
+    section: &'static str,
+    key: &'a str,
+    value: JsonValue<'a>,
+}
+
+struct JsonSection<'a>(&'a [JsonColumn<'a>]);
+
+impl Serialize for JsonSection<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+        for column in self.0 {
+            map.serialize_entry(column.key, &column.value)?;
+        }
+        map.end()
+    }
+}
+
+struct JsonSample<'a>(&'a ScubaSample);
+
+impl Serialize for JsonSample<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let sample = self.0;
+        let mut columns = Vec::with_capacity(sample.values.len() + 1);
+        columns.extend(
+            sample
+                .values
+                .iter()
+                .filter(|(key, _)| key.as_str() != TIME_COLUMN)
+                .map(|(key, value)| JsonColumn {
+                    section: json_section(value),
+                    key,
+                    value: JsonValue::Column(value),
+                }),
+        );
+        columns.push(JsonColumn {
+            section: INT_KEY,
+            key: TIME_COLUMN,
+            value: JsonValue::Timestamp(sample.time),
+        });
+        columns.sort_unstable_by(|a, b| (a.section, a.key).cmp(&(b.section, b.key)));
+
+        let mut map = serializer.serialize_map(None)?;
+        if let Some(subset) = &sample.subset {
+            map.serialize_entry(SUBSET_KEY, subset)?;
+        }
+        for section in columns.chunk_by(|a, b| a.section == b.section) {
+            map.serialize_entry(section[0].section, &JsonSection(section))?;
+        }
+        map.end()
     }
 }
 
@@ -340,6 +413,138 @@ mod tests {
     use serde_json::json;
 
     use super::*;
+
+    fn assert_json_string_compatible(sample: &ScubaSample) {
+        let expected = sample.to_json().unwrap();
+        let serialized = sample.to_json_string().unwrap();
+        assert_eq!(
+            serde_json::from_str::<Value>(&serialized).unwrap(),
+            expected
+        );
+        assert_eq!(serialized, expected.to_string());
+        assert_eq!(serialized, sample.to_json_string().unwrap());
+    }
+
+    #[test]
+    #[expect(
+        deprecated,
+        reason = "The wire format must preserve existing denorm columns"
+    )]
+    fn json_string_preserves_all_value_types_and_time_collisions() {
+        let values = vec![
+            ScubaValue::Int(i64::MIN),
+            ScubaValue::Int(i64::MAX),
+            ScubaValue::Double(-0.0),
+            ScubaValue::Double(f64::MIN_POSITIVE),
+            ScubaValue::Double(f64::MAX),
+            ScubaValue::Double(f64::NAN),
+            ScubaValue::Double(f64::INFINITY),
+            ScubaValue::Double(f64::NEG_INFINITY),
+            ScubaValue::Normal(String::new()),
+            ScubaValue::Normal("Unicode: 雪 🦀; escaping: \"\\\n\r\t\0".to_owned()),
+            ScubaValue::Denorm("legacy\nvalue".to_owned()),
+            ScubaValue::NormVector(vec![]),
+            ScubaValue::NormVector(vec!["z".to_owned(), "a".to_owned(), "z".to_owned()]),
+            ScubaValue::TagSet(HashSet::new()),
+            ScubaValue::TagSet(HashSet::from([
+                "雪".to_owned(),
+                "".to_owned(),
+                "a\"".to_owned(),
+                "z".to_owned(),
+            ])),
+            ScubaValue::Null(NullScubaValue::Int),
+            ScubaValue::Null(NullScubaValue::Double),
+            ScubaValue::Null(NullScubaValue::Normal),
+            ScubaValue::Null(NullScubaValue::Denorm),
+            ScubaValue::Null(NullScubaValue::NormVector),
+            ScubaValue::Null(NullScubaValue::TagSet),
+        ];
+        let mut sample = ScubaSample::with_timestamp(u64::MAX);
+        sample.set_subset("subset\"\\\n雪");
+        sample.add("", "empty column name");
+        sample.add("__subset__", "ordinary column");
+        for (index, value) in values.iter().enumerate() {
+            sample.add(format!("column\"\\\n雪_{index}"), value.clone());
+        }
+        // Exercise the timestamp's sorted position among integer columns.
+        sample.add("a", 1);
+        sample.add("z", 2);
+        assert_json_string_compatible(&sample);
+
+        for value in values {
+            sample.add(TIME_COLUMN, value.clone());
+            assert_json_string_compatible(&sample);
+
+            let mut only_time = ScubaSample::with_timestamp(12345);
+            only_time.add(TIME_COLUMN, value);
+            assert_eq!(
+                only_time.to_json_string().unwrap(),
+                r#"{"int":{"time":12345}}"#
+            );
+        }
+    }
+
+    #[test]
+    fn json_string_preserves_empty_samples_and_subsets() {
+        let mut sample = ScubaSample::with_timestamp(0);
+        assert_json_string_compatible(&sample);
+        sample.set_subset("");
+        assert_json_string_compatible(&sample);
+        sample.clear_subset();
+        assert_eq!(sample.to_json_string().unwrap(), r#"{"int":{"time":0}}"#);
+    }
+
+    #[test]
+    fn json_string_preserves_wide_samples_and_large_containers() {
+        let mut sample = ScubaSample::with_timestamp(1750000000);
+        for i in 0..512 {
+            sample.add(format!("int_{i:04}"), i);
+            sample.add(format!("normal_{i:04}"), format!("value {i}"));
+        }
+        sample.add("large", "雪\n\"\\".repeat(32768));
+        let vector = (0..256)
+            .map(|i| format!("item {}", i % 31))
+            .collect::<Vec<_>>();
+        sample.add("vector", vector.clone());
+        sample.add("tags", vector.into_iter().collect::<HashSet<_>>());
+        assert_json_string_compatible(&sample);
+    }
+
+    #[test]
+    fn json_string_order_is_independent_of_insertion_order() {
+        let mut first = ScubaSample::with_timestamp(42);
+        let mut second = ScubaSample::with_timestamp(42);
+        for key in ["a", "time", "z", "b"] {
+            first.add(key, key);
+        }
+        for key in ["b", "z", "time", "a"] {
+            second.add(key, key);
+        }
+        assert_eq!(
+            first.to_json_string().unwrap(),
+            second.to_json_string().unwrap()
+        );
+        assert_json_string_compatible(&first);
+    }
+
+    #[test]
+    fn borrowed_json_propagates_serializer_errors() {
+        struct FailingWriter;
+
+        impl std::io::Write for FailingWriter {
+            fn write(&mut self, _buffer: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::other("injected write failure"))
+            }
+
+            fn flush(&mut self) -> std::io::Result<()> {
+                Ok(())
+            }
+        }
+
+        let sample = ScubaSample::with_timestamp(42);
+        let error = serde_json::to_writer(FailingWriter, &JsonSample(&sample)).unwrap_err();
+        assert!(error.is_io());
+    }
 
     /// Test that JSON serialization of a ScubaSample matches the expected format.
     #[test]
