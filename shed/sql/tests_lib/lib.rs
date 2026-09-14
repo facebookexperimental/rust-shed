@@ -328,7 +328,7 @@ pub mod mysql_test_lib {
     use anyhow::Error;
     use fbinit::FacebookInit;
     use mysql_client::ConnectionPool;
-    use mysql_client::ConnectionPoolOptionsBuilder;
+    use mysql_client::ConnectionPoolOptions;
     use mysql_client::DbLocator;
     use mysql_client::InstanceRequirement;
     use mysql_client::MysqlCppClient;
@@ -441,9 +441,7 @@ pub mod mysql_test_lib {
             client.query_raw(&locator, table_creation_query).await?;
         };
 
-        let pool_options = ConnectionPoolOptionsBuilder::default()
-            .pool_limit(2)
-            .build();
+        let pool_options = ConnectionPoolOptions::builder().pool_limit(2).build();
         let pool = ConnectionPool::new(&client, &pool_options)?.bind(locator);
 
         let stats = Arc::new(MysqlConnectionStats::new("test".to_string()));
