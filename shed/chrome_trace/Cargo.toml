@@ -17,7 +17,7 @@ flate2 = { version = "1.1.10", features = ["rust_backend"], default-features = f
 libc = "0.2.186"
 serde = { version = "1.0.229", features = ["derive", "rc"] }
 serde_json = { version = "1.0.151", features = ["alloc", "float_roundtrip", "raw_value", "unbounded_depth"] }
-zstd = { version = "0.13.3", features = ["experimental", "zstdmt"] }
+zstd = { version = "0.14.0", features = ["experimental", "zstdmt"] }
 
 [dev-dependencies]
 maplit = "1.0"
