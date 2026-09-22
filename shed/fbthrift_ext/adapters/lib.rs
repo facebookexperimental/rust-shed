@@ -89,10 +89,12 @@ pub mod arcbstr;
 pub mod bstr;
 pub mod chrono;
 pub mod duration;
+pub mod field;
 pub mod host;
 pub mod ipv4;
 pub mod ipv6;
 pub mod nonnegative;
+pub mod nonzero;
 pub mod ordered_float;
 pub mod path;
 pub mod redacted;
@@ -110,6 +112,8 @@ pub use crate::bstr::BStringAdapter;
 #[doc(inline)]
 pub use crate::duration::*;
 #[doc(inline)]
+pub use crate::field::AdaptedField;
+#[doc(inline)]
 pub use crate::host::HostAdapter;
 #[doc(inline)]
 pub use crate::ipv4::Ipv4AddressAdapter;
@@ -117,6 +121,12 @@ pub use crate::ipv4::Ipv4AddressAdapter;
 pub use crate::ipv6::Ipv6AddressAdapter;
 #[doc(inline)]
 pub use crate::nonnegative::NonNegativeAdapter;
+#[doc(inline)]
+pub use crate::nonzero::NonZeroAdapter;
+#[doc(inline)]
+pub use crate::nonzero::NonZeroError;
+#[doc(inline)]
+pub use crate::nonzero::NonZeroUnsignedAdapter;
 #[doc(inline)]
 pub use crate::ordered_float::OrderedFloatAdapter;
 #[doc(inline)]
