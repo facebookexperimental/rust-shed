@@ -16,6 +16,7 @@
 //! * [`NonZeroUnsignedAdapter`] adapts to `std::num::NonZeroU*`. Zero and negatives are rejected,
 //!   which is usually what a count wants.
 
+use std::error::Error;
 use std::fmt;
 use std::marker::PhantomData;
 
@@ -124,7 +125,7 @@ impl fmt::Display for NonZeroError {
     }
 }
 
-impl std::error::Error for NonZeroError {}
+impl Error for NonZeroError {}
 
 /// Signed impls: parameterised by the thrift type alone.
 macro_rules! make_nonzero_signed_impl {

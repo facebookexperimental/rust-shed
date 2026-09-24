@@ -90,6 +90,7 @@ pub mod bstr;
 pub mod chrono;
 pub mod duration;
 pub mod field;
+pub mod from_str;
 pub mod host;
 pub mod ipv4;
 pub mod ipv6;
@@ -113,6 +114,10 @@ pub use crate::bstr::BStringAdapter;
 pub use crate::duration::*;
 #[doc(inline)]
 pub use crate::field::AdaptedField;
+#[doc(inline)]
+pub use crate::from_str::FromStrAdapter;
+#[doc(inline)]
+pub use crate::from_str::FromStrError;
 #[doc(inline)]
 pub use crate::host::HostAdapter;
 #[doc(inline)]

@@ -23,13 +23,72 @@
 //!
 //! This module intentionally does not prefer wrapping or saturating adapters.
 
+use std::error::Error;
+use std::fmt;
 use std::marker::PhantomData;
-use std::num::TryFromIntError;
 use std::time::Duration;
 use std::time::TryFromFloatSecsError;
 
 use fbthrift::adapter::ThriftAdapter;
+use fbthrift::metadata::ThriftAnnotations;
 use paste::paste;
+
+use crate::field::AdaptedField;
+use crate::field::DisplayField;
+
+/// The unit an integer duration adapter reads its value in.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum DurationUnit {
+    /// Whole seconds.
+    Second,
+    /// Milliseconds.
+    Millisecond,
+    /// Microseconds.
+    Microsecond,
+    /// Nanoseconds.
+    Nanosecond,
+}
+
+impl fmt::Display for DurationUnit {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(match self {
+            Self::Second => "seconds",
+            Self::Millisecond => "milliseconds",
+            Self::Microsecond => "microseconds",
+            Self::Nanosecond => "nanoseconds",
+        })
+    }
+}
+
+/// The error returned by the integer duration adapters.
+///
+/// A [`Duration`] cannot be negative, so these adapters reject negative input. They previously
+/// surfaced a bare [`std::num::TryFromIntError`], which renders as "out of range integral type
+/// conversion attempted" -- naming neither the value, the unit, nor the field, which is little
+/// help when a struct has several duration fields.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct NegativeDurationError {
+    /// The rejected value, widened to `i64`.
+    pub value: i64,
+    /// The unit the value was being read in.
+    pub unit: DurationUnit,
+    /// The struct field this came from, when the adapter was applied to a field rather than to a
+    /// bare typedef.
+    pub field: Option<AdaptedField>,
+}
+
+impl fmt::Display for NegativeDurationError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let Self { value, unit, field } = self;
+        write!(
+            f,
+            "duration adapter{} expected a non-negative number of {unit}, got {value}",
+            DisplayField(*field)
+        )
+    }
+}
+
+impl Error for NegativeDurationError {}
 
 macro_rules! make_duration {
     ($granularity:ident, $accessor:ident, $($std_type:ty),+) => {
@@ -68,7 +127,7 @@ struct CreateWorkflowRequest {
                     type StandardType = $std_type;
                     type AdaptedType = Duration;
 
-                    type Error = TryFromIntError;
+                    type Error = NegativeDurationError;
 
                     fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
                         // Duration::as_* always returns an unsigned type, so if the
@@ -78,7 +137,24 @@ struct CreateWorkflowRequest {
                     }
 
                     fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-                        Ok(Duration::[< from_ $accessor >](u64::try_from(value)?))
+                        let unsigned = u64::try_from(value).map_err(|_| NegativeDurationError {
+                            value: value.into(),
+                            unit: DurationUnit::$granularity,
+                            field: None,
+                        })?;
+                        Ok(Duration::[< from_ $accessor >](unsigned))
+                    }
+
+                    fn from_thrift_field<A: ThriftAnnotations>(
+                        value: Self::StandardType,
+                        field_id: i16,
+                    ) -> Result<Self::AdaptedType, Self::Error> {
+                        let unsigned = u64::try_from(value).map_err(|_| NegativeDurationError {
+                            value: value.into(),
+                            unit: DurationUnit::$granularity,
+                            field: Some(AdaptedField::of::<A>(field_id)),
+                        })?;
+                        Ok(Duration::[< from_ $accessor >](unsigned))
                     }
                 }
             )+
@@ -117,14 +193,31 @@ struct CreateWorkflowRequest {
                     type StandardType = $std_type;
                     type AdaptedType = Duration;
 
-                    type Error = TryFromIntError;
+                    type Error = NegativeDurationError;
 
                     fn to_thrift(value: &Self::AdaptedType) -> Self::StandardType {
                         Duration::[< as_ $accessor >](value) as Self::StandardType
                     }
 
                     fn from_thrift(value: Self::StandardType) -> Result<Self::AdaptedType, Self::Error> {
-                        Ok(Duration::[< from_ $accessor >](u64::try_from(value)?))
+                        let unsigned = u64::try_from(value).map_err(|_| NegativeDurationError {
+                            value: value.into(),
+                            unit: DurationUnit::$granularity,
+                            field: None,
+                        })?;
+                        Ok(Duration::[< from_ $accessor >](unsigned))
+                    }
+
+                    fn from_thrift_field<A: ThriftAnnotations>(
+                        value: Self::StandardType,
+                        field_id: i16,
+                    ) -> Result<Self::AdaptedType, Self::Error> {
+                        let unsigned = u64::try_from(value).map_err(|_| NegativeDurationError {
+                            value: value.into(),
+                            unit: DurationUnit::$granularity,
+                            field: Some(AdaptedField::of::<A>(field_id)),
+                        })?;
+                        Ok(Duration::[< from_ $accessor >](unsigned))
                     }
                 }
             )+
@@ -205,7 +298,15 @@ mod saturating {
 
     #[test]
     fn negative() {
-        assert!(SaturatingSecondAdapter::<i8>::from_thrift(-1).is_err());
+        let error = SaturatingSecondAdapter::<i8>::from_thrift(-1)
+            .expect_err("a duration cannot be negative");
+        assert_eq!(error.value, -1);
+        assert_eq!(error.unit, DurationUnit::Second);
+        assert_eq!(
+            error.to_string(),
+            "duration adapter expected a non-negative number of seconds, got -1",
+            "the message must name the value and the unit"
+        );
     }
 }
 

@@ -12,7 +12,7 @@
 
 use std::net::Ipv6Addr;
 
-use fbthrift::adapter::FromStrAdapter;
+use crate::from_str::FromStrAdapter;
 
 /// Adapts thrift strings as [`Ipv6Addr`]s.
 ///

@@ -12,7 +12,7 @@
 
 use std::net::SocketAddr;
 
-use fbthrift::adapter::FromStrAdapter;
+use crate::from_str::FromStrAdapter;
 
 /// Adapts thrift strings as [`SocketAddr`]s.
 ///
