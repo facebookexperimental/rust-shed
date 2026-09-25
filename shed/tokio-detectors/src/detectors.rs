@@ -103,11 +103,22 @@ fn get_thread_id() -> libc::pthread_t {
     unsafe { libc::pthread_self() }
 }
 
+/// The kernel thread id (Linux `gettid`) of the calling thread. A thread's tid
+/// cannot be derived from another thread's `pthread_t`, so it must be read on
+/// the thread itself — [`ThreadInfo::new`] runs in the runtime's thread-start
+/// hook, i.e. on each worker.
+#[cfg(target_os = "linux")]
+fn get_os_tid() -> libc::pid_t {
+    unsafe { libc::gettid() }
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct ThreadInfo {
     id: ThreadId,
     #[cfg(unix)]
     pthread_id: libc::pthread_t,
+    #[cfg(target_os = "linux")]
+    os_tid: libc::pid_t,
 }
 
 /// A structure to hold information about a thread, including its platform-specific identifiers.
@@ -117,6 +128,8 @@ impl ThreadInfo {
             id: thread::current().id(),
             #[cfg(unix)]
             pthread_id: get_thread_id(),
+            #[cfg(target_os = "linux")]
+            os_tid: get_os_tid(),
         }
     }
 
@@ -130,6 +143,18 @@ impl ThreadInfo {
     #[cfg_attr(docsrs, doc(cfg(unix)))]
     pub fn pthread_id(&self) -> &libc::pthread_t {
         &self.pthread_id
+    }
+
+    /// Returns the kernel thread id (Linux `gettid`) of this thread.
+    ///
+    /// Captured on the thread itself at construction. Consumers that must
+    /// inspect a specific worker by kernel tid — e.g. folly's
+    /// `collectThreadStackTraces`, which keys on `gettid` — use this rather than
+    /// [`ThreadInfo::pthread_id`], which cannot be resolved to a tid off-thread.
+    #[cfg(target_os = "linux")]
+    #[cfg_attr(docsrs, doc(cfg(target_os = "linux")))]
+    pub fn os_tid(&self) -> libc::pid_t {
+        self.os_tid
     }
 }
 
@@ -259,6 +284,11 @@ pub struct LongRunningTaskDetector {
     detection_time: Duration,
     stop_flag: Arc<Mutex<bool>>,
     workers: Arc<WorkerSet>,
+    /// When `true` (the default), a block that persists past
+    /// [`get_panic_worker_block_duration`] panics the monitor thread — the
+    /// "lost cause" deadman. [`LongRunningTaskDetector::panic_when_stall_detected`]
+    /// configures whether the detector uses that panic or only reports and waits.
+    stall_panic: bool,
 }
 
 async fn do_nothing(tx: mpsc::Sender<()>) {
@@ -271,6 +301,7 @@ fn probe(
     detection_time: Duration,
     workers: &Arc<WorkerSet>,
     action: &Arc<dyn BlockingActionHandler>,
+    stall_panic: bool,
 ) {
     let (tx, rx) = mpsc::channel();
     let _nothing_handle = tokio_runtime.spawn(do_nothing(tx));
@@ -281,7 +312,15 @@ fn probe(
     if !is_probe_success {
         let targets = workers.get_all();
         action.blocking_detected(&targets);
-        rx.recv_timeout(get_panic_worker_block_duration()).unwrap();
+        if stall_panic {
+            rx.recv_timeout(get_panic_worker_block_duration()).unwrap();
+        } else {
+            // Opted out of the "lost cause" panic: still wait for the probe to
+            // complete (so the worker's `tx.send` never fails), but a block that
+            // never clears parks this monitor thread rather than panicking. The
+            // next loop iteration re-probes once the block clears.
+            let _ = rx.recv();
+        }
     }
 }
 
@@ -316,6 +355,7 @@ impl LongRunningTaskDetector {
                 detection_time,
                 stop_flag: Arc::new(Mutex::new(true)),
                 workers,
+                stall_panic: true,
             },
             runtime_builder,
         )
@@ -357,9 +397,19 @@ impl LongRunningTaskDetector {
                 detection_time,
                 stop_flag: Arc::new(Mutex::new(true)),
                 workers,
+                stall_panic: true,
             },
             runtime_builder,
         )
+    }
+
+    /// Controls the "lost cause" panic for a block that persists past
+    /// [`get_panic_worker_block_duration`]. When disabled, the monitor still
+    /// reports the block and waits for recovery. The panic is enabled by default.
+    #[must_use]
+    pub fn panic_when_stall_detected(mut self, stall_panic: bool) -> Self {
+        self.stall_panic = stall_panic;
+        self
     }
 
     /// Starts the monitoring thread with default action handlers (that write details to std err).
@@ -379,10 +429,11 @@ impl LongRunningTaskDetector {
         let detection_time = self.detection_time;
         let interval = self.interval;
         let workers = Arc::clone(&self.workers);
+        let stall_panic = self.stall_panic;
         thread::spawn(move || {
             let mut rng = rng();
             while !*stop_flag.lock().unwrap() {
-                probe(&runtime, detection_time, &workers, &action);
+                probe(&runtime, detection_time, &workers, &action, stall_panic);
                 thread::sleep(Duration::from_micros(
                     rng.random_range(10..=interval.as_micros().try_into().unwrap()),
                 ));
@@ -402,5 +453,99 @@ impl LongRunningTaskDetector {
 impl Drop for LongRunningTaskDetector {
     fn drop(&mut self) {
         self.stop();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::atomic::AtomicUsize;
+    use std::sync::atomic::Ordering;
+    use std::thread;
+
+    use super::*;
+
+    // `ThreadInfo::new()` records the kernel tid of the thread that constructs
+    // it, so a consumer can target that exact worker by tid.
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn thread_info_captures_the_calling_os_tid() {
+        let info = ThreadInfo::new();
+        let expected = unsafe { libc::gettid() };
+        assert_eq!(
+            info.os_tid(),
+            expected,
+            "os_tid must be the constructing thread's gettid()"
+        );
+    }
+
+    #[test]
+    fn multi_threaded_defaults_to_stall_panic() {
+        let (detector, _builder) = LongRunningTaskDetector::new_multi_threaded(
+            Duration::from_millis(10),
+            Duration::from_millis(100),
+        );
+        assert!(
+            detector.stall_panic,
+            "the default must preserve the crate's panic ceiling"
+        );
+    }
+
+    #[test]
+    fn current_threaded_defaults_to_stall_panic() {
+        let (detector, _builder) = LongRunningTaskDetector::new_current_threaded(
+            Duration::from_millis(10),
+            Duration::from_millis(100),
+        );
+        assert!(detector.stall_panic);
+    }
+
+    #[test]
+    fn panic_when_stall_detected_sets_the_flag() {
+        for stall_panic in [false, true] {
+            let (detector, _builder) = LongRunningTaskDetector::new_multi_threaded(
+                Duration::from_millis(10),
+                Duration::from_millis(100),
+            );
+            let detector = detector.panic_when_stall_detected(stall_panic);
+            assert_eq!(detector.stall_panic, stall_panic);
+        }
+    }
+
+    // An opted-out detector keeps detecting across a sustained worker block
+    // without its monitor thread panicking. The block here recovers within a
+    // second (well under the 60s panic ceiling), so what this exercises is the
+    // opted-out post-detection wait path running and the monitor looping back to
+    // detect again.
+    #[test]
+    fn disabling_stall_panic_still_detects_multi() {
+        async fn run_blocking_stuff() {
+            thread::sleep(Duration::from_secs(1));
+        }
+
+        let (detector, mut builder) = LongRunningTaskDetector::new_multi_threaded(
+            Duration::from_millis(10),
+            Duration::from_millis(100),
+        );
+        let detector = detector.panic_when_stall_detected(false);
+        let runtime = Arc::new(builder.worker_threads(2).enable_all().build().unwrap());
+        let probe_runtime = Arc::clone(&runtime);
+        let detections = Arc::new(AtomicUsize::new(0));
+        let detections_handler = Arc::clone(&detections);
+        detector.start_with_custom_action(
+            probe_runtime,
+            Arc::new(move |_workers: &[ThreadInfo]| {
+                detections_handler.fetch_add(1, Ordering::SeqCst);
+            }),
+        );
+        runtime.spawn(run_blocking_stuff());
+        runtime.spawn(run_blocking_stuff());
+        runtime.block_on(async {
+            tokio::time::sleep(Duration::from_secs(2)).await;
+        });
+        detector.stop();
+        assert!(
+            detections.load(Ordering::SeqCst) >= 1,
+            "an opted-out detector must still report at least one block"
+        );
     }
 }
