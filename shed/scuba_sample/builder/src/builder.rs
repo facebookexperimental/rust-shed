@@ -24,7 +24,6 @@ use std::sync::atomic::AtomicU64;
 use std::sync::atomic::Ordering;
 use std::time::Duration;
 
-use fbinit::FacebookInit;
 use sampling::SampleResult;
 use sampling::Sampling;
 use serde_json::Error;
@@ -44,10 +43,8 @@ pub struct ScubaSampleBuilder {
 }
 
 impl ScubaSampleBuilder {
-    /// Create a new instance of the Builder with initially an empty sample
-    /// that will preserve the sample in the provided dataset. The arguments
-    /// are used only in fbcode builds.
-    pub fn new<T: Into<String>>(_fb: FacebookInit, _dataset: T) -> Self {
+    /// Create a new builder with an initially empty sample.
+    pub fn new<T: Into<String>>(_dataset: T) -> Self {
         Self::with_discard()
     }
 
