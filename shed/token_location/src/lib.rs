@@ -47,22 +47,10 @@ impl SourceLocation {
         Self::new(offset, offset)
     }
 
-    /// Returns a [`SourceLocation`] at the "beginning" of any input.
-    /// This is often used as a sentinel value for generic diagnostics.
+    /// Returns a zero-width [`SourceLocation`] at the start of the input.
     #[inline(always)]
     pub fn begin() -> Self {
         Self::point(0)
-    }
-
-    /// Returns a [`SourceLocation`] with invalid offsets.
-    /// This can be used when source location isn't available
-    #[inline(always)]
-    pub fn invalid() -> Self {
-        Self::point(usize::MAX)
-    }
-
-    pub fn is_invalid(&self) -> bool {
-        self.start == usize::MAX && self.end == usize::MAX
     }
 
     #[inline(always)]
@@ -82,9 +70,6 @@ impl SourceLocation {
 
     #[inline(always)]
     pub fn overlaps(&self, other: &Self) -> bool {
-        if self.is_invalid() || other.is_invalid() {
-            return false;
-        }
         self.start < other.end && other.start < self.end
     }
 
@@ -201,14 +186,6 @@ pub trait IntoLoc<T> {
     {
         self.at(SourceLocation::begin())
     }
-
-    #[inline(always)]
-    fn at_invalid(self) -> Loc<T>
-    where
-        Self: Sized,
-    {
-        self.at(SourceLocation::invalid())
-    }
 }
 
 /// Blanket implementation for all types to provide a default implementation of [`IntoLoc`]
@@ -279,6 +256,5 @@ mod tests {
             !loc.overlaps(&SourceLocation::new(5, 8)),
             "adjacent ranges share no bytes"
         );
-        assert!(!loc.overlaps(&SourceLocation::invalid()));
     }
 }
