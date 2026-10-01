@@ -48,4 +48,7 @@ mod yank;
 pub use list_of::*;
 pub use location::*;
 pub use stream::*;
+/// The location types in this crate's API, so users don't have to keep a matching version of
+/// `token_location` as a separate dependency.
+pub use token_location;
 pub use yank::*;
