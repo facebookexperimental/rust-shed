@@ -20,15 +20,9 @@ use winnow::stream::Stream;
 
 use crate::TokenStream;
 
-/// Skips to the next newline in the input, discard any tokens on the current line
+/// Skips the rest of the current line, i.e. the tokens before the next line break
 #[inline]
 pub fn skip_line_remainder<Token>(input: &mut TokenStream<'_, Token>) {
-    // Always skip one token
-    let first_on_new_line = input.trivia_before_next().contains('\n');
-    if input.next().is_none() || first_on_new_line {
-        return;
-    }
-
     while !input.trivia_before_next().contains('\n') && input.next().is_some() {}
 }
 
@@ -166,6 +160,18 @@ mod tests {
             .parse_next(&mut input)
             .unwrap();
         assert_eq!(yank_line_remainder::<_, ()>(&mut input).unwrap(), "-foo");
+    }
+
+    #[test]
+    fn nothing_left_on_the_line() {
+        let mut input = TestInput::new("foo\nbar", tokenize);
+        Token::Foo.parse_next(&mut input).unwrap();
+        assert!(yank_line_remainder::<_, ()>(&mut input).is_err());
+        assert_eq!(
+            input.peek().map(|token| token.node),
+            Some(Token::Bar),
+            "tokens on the next line stay put"
+        );
     }
 
     #[test]
