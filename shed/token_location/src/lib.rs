@@ -187,15 +187,6 @@ impl<T> DerefMut for Loc<T> {
     }
 }
 
-impl<T, U> PartialOrd<Loc<U>> for Loc<T>
-where
-    Loc<T>: std::cmp::PartialEq<Loc<U>>,
-{
-    fn partial_cmp(&self, other: &Loc<U>) -> Option<std::cmp::Ordering> {
-        self.location.partial_cmp(&other.location)
-    }
-}
-
 /// Utility trait to annotate a node [`T`] with its location, converting it into a [`Loc<T>`].
 /// ```ignore
 /// "foo".at(0..3)
