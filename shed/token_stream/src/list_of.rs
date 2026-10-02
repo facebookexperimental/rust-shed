@@ -8,6 +8,8 @@
  * above-listed licenses.
  */
 
+use std::fmt::Debug;
+
 use token_location::Loc;
 use token_location::SourceLocation;
 use winnow::Parser;
@@ -51,7 +53,7 @@ pub fn list_of<
     end_delim: EndDelimParser,
 ) -> impl Parser<TokenStream<'i, Token>, Loc<(Accumulator, bool)>, ErrMode<Error>>
 where
-    Token: std::fmt::Debug,
+    Token: Debug,
     Error: ParserError<TokenStream<'i, Token>> + 'i,
     Accumulator: Accumulate<Output> + 'i,
     ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
@@ -94,7 +96,7 @@ pub fn try_list_of<
     make_invalid: MakeInvalid,
 ) -> impl Parser<TokenStream<'i, Token>, Loc<(Accumulator, bool)>, ErrMode<Error>>
 where
-    Token: std::fmt::Debug + Clone,
+    Token: Debug + Clone,
     Error: ParserError<TokenStream<'i, Token>> + 'i,
     Accumulator: Accumulate<Output> + 'i,
     ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
@@ -141,7 +143,7 @@ pub fn try_list_body<
 ) -> Result<(Accumulator, bool), ErrMode<Error>>
 where
     Error: ParserError<TokenStream<'i, Token>>,
-    Token: std::fmt::Debug + Clone,
+    Token: Debug + Clone,
     Accumulator: Accumulate<Output> + 'i,
     ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
     SepToken:
@@ -225,7 +227,7 @@ fn list_body<'i, Token, Output, Accumulator, SepOutput, Error, ItemParser, SepPa
 ) -> Result<(Accumulator, bool), ErrMode<Error>>
 where
     Error: ParserError<TokenStream<'i, Token>>,
-    Token: std::fmt::Debug,
+    Token: Debug,
     Accumulator: Accumulate<Output> + 'i,
     ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
     SepParser: Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>>,

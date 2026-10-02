@@ -29,9 +29,12 @@
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
+use std::fmt;
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::ops::Range;
+use std::rc::Rc;
+use std::sync::Arc;
 
 /// The location of a node within a stream, as a half-open `[start, end)` range of byte offsets.
 ///
@@ -112,8 +115,8 @@ impl SourceLocation {
     }
 }
 
-impl std::fmt::Display for SourceLocation {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for SourceLocation {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}..{}", self.start, self.end)
     }
 }
@@ -250,14 +253,14 @@ impl<T> Located for Loc<T> {
     }
 }
 
-impl<T: Located> Located for std::rc::Rc<T> {
+impl<T: Located> Located for Rc<T> {
     #[inline]
     fn location(&self) -> SourceLocation {
         self.deref().location()
     }
 }
 
-impl<T: Located> Located for std::sync::Arc<T> {
+impl<T: Located> Located for Arc<T> {
     #[inline]
     fn location(&self) -> SourceLocation {
         self.deref().location()
@@ -280,9 +283,6 @@ impl<T: Located> Located for &T {
 
 #[cfg(test)]
 mod tests {
-    use std::rc::Rc;
-    use std::sync::Arc;
-
     use super::*;
 
     fn location_of(node: impl Located) -> SourceLocation {
