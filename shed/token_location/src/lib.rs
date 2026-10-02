@@ -19,17 +19,8 @@ use std::ops::Range;
 ///
 /// Line & column information isn't tracked; derive it from the source text when needed, e.g. with
 /// a line index.
-#[derive(
-    Copy,
-    Clone,
-    Debug,
-    PartialEq,
-    Eq,
-    PartialOrd,
-    Ord,
-    Hash,
-    serde::Serialize
-)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SourceLocation {
     pub start: usize,
     pub end: usize,
@@ -116,7 +107,8 @@ impl From<SourceLocation> for Range<usize> {
 }
 
 /// A node with a location
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash, serde::Serialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Loc<T> {
     pub node: T,
     pub location: SourceLocation,

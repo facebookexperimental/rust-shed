@@ -13,4 +13,8 @@ keywords = ["location", "parser", "source", "span"]
 categories = ["parsing"]
 
 [dependencies]
-serde = { version = "1.0.229", features = ["derive", "rc"] }
+serde = { version = "1.0.229", features = ["derive"], optional = true }
+
+[features]
+default = []
+serde = ["dep:serde"]
