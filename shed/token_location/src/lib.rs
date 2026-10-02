@@ -257,6 +257,20 @@ impl<T: Located> Located for std::rc::Rc<T> {
     }
 }
 
+impl<T: Located> Located for std::sync::Arc<T> {
+    #[inline(always)]
+    fn location(&self) -> SourceLocation {
+        self.deref().location()
+    }
+}
+
+impl<T: Located> Located for Box<T> {
+    #[inline(always)]
+    fn location(&self) -> SourceLocation {
+        self.deref().location()
+    }
+}
+
 impl<T: Located> Located for &T {
     #[inline(always)]
     fn location(&self) -> SourceLocation {
@@ -267,6 +281,7 @@ impl<T: Located> Located for &T {
 #[cfg(test)]
 mod tests {
     use std::rc::Rc;
+    use std::sync::Arc;
 
     use super::*;
 
@@ -329,6 +344,8 @@ mod tests {
         let expected = loc.location;
         assert_eq!(location_of(expected), expected);
         assert_eq!(location_of(&loc), expected);
+        assert_eq!(location_of(Box::new(loc.clone())), expected);
+        assert_eq!(location_of(Arc::new(loc.clone())), expected);
         assert_eq!(location_of(Rc::new(loc)), expected);
     }
 }
