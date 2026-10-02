@@ -21,3 +21,8 @@ parser can report it where it's encountered & recover past it.
 so there's no need to depend on matching versions of them separately. A few combinators cover common token-level patterns, e.g.
 delimited lists with error recovery (`list_of`, `try_unlocated_list_of`) & skipping ahead (`skip_to`,
 `yank_to`).
+
+## License
+
+token_stream is both MIT and Apache License, Version 2.0 licensed, as found in the
+[LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) files.

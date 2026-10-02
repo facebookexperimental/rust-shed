@@ -9,3 +9,8 @@ Source locations for parsed nodes, as half-open byte ranges into the source text
 Enable the `serde` feature for `Serialize` & `Deserialize` implementations.
 
 Line & column numbers aren't tracked; derive them from the source text when needed, e.g. with a line index.
+
+## License
+
+token_location is both MIT and Apache License, Version 2.0 licensed, as found in the
+[LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) files.
