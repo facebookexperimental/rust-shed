@@ -21,6 +21,10 @@ use winnow::stream::StreamIsPartial;
 /// Lexes the next token from `input`, skipping any whitespace & comments before it, or returns
 /// `None` once only those remain.
 ///
+/// The token's location must be the byte range it was lexed from, as reported by `input`'s
+/// [`Location`](winnow::stream::Location): within the input consumed by this call. [`TokenStream`]
+/// relies on it to report positions & to slice the source text between tokens.
+///
 /// Lexing shouldn't fail: input that doesn't form a valid token should become an error token of
 /// the language instead, so the parser can report it where it's encountered & recover past it.
 pub type Tokenizer<'i, Token> = fn(&mut LocatingSlice<&'i str>) -> Option<Loc<Token>>;
@@ -100,6 +104,13 @@ impl<Token> Iterator for TokenStream<'_, Token> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut input = self.input;
         let token = (self.tokenize)(&mut input)?;
+        debug_assert!(
+            self.prev_token_end() <= token.location.start
+                && token.location.start <= token.location.end
+                && token.location.end <= input.current_token_start(),
+            "the tokenizer located {} outside of the input it consumed",
+            token.location,
+        );
         self.input = input;
         Some(token)
     }
@@ -312,6 +323,17 @@ mod tests {
             13,
             "trailing trivia isn't part of any token"
         );
+    }
+
+    #[test]
+    #[cfg(debug_assertions)]
+    #[should_panic(expected = "outside of the input it consumed")]
+    fn tokens_must_be_located_where_they_were_lexed() {
+        fn misplaced(input: &mut LocatingSlice<&str>) -> Option<Loc<Token>> {
+            let _ = any::<_, ()>.parse_next(input).ok()?;
+            Some(Token::A.at(5..6))
+        }
+        let _ = TokenStream::new("ab", misplaced).next();
     }
 
     #[test]
