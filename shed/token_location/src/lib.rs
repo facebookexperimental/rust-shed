@@ -48,50 +48,50 @@ pub struct SourceLocation {
 
 impl SourceLocation {
     /// Returns the location of the bytes from `start` up to, but excluding, `end`.
-    #[inline(always)]
+    #[inline]
     pub fn new(start: usize, end: usize) -> Self {
         SourceLocation { start, end }
     }
 
     /// Returns a zero-width [`SourceLocation`] at `offset`.
-    #[inline(always)]
+    #[inline]
     pub fn point(offset: usize) -> Self {
         Self::new(offset, offset)
     }
 
     /// Returns a zero-width [`SourceLocation`] at the start of the input.
-    #[inline(always)]
+    #[inline]
     pub fn begin() -> Self {
         Self::point(0)
     }
 
     /// The number of bytes covered.
-    #[inline(always)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.end.saturating_sub(self.start)
     }
 
     /// Whether no bytes are covered, e.g. for a [`point`](Self::point).
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
     /// Whether the byte at `offset` is covered.
-    #[inline(always)]
+    #[inline]
     pub fn contains(&self, offset: usize) -> bool {
         self.start <= offset && offset < self.end
     }
 
     /// Whether any byte is covered by both `self` & `other`.
-    #[inline(always)]
+    #[inline]
     pub fn overlaps(&self, other: &Self) -> bool {
         self.start < other.end && other.start < self.end
     }
 
     /// Returns the range from the start of `self` up to the end of `other`, e.g. to span a node from
     /// its first to its last child.
-    #[inline(always)]
+    #[inline]
     pub fn to(&self, other: SourceLocation) -> Self {
         Self::new(self.start, other.end)
     }
@@ -100,13 +100,13 @@ impl SourceLocation {
     ///
     /// Useful for anchoring an empty or synthesized node (e.g. an absent field
     /// list) at a single position rather than spanning a range.
-    #[inline(always)]
+    #[inline]
     pub fn end_point(&self) -> SourceLocation {
         Self::point(self.end)
     }
 
     /// The byte range of `self`, e.g. for slicing the source text.
-    #[inline(always)]
+    #[inline]
     pub fn range(&self) -> Range<usize> {
         self.start..self.end
     }
@@ -119,14 +119,14 @@ impl std::fmt::Display for SourceLocation {
 }
 
 impl From<Range<usize>> for SourceLocation {
-    #[inline(always)]
+    #[inline]
     fn from(value: Range<usize>) -> Self {
         Self::new(value.start, value.end)
     }
 }
 
 impl From<SourceLocation> for Range<usize> {
-    #[inline(always)]
+    #[inline]
     fn from(value: SourceLocation) -> Self {
         value.range()
     }
@@ -146,13 +146,13 @@ pub struct Loc<T> {
 
 impl<T> Loc<T> {
     /// Pairs `node` with its `location`.
-    #[inline(always)]
+    #[inline]
     pub fn new(node: T, location: SourceLocation) -> Self {
         Self { node, location }
     }
 
     /// Maps the node, keeping its location.
-    #[inline(always)]
+    #[inline]
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Loc<U> {
         Loc {
             node: f(self.node),
@@ -161,7 +161,7 @@ impl<T> Loc<T> {
     }
 
     /// Maps the node with a fallible function, keeping its location.
-    #[inline(always)]
+    #[inline]
     pub fn try_map<U, E>(self, f: impl FnOnce(T) -> Result<U, E>) -> Result<Loc<U>, E> {
         Ok(Loc {
             node: f(self.node)?,
@@ -172,7 +172,7 @@ impl<T> Loc<T> {
 
 impl<T: Deref> Loc<T> {
     /// Borrows the node's target, keeping its location, like [`Option::as_deref`].
-    #[inline(always)]
+    #[inline]
     pub fn as_deref(&self) -> Loc<&T::Target> {
         Loc {
             node: &self.node,
@@ -184,14 +184,14 @@ impl<T: Deref> Loc<T> {
 impl<T> Deref for Loc<T> {
     type Target = T;
 
-    #[inline(always)]
+    #[inline]
     fn deref(&self) -> &Self::Target {
         &self.node
     }
 }
 
 impl<T> DerefMut for Loc<T> {
-    #[inline(always)]
+    #[inline]
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.node
     }
@@ -211,7 +211,7 @@ pub trait IntoLoc: Sized {
     fn at(self, location: impl Into<SourceLocation>) -> Loc<Self>;
 
     /// Pairs `self` with an empty location at the start of the input.
-    #[inline(always)]
+    #[inline]
     fn at_begin(self) -> Loc<Self> {
         self.at(SourceLocation::begin())
     }
@@ -219,7 +219,7 @@ pub trait IntoLoc: Sized {
 
 /// Blanket implementation for all types to provide a default implementation of [`IntoLoc`]
 impl<T> IntoLoc for T {
-    #[inline(always)]
+    #[inline]
     fn at(self, location: impl Into<SourceLocation>) -> Loc<T> {
         Loc {
             node: self,
@@ -236,7 +236,7 @@ pub trait Located {
 
 /// Implementation of [`Located`] for SourceLocation itself
 impl Located for SourceLocation {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         *self
     }
@@ -244,35 +244,35 @@ impl Located for SourceLocation {
 
 /// Blanket implementation of [`Located`] for all [`Loc`] wrappers
 impl<T> Located for Loc<T> {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         self.location
     }
 }
 
 impl<T: Located> Located for std::rc::Rc<T> {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         self.deref().location()
     }
 }
 
 impl<T: Located> Located for std::sync::Arc<T> {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         self.deref().location()
     }
 }
 
 impl<T: Located> Located for Box<T> {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         self.deref().location()
     }
 }
 
 impl<T: Located> Located for &T {
-    #[inline(always)]
+    #[inline]
     fn location(&self) -> SourceLocation {
         (*self).location()
     }

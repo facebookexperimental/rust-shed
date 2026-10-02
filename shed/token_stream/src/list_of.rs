@@ -30,7 +30,7 @@ use crate::skip_to;
 ///
 /// Parsing stops at the first item or separator that backtracks; wrap the parsers in
 /// [`cut_err`](winnow::combinator::cut_err) to fail the whole list instead.
-#[inline(always)]
+#[inline]
 pub fn list_of<
     'i,
     Token,
@@ -71,7 +71,7 @@ where
 /// The recovery skips ahead to the next separator or closing delimiter, then stands in for the
 /// broken item with `make_invalid(error, location)`, where `location` spans the skipped tokens.
 /// This keeps malformed items from losing the rest of the list, e.g. for partial ASTs.
-#[inline(always)]
+#[inline]
 pub fn try_list_of<
     'i,
     Token,
@@ -119,7 +119,7 @@ where
 /// delimiters themselves.
 ///
 /// The closing delimiter is only peeked at, to know where the list ends.
-#[inline(always)]
+#[inline]
 pub fn try_list_body<
     'i,
     Token,

@@ -66,33 +66,33 @@ impl<'i, Token> TokenStream<'i, Token> {
     }
 
     /// Returns the next token without consuming it
-    #[inline(always)]
+    #[inline]
     pub fn peek(&self) -> Option<Loc<Token>> {
         let mut stream = *self;
         stream.next()
     }
 
     /// Returns true once there are no more tokens
-    #[inline(always)]
+    #[inline]
     pub fn is_empty(&self) -> bool {
         self.peek().is_none()
     }
 
     /// The offset just past the last consumed token
-    #[inline(always)]
+    #[inline]
     pub fn prev_token_end(&self) -> usize {
         self.input.current_token_start()
     }
 
     /// The offset of the next token, or [`Self::prev_token_end`] if there are no more tokens
-    #[inline(always)]
+    #[inline]
     pub fn next_token_start(&self) -> usize {
         self.peek()
             .map_or_else(|| self.prev_token_end(), |token| token.location.start)
     }
 
     /// The source text following the last consumed token
-    #[inline(always)]
+    #[inline]
     pub fn remaining(&self) -> &'i str {
         *self.input
     }
@@ -106,7 +106,7 @@ impl<'i, Token> TokenStream<'i, Token> {
 impl<Token> Iterator for TokenStream<'_, Token> {
     type Item = Loc<Token>;
 
-    #[inline(always)]
+    #[inline]
     fn next(&mut self) -> Option<Self::Item> {
         let mut input = self.input;
         let token = (self.tokenize)(&mut input)?;
@@ -156,7 +156,7 @@ impl<'i, Token: Debug> Stream for TokenStream<'i, Token> {
 
     type Checkpoint = InputCheckpoint<'i>;
 
-    #[inline(always)]
+    #[inline]
     fn iter_offsets(&self) -> Self::IterOffsets {
         TokenOffsets {
             stream: *self,
@@ -164,17 +164,17 @@ impl<'i, Token: Debug> Stream for TokenStream<'i, Token> {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn eof_offset(&self) -> usize {
         self.input.eof_offset()
     }
 
-    #[inline(always)]
+    #[inline]
     fn next_token(&mut self) -> Option<Self::Token> {
         self.next().map(|token| token.node)
     }
 
-    #[inline(always)]
+    #[inline]
     fn peek_token(&self) -> Option<Self::Token> {
         self.peek().map(|token| token.node)
     }
@@ -216,12 +216,12 @@ impl<'i, Token: Debug> Stream for TokenStream<'i, Token> {
         stream.next_slice(offset)
     }
 
-    #[inline(always)]
+    #[inline]
     fn checkpoint(&self) -> Self::Checkpoint {
         self.input.checkpoint()
     }
 
-    #[inline(always)]
+    #[inline]
     fn reset(&mut self, checkpoint: &Self::Checkpoint) {
         self.input.reset(checkpoint);
     }
@@ -234,17 +234,17 @@ impl<'i, Token: Debug> Stream for TokenStream<'i, Token> {
 impl<'i, Token> StreamIsPartial for TokenStream<'i, Token> {
     type PartialState = <&'i str as StreamIsPartial>::PartialState;
 
-    #[inline(always)]
+    #[inline]
     fn complete(&mut self) -> Self::PartialState {
         self.input.complete()
     }
 
-    #[inline(always)]
+    #[inline]
     fn restore_partial(&mut self, state: Self::PartialState) {
         self.input.restore_partial(state);
     }
 
-    #[inline(always)]
+    #[inline]
     fn is_partial_supported() -> bool {
         LocatingSlice::<&str>::is_partial_supported()
     }
