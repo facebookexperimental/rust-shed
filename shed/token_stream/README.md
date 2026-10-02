@@ -11,6 +11,8 @@ let mut input = TokenStream::new(source, tokenize);
 let expr = expression.parse_next(&mut input)?;
 ```
 
+See the [crate docs](https://docs.rs/token_stream) for a complete example.
+
 Malformed input should be lexed into an error token of the language rather than failing, so the
 parser can report it where it's encountered & recover past it.
 

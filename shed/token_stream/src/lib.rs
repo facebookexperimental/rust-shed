@@ -10,35 +10,67 @@
 
 //! # token_stream
 //!
-//! `token_stream` turns a [`Tokenizer`] function into a [`winnow::stream::Stream`] of tokens,
-//! lexed from a string on demand.
+//! `token_stream` turns a [`Tokenizer`] function into a [`winnow::stream::Stream`] of tokens, lexed
+//! from a string on demand, so parsers can be written against tokens instead of characters &
+//! whitespace.
 //!
-//! This allows consumers to use [`winnow`]'s parser-combinator infrastructure using tokens instead of raw strings/chars, e.g.
-//! ```ignore
-//! (
-//!     keyword::VAR,
-//!     TokenType::identifier,
-//!     TokenType::Equals,
-//!     expr,
-//!     TokenType::Semicolon,
-//! )
-//!     .parse_next(input)
 //! ```
-//! Compared to the raw string matching equivalent:
-//! ```ignore
-//! (
-//!     "var".with_span(),
-//!     multispace1,
-//!     identifier_parser.with_span(),
-//!     multispace1,
-//!     '=',
-//!     multispace1,
-//!     expr.with_span(),
-//!     multispace1,
-//!     ';',
-//! )
+//! use token_stream::TokenStream;
+//! use token_stream::list_of;
+//! use token_stream::token_location::IntoLoc;
+//! use token_stream::token_location::Loc;
+//! use token_stream::winnow::LocatingSlice;
+//! use token_stream::winnow::Parser;
+//! use token_stream::winnow::ascii::digit1;
+//! use token_stream::winnow::ascii::multispace0;
+//! use token_stream::winnow::error::ContextError;
+//! use token_stream::winnow::error::ErrMode;
+//! use token_stream::winnow::error::ParserError;
+//! use token_stream::winnow::stream::Location;
+//! use token_stream::winnow::token::any;
+//!
+//! #[derive(Clone, Copy, Debug, PartialEq)]
+//! enum Token<'i> {
+//!     Number(&'i str),
+//!     Symbol(char),
+//! }
+//!
+//! type Input<'i> = TokenStream<'i, Token<'i>>;
+//!
+//! // Lexes numbers & single-character symbols, skipping whitespace.
+//! fn tokenize<'i>(input: &mut LocatingSlice<&'i str>) -> Option<Loc<Token<'i>>> {
+//!     multispace0::<_, ()>.parse_next(input).ok()?;
+//!     let start = input.current_token_start();
+//!     let token = match digit1::<_, ()>.parse_next(input) {
+//!         Ok(digits) => Token::Number(digits),
+//!         Err(()) => Token::Symbol(any::<_, ()>.parse_next(input).ok()?),
+//!     };
+//!     Some(token.at(start..input.current_token_start()))
+//! }
+//!
+//! fn number(input: &mut Input<'_>) -> Result<u32, ErrMode<ContextError>> {
+//!     match input.next().map(|token| token.node) {
+//!         Some(Token::Number(digits)) => Ok(digits.parse().unwrap()),
+//!         _ => Err(ErrMode::from_input(input)),
+//!     }
+//! }
+//!
+//! fn symbol<'i>(expected: char) -> impl Parser<Input<'i>, (), ErrMode<ContextError>> {
+//!     move |input: &mut Input<'i>| match input.next().map(|token| token.node) {
+//!         Some(Token::Symbol(c)) if c == expected => Ok(()),
+//!         _ => Err(ErrMode::from_input(input)),
+//!     }
+//! }
+//!
+//! let mut input = TokenStream::new("[1, 2 ,3]", tokenize);
+//! let list = list_of(symbol('['), number, symbol(','), symbol(']'))
+//!     .parse_next(&mut input)
+//!     .unwrap();
+//! let (numbers, trailing_comma): (Vec<u32>, bool) = list.node;
+//! assert_eq!(numbers, [1, 2, 3]);
+//! assert!(!trailing_comma);
+//! assert_eq!(list.location, (0..9).into());
 //! ```
-//! This becomes exponentionally more complex the more you have to account for whitespace & optional sequences.
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 

@@ -8,19 +8,7 @@
  * above-listed licenses.
  */
 
-//! Utilities for tracking the location of nodes parsed by [`TokenStream`]-based parsers.
-//! This is useful for e.g. error reporting.
-//!
-//! The [`Loc`] type is a wrapper around a node and its location in the source stream.
-//! The location is a [`SourceLocation`], i.e. the byte range of the node.
-//!
-//! The [`SourceLocationParser`] trait provides a convenient way to wrap a parser to return
-//! a [`Loc`] instead of the original node. This is done by using the [`with_location`] function
-//! to wrap a parser, which will return a [`Loc`] instead of the original node.
-//! e.g.
-//! ```ignore
-//! TokenType::Identifier.with_location().parse_next(input)
-//! ```
+//! Locating the output of [`TokenStream`]-based parsers, e.g. for error reporting.
 
 use std::marker::PhantomData;
 

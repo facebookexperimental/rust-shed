@@ -10,6 +10,22 @@
 
 //! Source locations for parsed nodes, as byte ranges into the source text: see [`SourceLocation`]
 //! & [`Loc`].
+//!
+//! ```
+//! use token_location::IntoLoc;
+//! use token_location::Located;
+//! use token_location::SourceLocation;
+//!
+//! let source = "let answer = 42;";
+//! let name = "answer".at(4..10);
+//! let value = 42.at(13..15);
+//! assert_eq!(&source[name.location.range()], "answer");
+//!
+//! // Spanning a larger node from its parts
+//! let binding = name.location().to(value.location());
+//! assert_eq!(binding, SourceLocation::new(4, 15));
+//! assert_eq!(&source[binding.range()], "answer = 42");
+//! ```
 
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
@@ -182,8 +198,13 @@ impl<T> DerefMut for Loc<T> {
 }
 
 /// Extension trait to pair any value with a location, converting it into a [`Loc`].
-/// ```ignore
-/// "foo".at(0..3)
+///
+/// ```
+/// use token_location::IntoLoc;
+///
+/// let name = "foo".at(0..3);
+/// assert_eq!(*name, "foo");
+/// assert_eq!(name.location.len(), 3);
 /// ```
 pub trait IntoLoc: Sized {
     /// Pairs `self` with `location`.
