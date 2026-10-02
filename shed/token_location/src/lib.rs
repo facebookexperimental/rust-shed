@@ -266,7 +266,13 @@ impl<T: Located> Located for &T {
 
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use super::*;
+
+    fn location_of(node: impl Located) -> SourceLocation {
+        node.location()
+    }
 
     #[test]
     fn contains_is_end_exclusive() {
@@ -286,5 +292,43 @@ mod tests {
             !loc.overlaps(&SourceLocation::new(5, 8)),
             "adjacent ranges share no bytes"
         );
+    }
+
+    #[test]
+    fn spans_and_points() {
+        let name = SourceLocation::new(4, 10);
+        let value = SourceLocation::new(13, 15);
+        assert_eq!(name.to(value), SourceLocation::new(4, 15));
+        assert_eq!(name.len(), 6);
+        assert_eq!(name.end_point(), SourceLocation::point(10));
+        assert!(name.end_point().is_empty());
+        assert_eq!(SourceLocation::begin(), SourceLocation::point(0));
+    }
+
+    #[test]
+    fn converts_to_and_from_ranges() {
+        let loc = SourceLocation::from(2..5);
+        assert_eq!(loc, SourceLocation::new(2, 5));
+        assert_eq!(Range::<usize>::from(loc), 2..5);
+        assert_eq!(loc.range(), 2..5);
+        assert_eq!(loc.to_string(), "2..5");
+    }
+
+    #[test]
+    fn mapping_keeps_the_location() {
+        let loc = "42".at(3..5);
+        assert_eq!(loc.map(str::len), 2usize.at(3..5));
+        assert_eq!(loc.try_map(str::parse::<u32>), Ok(42u32.at(3..5)));
+        assert!(loc.try_map(str::parse::<bool>).is_err());
+        assert_eq!(String::from("42").at(3..5).as_deref(), loc);
+    }
+
+    #[test]
+    fn located_through_wrappers() {
+        let loc = String::from("x").at(1..2);
+        let expected = loc.location;
+        assert_eq!(location_of(expected), expected);
+        assert_eq!(location_of(&loc), expected);
+        assert_eq!(location_of(Rc::new(loc)), expected);
     }
 }

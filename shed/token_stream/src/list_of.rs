@@ -401,6 +401,21 @@ mod tests {
     }
 
     #[test]
+    fn trailing_separator_and_empty_lists() {
+        let list = |raw_input| {
+            let mut input = TestInput::new(raw_input, tokenize);
+            let (names, trailing): (Vec<Token>, bool) =
+                list_of(Token::LSquare, name, Token::Comma, Token::RSquare)
+                    .parse_next(&mut input)
+                    .unwrap()
+                    .node;
+            (names, trailing)
+        };
+        assert_eq!(list("[foo, bar,]"), (vec![Token::Foo, Token::Bar], true));
+        assert_eq!(list("[]"), (vec![], false));
+    }
+
+    #[test]
     fn recovers_from_malformed_items() {
         assert_eq!(
             items("[foo, bar bar, foo]"),

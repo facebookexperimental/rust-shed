@@ -252,7 +252,9 @@ mod tests {
     use winnow::ascii::multispace0;
     use winnow::combinator::alt;
     use winnow::token::any;
+    use winnow::token::take;
     use winnow::token::take_till;
+    use winnow::token::take_while;
 
     use super::*;
 
@@ -335,6 +337,18 @@ mod tests {
             Some(Token::A.at(5..6))
         }
         let _ = TokenStream::new("ab", misplaced).next();
+    }
+
+    #[test]
+    fn winnow_slicing_takes_whole_tokens() {
+        let mut stream = TokenStream::new("a -comment\n a b a", tokenize);
+        let run: Vec<Token> = take_while::<_, _, ()>(0.., |token| token == Token::A)
+            .parse_next(&mut stream)
+            .unwrap();
+        assert_eq!(run, [Token::A, Token::A]);
+        let pair: Vec<Token> = take::<_, _, ()>(2usize).parse_next(&mut stream).unwrap();
+        assert_eq!(pair, [Token::B, Token::A]);
+        assert!(stream.is_empty());
     }
 
     #[test]
