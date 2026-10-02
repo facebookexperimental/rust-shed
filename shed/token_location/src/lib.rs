@@ -176,20 +176,17 @@ impl<T> DerefMut for Loc<T> {
 /// ```ignore
 /// "foo".at(0..3)
 /// ```
-pub trait IntoLoc<T> {
-    fn at(self, location: impl Into<SourceLocation>) -> Loc<T>;
+pub trait IntoLoc: Sized {
+    fn at(self, location: impl Into<SourceLocation>) -> Loc<Self>;
 
     #[inline(always)]
-    fn at_begin(self) -> Loc<T>
-    where
-        Self: Sized,
-    {
+    fn at_begin(self) -> Loc<Self> {
         self.at(SourceLocation::begin())
     }
 }
 
 /// Blanket implementation for all types to provide a default implementation of [`IntoLoc`]
-impl<T> IntoLoc<T> for T {
+impl<T> IntoLoc for T {
     #[inline(always)]
     fn at(self, location: impl Into<SourceLocation>) -> Loc<T> {
         Loc {
