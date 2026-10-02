@@ -200,10 +200,8 @@ where
                 acc.accumulate(make_invalid(err, SourceLocation::new(item_start, item_end)));
 
                 let sep_checkpoint = input.checkpoint();
-                if sep.parse_next(input).is_ok() {
-                    has_trailing_sep = true;
-                    continue;
-                } else {
+                has_trailing_sep = sep.parse_next(input).is_ok();
+                if !has_trailing_sep {
                     // Hit the closing delimiter or the end of the input
                     input.reset(&sep_checkpoint);
                     break;
@@ -329,8 +327,43 @@ mod tests {
         }
     }
 
+    impl ContainsToken<Token> for Token {
+        fn contains_token(&self, token: Token) -> bool {
+            *self == token
+        }
+    }
+
     fn name<'i>(input: &mut TestInput<'i>) -> Result<Token, ErrMode<()>> {
         alt((Token::Foo, Token::Bar)).parse_next(input)
+    }
+
+    #[derive(Debug, PartialEq)]
+    enum Item {
+        Foo,
+        Invalid(SourceLocation),
+    }
+
+    /// Only `foo`s are valid items, & a `bar` is a malformed one
+    fn item<'i>(input: &mut TestInput<'i>) -> Result<Item, ErrMode<()>> {
+        match input.next().map(|token| token.node) {
+            Some(Token::Foo) => Ok(Item::Foo),
+            Some(Token::Bar) => Err(ErrMode::Cut(())),
+            _ => Err(ErrMode::Backtrack(())),
+        }
+    }
+
+    fn items(raw_input: &str) -> (Vec<Item>, bool) {
+        let mut input = TestInput::new(raw_input, tokenize);
+        try_list_of(
+            Token::LSquare,
+            item,
+            Token::Comma,
+            Token::RSquare,
+            |(), location| Item::Invalid(location),
+        )
+        .parse_next(&mut input)
+        .unwrap()
+        .node
     }
 
     #[test]
@@ -365,5 +398,22 @@ mod tests {
         assert_eq!(&raw_input[8..11], "bar");
         assert_eq!(&raw_input[13..16], "foo");
         assert_eq!(&raw_input[18..21], "bar");
+    }
+
+    #[test]
+    fn recovers_from_malformed_items() {
+        assert_eq!(
+            items("[foo, bar bar, foo]"),
+            (
+                vec![Item::Foo, Item::Invalid((6..13).into()), Item::Foo],
+                false
+            ),
+            "the invalid item spans everything up to the next separator"
+        );
+        assert_eq!(
+            items("[foo, bar]"),
+            (vec![Item::Foo, Item::Invalid((6..9).into())], false),
+            "recovery stops at the closing delimiter"
+        );
     }
 }
