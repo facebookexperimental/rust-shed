@@ -40,6 +40,8 @@
 //! ```
 //! This becomes exponentionally more complex the more you have to account for whitespace & optional sequences.
 
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+
 mod list_of;
 mod location;
 mod stream;

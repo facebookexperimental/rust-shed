@@ -131,15 +131,8 @@ mod tests {
     /// Allows parsers matching on [`Token`] during parsing
     impl<'i> winnow::Parser<TestInput<'i>, Token, ()> for Token {
         fn parse_next(&mut self, input: &mut TestInput<'i>) -> winnow::Result<Token, ()> {
-            let token = input
-                .next()
-                .ok_or_else(|| ParserError::from_input(input))?
-                .node;
-            if *self == token {
-                Ok(token)
-            } else {
-                Err(ParserError::from_input(input))
-            }
+            let token = input.next().ok_or(())?.node;
+            if *self == token { Ok(token) } else { Err(()) }
         }
     }
 

@@ -11,22 +11,27 @@
 //! Source locations for parsed nodes, as byte ranges into the source text: see [`SourceLocation`]
 //! & [`Loc`].
 
+#![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
+
 use std::ops::Deref;
 use std::ops::DerefMut;
 use std::ops::Range;
 
 /// The location of a node within a stream, as a half-open `[start, end)` range of byte offsets.
 ///
-/// Line & column information isn't tracked; derive it from the source text when needed, e.g. with
-/// a line index.
+/// `start` is expected not to exceed `end`. Line & column information isn't tracked; derive it from
+/// the source text when needed, e.g. with a line index.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct SourceLocation {
+    /// The offset of the first byte
     pub start: usize,
+    /// The offset just past the last byte, or `start` for an empty location
     pub end: usize,
 }
 
 impl SourceLocation {
+    /// Returns the location of the bytes from `start` up to, but excluding, `end`.
     #[inline(always)]
     pub fn new(start: usize, end: usize) -> Self {
         SourceLocation { start, end }
@@ -44,33 +49,38 @@ impl SourceLocation {
         Self::point(0)
     }
 
+    /// The number of bytes covered.
     #[inline(always)]
     pub fn len(&self) -> usize {
         self.end.saturating_sub(self.start)
     }
 
+    /// Whether no bytes are covered, e.g. for a [`point`](Self::point).
     #[inline(always)]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Whether the byte at `offset` is covered.
     #[inline(always)]
     pub fn contains(&self, offset: usize) -> bool {
         self.start <= offset && offset < self.end
     }
 
+    /// Whether any byte is covered by both `self` & `other`.
     #[inline(always)]
     pub fn overlaps(&self, other: &Self) -> bool {
         self.start < other.end && other.start < self.end
     }
 
-    /// Returns the range from the start of [`self`] up to the end of [`other`]
+    /// Returns the range from the start of `self` up to the end of `other`, e.g. to span a node from
+    /// its first to its last child.
     #[inline(always)]
     pub fn to(&self, other: SourceLocation) -> Self {
         Self::new(self.start, other.end)
     }
 
-    /// Returns a zero-width [`SourceLocation`] "point" at the end of [`self`].
+    /// Returns a zero-width [`SourceLocation`] "point" at the end of `self`.
     ///
     /// Useful for anchoring an empty or synthesized node (e.g. an absent field
     /// list) at a single position rather than spanning a range.
@@ -79,7 +89,7 @@ impl SourceLocation {
         Self::point(self.end)
     }
 
-    /// The byte range of [`self`], e.g. for slicing the source text
+    /// The byte range of `self`, e.g. for slicing the source text.
     #[inline(always)]
     pub fn range(&self) -> Range<usize> {
         self.start..self.end
@@ -106,20 +116,26 @@ impl From<SourceLocation> for Range<usize> {
     }
 }
 
-/// A node with a location
+/// A node alongside its location in the source text.
+///
+/// Derefs to the node, so its fields & methods can be used directly.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Loc<T> {
+    /// The located node
     pub node: T,
+    /// Where the node is in the source text
     pub location: SourceLocation,
 }
 
 impl<T> Loc<T> {
+    /// Pairs `node` with its `location`.
     #[inline(always)]
     pub fn new(node: T, location: SourceLocation) -> Self {
         Self { node, location }
     }
 
+    /// Maps the node, keeping its location.
     #[inline(always)]
     pub fn map<U>(self, f: impl FnOnce(T) -> U) -> Loc<U> {
         Loc {
@@ -128,6 +144,7 @@ impl<T> Loc<T> {
         }
     }
 
+    /// Maps the node with a fallible function, keeping its location.
     #[inline(always)]
     pub fn try_map<U, E>(self, f: impl FnOnce(T) -> Result<U, E>) -> Result<Loc<U>, E> {
         Ok(Loc {
@@ -137,8 +154,8 @@ impl<T> Loc<T> {
     }
 }
 
-// Mirror Option::as_deref
 impl<T: Deref> Loc<T> {
+    /// Borrows the node's target, keeping its location, like [`Option::as_deref`].
     #[inline(always)]
     pub fn as_deref(&self) -> Loc<&T::Target> {
         Loc {
@@ -164,13 +181,15 @@ impl<T> DerefMut for Loc<T> {
     }
 }
 
-/// Utility trait to annotate a node [`T`] with its location, converting it into a [`Loc<T>`].
+/// Extension trait to pair any value with a location, converting it into a [`Loc`].
 /// ```ignore
 /// "foo".at(0..3)
 /// ```
 pub trait IntoLoc: Sized {
+    /// Pairs `self` with `location`.
     fn at(self, location: impl Into<SourceLocation>) -> Loc<Self>;
 
+    /// Pairs `self` with an empty location at the start of the input.
     #[inline(always)]
     fn at_begin(self) -> Loc<Self> {
         self.at(SourceLocation::begin())
@@ -188,8 +207,9 @@ impl<T> IntoLoc for T {
     }
 }
 
-/// Utility trait to get the location of a node containing location information
+/// Values that know their location in the source text
 pub trait Located {
+    /// The location of `self` in the source text.
     fn location(&self) -> SourceLocation;
 }
 

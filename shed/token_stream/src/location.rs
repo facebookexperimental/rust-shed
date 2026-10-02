@@ -30,16 +30,19 @@ use winnow::Parser;
 
 use crate::TokenStream;
 
-/// Parser wrapper to return the location of a parsed node using [`Loc`]
+/// The parser returned by [`SourceLocationParser::with_location`]
 pub struct WithLocation<'i, Token, Output, Error, P> {
     parser: P,
-    _marker: PhantomData<fn(&mut TokenStream<'i, Token>) -> Result<Output, Error>>,
+    _marker: PhantomData<ParseFn<'i, Token, Output, Error>>,
 }
 
-/// Parser utility for getting the source location of a parsed node
+type ParseFn<'i, Token, Output, Error> = fn(&mut TokenStream<'i, Token>) -> Result<Output, Error>;
+
+/// Extension trait to locate the output of any parser of a [`TokenStream`]
 pub trait SourceLocationParser<'i, Token, Output, Error>:
     Parser<TokenStream<'i, Token>, Output, Error> + Sized
 {
+    /// Wraps the parser to return its output as a [`Loc`], see [`with_location`].
     fn with_location(self) -> WithLocation<'i, Token, Output, Error, Self> {
         WithLocation {
             parser: self,
@@ -63,6 +66,8 @@ where
     }
 }
 
+/// Runs `parser`, returning its output as a [`Loc`] spanning the tokens it consumed, excluding any
+/// whitespace & comments around them. A parser that consumed nothing is located at the next token.
 pub fn with_location<'i, Token, Output, Error, P>(
     parser: &mut P,
     input: &mut TokenStream<'i, Token>,

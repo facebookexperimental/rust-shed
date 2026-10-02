@@ -52,6 +52,7 @@ impl<Token> Debug for TokenStream<'_, Token> {
 }
 
 impl<'i, Token> TokenStream<'i, Token> {
+    /// Creates a stream of the tokens `tokenize` lexes from `input`.
     pub fn new(input: &'i str, tokenize: Tokenizer<'i, Token>) -> Self {
         Self {
             input: LocatingSlice::new(input),
