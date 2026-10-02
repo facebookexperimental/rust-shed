@@ -51,4 +51,7 @@ pub use stream::*;
 /// The location types in this crate's API, so users don't have to keep a matching version of
 /// `token_location` as a separate dependency.
 pub use token_location;
+/// The parser-combinator library this crate's API is built on, so users don't have to keep a
+/// matching version of `winnow` as a separate dependency.
+pub use winnow;
 pub use yank::*;

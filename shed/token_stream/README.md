@@ -15,7 +15,7 @@ Malformed input should be lexed into an error token of the language rather than 
 parser can report it where it's encountered & recover past it.
 
 `.with_location()` wraps a parser's output in a [`token_location`](https://crates.io/crates/token_location)
-`Loc`, spanning the tokens it consumed. `token_location` is re-exported as `token_stream::token_location`,
-so there's no need to depend on a matching version of it separately. A few combinators cover common token-level patterns, e.g.
+`Loc`, spanning the tokens it consumed. `token_location` & `winnow` are re-exported as `token_stream::token_location` & `token_stream::winnow`,
+so there's no need to depend on matching versions of them separately. A few combinators cover common token-level patterns, e.g.
 delimited lists with error recovery (`list_of`, `try_unlocated_list_of`) & skipping ahead (`skip_to`,
 `yank_to`).
