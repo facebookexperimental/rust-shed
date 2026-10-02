@@ -9,6 +9,7 @@
  */
 
 use token_location::Loc;
+use token_location::SourceLocation;
 use winnow::Parser;
 use winnow::combinator::delimited;
 use winnow::combinator::trace;
@@ -20,15 +21,15 @@ use winnow::stream::Stream;
 
 use crate::SourceLocationParser;
 use crate::TokenStream;
-use crate::with_location;
+use crate::skip_to;
 
-/// Parses a list of items, separated by [`sep`] & delimited by [`start_delim`] & [`end_delim`],
-/// with an optional trailing separator. This is a common pattern for list-like constructs, e.g. list/map literals
-/// ```ignore
-/// [1, 2, 3]
-/// ```
-/// Returns the list of items, as well as a boolean indicating whether there was a trailing separator.
-/// As the trailing separator is optional, in some scenarios it may influence the behavior of the list,
+/// Parses a delimited list of items with an optional trailing separator, e.g. `[1, 2, 3,]`.
+///
+/// Returns the items alongside whether the list ended with a separator, located over the whole
+/// list including its delimiters. To locate each item as well, pass `item.with_location()`.
+///
+/// Parsing stops at the first item or separator that backtracks; wrap the parsers in
+/// [`cut_err`](winnow::combinator::cut_err) to fail the whole list instead.
 #[inline(always)]
 pub fn list_of<
     'i,
@@ -36,61 +37,16 @@ pub fn list_of<
     Output,
     Accumulator,
     Error,
-    ParseNext,
+    ItemParser,
     StartDelimParser,
-    StartDelimParserOutput,
+    StartDelimOutput,
     SepParser,
     SepOutput,
     EndDelimParser,
-    EndDelimParserOutput,
+    EndDelimOutput,
 >(
     start_delim: StartDelimParser,
-    mut parser: ParseNext,
-    mut sep: SepParser,
-    end_delim: EndDelimParser,
-) -> impl Parser<TokenStream<'i, Token>, Loc<(Accumulator, bool)>, ErrMode<Error>>
-where
-    Token: std::fmt::Debug,
-    Error: ParserError<TokenStream<'i, Token>> + 'i,
-    Accumulator: Accumulate<Loc<Output>> + 'i,
-    ParseNext: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
-    StartDelimParser: Parser<TokenStream<'i, Token>, StartDelimParserOutput, ErrMode<Error>>,
-    SepParser: Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>>,
-    EndDelimParser: Parser<TokenStream<'i, Token>, EndDelimParserOutput, ErrMode<Error>>,
-{
-    let body = move |input: &mut TokenStream<'i, Token>| {
-        list_body(&mut parser, &mut sep, with_location, input)
-    };
-    trace(
-        "list_of",
-        delimited(start_delim, body, end_delim).with_location(),
-    )
-}
-
-/// Parses a list of items, separated by [`sep`] & delimited by [`start_delim`] & [`end_delim`],
-/// with an optional trailing separator. This is a common pattern for list-like constructs, e.g. list/map literals
-/// ```ignore
-/// [1, 2, 3]
-/// ```
-/// Returns the list of items, as well as a boolean indicating whether there was a trailing separator.
-/// As the trailing separator is optional, in some scenarios it may influence the behavior of the list,
-#[inline(always)]
-pub fn unlocated_list_of<
-    'i,
-    Token,
-    Output,
-    Accumulator,
-    Error,
-    ParseNext,
-    StartDelimParser,
-    StartDelimParserOutput,
-    SepParser,
-    SepOutput,
-    EndDelimParser,
-    EndDelimParserOutput,
->(
-    start_delim: StartDelimParser,
-    mut parser: ParseNext,
+    mut item: ItemParser,
     mut sep: SepParser,
     end_delim: EndDelimParser,
 ) -> impl Parser<TokenStream<'i, Token>, Loc<(Accumulator, bool)>, ErrMode<Error>>
@@ -98,53 +54,33 @@ where
     Token: std::fmt::Debug,
     Error: ParserError<TokenStream<'i, Token>> + 'i,
     Accumulator: Accumulate<Output> + 'i,
-    ParseNext: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
-    StartDelimParser: Parser<TokenStream<'i, Token>, StartDelimParserOutput, ErrMode<Error>>,
+    ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
+    StartDelimParser: Parser<TokenStream<'i, Token>, StartDelimOutput, ErrMode<Error>>,
     SepParser: Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>>,
-    EndDelimParser: Parser<TokenStream<'i, Token>, EndDelimParserOutput, ErrMode<Error>>,
+    EndDelimParser: Parser<TokenStream<'i, Token>, EndDelimOutput, ErrMode<Error>>,
 {
-    let body = move |input: &mut TokenStream<'i, Token>| {
-        list_body(&mut parser, &mut sep, passthrough, input)
-    };
+    let body = move |input: &mut TokenStream<'i, Token>| list_body(&mut item, &mut sep, input);
     trace(
         "list_of",
         delimited(start_delim, body, end_delim).with_location(),
     )
 }
 
-fn passthrough<P, I, O, E>(parser: &mut P, input: &mut I) -> Result<O, ErrMode<E>>
-where
-    P: Parser<I, O, ErrMode<E>>,
-{
-    parser.parse_next(input)
-}
-
-/// Parses a list of items with error recovery support.
+/// Like [`list_of`], but recovers from items that fail to parse with a cut error.
 ///
-/// Similar to [`unlocated_list_of`], but when a Cut error occurs during item parsing,
-/// instead of propagating the error, this function:
-/// 1. Skips to the next separator or closing delimiter
-/// 2. Uses the provided `make_invalid` function to create an "invalid" placeholder item
-/// 3. Continues parsing subsequent items
-///
-/// This enables partial AST construction even when some list elements are malformed.
-///
-/// # Arguments
-/// * `start_delim` - Parser for the opening delimiter (e.g., `[`)
-/// * `parser` - Parser for individual items
-/// * `sep` - Separator token (must implement both `Parser` and `ContainsToken`)
-/// * `end_delim` - End delimiter token (must implement both `Parser` and `ContainsToken`)
-/// * `make_invalid` - Function to create an invalid item from a Cut error
+/// The recovery skips ahead to the next separator or closing delimiter, then stands in for the
+/// broken item with `make_invalid(error, location)`, where `location` spans the skipped tokens.
+/// This keeps malformed items from losing the rest of the list, e.g. for partial ASTs.
 #[inline(always)]
-pub fn try_unlocated_list_of<
+pub fn try_list_of<
     'i,
     Token,
     Output,
     Accumulator,
     Error,
-    ParseNext,
+    ItemParser,
     StartDelimParser,
-    StartDelimParserOutput,
+    StartDelimOutput,
     SepToken,
     SepOutput,
     EndDelimToken,
@@ -152,7 +88,7 @@ pub fn try_unlocated_list_of<
     MakeInvalid,
 >(
     start_delim: StartDelimParser,
-    mut parser: ParseNext,
+    mut item: ItemParser,
     mut sep: SepToken,
     end_delim: EndDelimToken,
     make_invalid: MakeInvalid,
@@ -161,17 +97,17 @@ where
     Token: std::fmt::Debug + Clone,
     Error: ParserError<TokenStream<'i, Token>> + 'i,
     Accumulator: Accumulate<Output> + 'i,
-    ParseNext: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
-    StartDelimParser: Parser<TokenStream<'i, Token>, StartDelimParserOutput, ErrMode<Error>>,
+    ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
+    StartDelimParser: Parser<TokenStream<'i, Token>, StartDelimOutput, ErrMode<Error>>,
     SepToken:
         ContainsToken<Token> + Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>> + Copy,
     EndDelimToken: ContainsToken<Token>
         + Parser<TokenStream<'i, Token>, EndDelimOutput, ErrMode<Error>>
         + Copy,
-    MakeInvalid: Fn(Error, usize, usize) -> Output,
+    MakeInvalid: Fn(Error, SourceLocation) -> Output,
 {
     let body = move |input: &mut TokenStream<'i, Token>| {
-        try_list_body(&mut parser, &mut sep, end_delim, &make_invalid, input)
+        try_list_body(&mut item, &mut sep, end_delim, &make_invalid, input)
     };
     trace(
         "try_list_of",
@@ -179,82 +115,67 @@ where
     )
 }
 
-/// Parses a comma-separated list body with error recovery support.
+/// The items of a [`try_list_of`] list, without its delimiters, for parsers that consume the
+/// delimiters themselves.
 ///
-/// This is the body-only version of [`try_unlocated_list_of`] - it does not
-/// handle opening/closing delimiters. Use this when you need to manually handle
-/// delimiters or when working with list parsers that have already consumed the
-/// opening delimiter.
-///
-/// When a Cut error occurs during item parsing, this function:
-/// 1. Skips to the next separator or closing delimiter
-/// 2. Uses the provided `make_invalid` function to create an "invalid" placeholder item
-/// 3. Continues parsing subsequent items
-///
-/// # Arguments
-/// * `parser` - Parser for individual items
-/// * `sep` - Separator token (must implement both `Parser` and `ContainsToken`)
-/// * `end_delim` - End delimiter token (must implement both `Parser` and `ContainsToken`)
-/// * `make_invalid` - Function to create an invalid item from a Cut error (err, start_pos, end_pos)
+/// The closing delimiter is only peeked at, to know where the list ends.
 #[inline(always)]
 pub fn try_list_body<
     'i,
     Token,
     Output,
-    Acc,
+    Accumulator,
     SepOutput,
     Error,
-    ParseNext,
+    ItemParser,
     SepToken,
     EndDelimToken,
     EndDelimOutput,
     MakeInvalid,
 >(
-    parser: &mut ParseNext,
+    item: &mut ItemParser,
     sep: &mut SepToken,
     mut end_delim: EndDelimToken,
     make_invalid: &MakeInvalid,
     input: &mut TokenStream<'i, Token>,
-) -> Result<(Acc, bool), ErrMode<Error>>
+) -> Result<(Accumulator, bool), ErrMode<Error>>
 where
     Error: ParserError<TokenStream<'i, Token>>,
     Token: std::fmt::Debug + Clone,
-    Acc: Accumulate<Output> + 'i,
-    ParseNext: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
+    Accumulator: Accumulate<Output> + 'i,
+    ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
     SepToken:
         ContainsToken<Token> + Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>> + Copy,
     EndDelimToken: ContainsToken<Token>
         + Parser<TokenStream<'i, Token>, EndDelimOutput, ErrMode<Error>>
         + Copy,
-    MakeInvalid: Fn(Error, usize, usize) -> Output,
+    MakeInvalid: Fn(Error, SourceLocation) -> Output,
 {
-    use crate::skip_to;
-
-    let mut acc: Acc = Acc::initial(None);
+    let mut acc = Accumulator::initial(None);
     let mut has_trailing_sep = false;
 
     loop {
         let checkpoint = input.checkpoint();
 
-        // Check for closing delimiter (empty list or trailing comma case)
+        // An empty list, or one with a trailing separator
         if end_delim.parse_next(input).is_ok() {
             input.reset(&checkpoint);
             break;
         }
         input.reset(&checkpoint);
 
-        let start_char = input.next_token_start();
-        let len: usize = input.eof_offset();
+        let item_start = input.next_token_start();
+        let len = input.eof_offset();
 
-        match parser.parse_next(input) {
-            Ok(item) => {
+        match item.parse_next(input) {
+            Ok(output) => {
                 if input.eof_offset() == len {
                     return Err(ParserError::assert(
                         input,
                         "`try_list_body` parser must always consume",
                     ));
                 }
-                acc.accumulate(item);
+                acc.accumulate(output);
                 has_trailing_sep = false;
 
                 let sep_checkpoint = input.checkpoint();
@@ -274,20 +195,17 @@ where
                 break;
             }
             Err(ErrMode::Cut(err)) => {
-                // Recovery: skip to next separator or closing delimiter
                 skip_to(input, (*sep, end_delim));
-                let end_char = input.prev_token_end().max(start_char);
-                let invalid_item = make_invalid(err, start_char, end_char);
-                acc.accumulate(invalid_item);
+                let item_end = input.prev_token_end().max(item_start);
+                acc.accumulate(make_invalid(err, SourceLocation::new(item_start, item_end)));
 
-                // If we hit a separator, consume it and continue
                 let sep_checkpoint = input.checkpoint();
                 if sep.parse_next(input).is_ok() {
                     has_trailing_sep = true;
                     continue;
                 } else {
+                    // Hit the closing delimiter or the end of the input
                     input.reset(&sep_checkpoint);
-                    // Hit closing delimiter or end of input
                     break;
                 }
             }
@@ -300,55 +218,44 @@ where
     Ok((acc, has_trailing_sep))
 }
 
-/// Similar to the [`separated`](winnow::combinator::separated) combinator, but allows
-/// for an optional trailing separator & and allows for comments between elements, e.g.
-/// ```ignore
-///     1, // Some comment
-///     2, // Some other comment
-///     /* some leading comment*/ 3, // Some trailing comment
-/// ```
-/// Note: This stops when either parser returns [`ErrMode::Backtrack`][winnow::error::ErrMode::Backtrack]. To instead chain an error up, see
-/// [`cut_err`][winnow::combinator::cut_err].
-fn list_body<'i, Token, Output, Acc, Sep, Error, ParseNext, SepParser, WrappedItem, ItemWrapper>(
-    parser: &mut ParseNext,
+/// Like [`winnow::combinator::separated`], but allowing a trailing separator & reporting whether
+/// there was one.
+fn list_body<'i, Token, Output, Accumulator, SepOutput, Error, ItemParser, SepParser>(
+    item: &mut ItemParser,
     sep: &mut SepParser,
-    item_wrapper: ItemWrapper,
     input: &mut TokenStream<'i, Token>,
-) -> Result<(Acc, bool), ErrMode<Error>>
+) -> Result<(Accumulator, bool), ErrMode<Error>>
 where
     Error: ParserError<TokenStream<'i, Token>>,
     Token: std::fmt::Debug,
-    Acc: Accumulate<WrappedItem> + 'i,
-    ParseNext: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
-    SepParser: Parser<TokenStream<'i, Token>, Sep, ErrMode<Error>>,
-    ItemWrapper:
-        Fn(&mut ParseNext, &mut TokenStream<'i, Token>) -> Result<WrappedItem, ErrMode<Error>>,
+    Accumulator: Accumulate<Output> + 'i,
+    ItemParser: Parser<TokenStream<'i, Token>, Output, ErrMode<Error>>,
+    SepParser: Parser<TokenStream<'i, Token>, SepOutput, ErrMode<Error>>,
 {
-    let mut acc: Acc = Acc::initial(None);
+    let mut acc = Accumulator::initial(None);
     let mut has_trailing_sep = false;
 
-    // Tries to parse sequences of [misc] <element> [misc] [separator] [misc]
     loop {
         let start = input.checkpoint();
-        let len: usize = input.eof_offset();
-        let item = match item_wrapper(parser, input) {
+        let len = input.eof_offset();
+        let output = match item.parse_next(input) {
             Err(e) if e.is_backtrack() => {
                 input.reset(&start);
                 break;
             }
             Err(e) => return Err(e),
-            Ok(o) => {
+            Ok(output) => {
                 if input.eof_offset() == len {
                     return Err(ParserError::assert(
                         input,
                         "`list_of` parser must always consume",
                     ));
                 }
-                o
+                output
             }
         };
 
-        acc.accumulate(item);
+        acc.accumulate(output);
         has_trailing_sep = false;
 
         let start = input.checkpoint();
@@ -430,9 +337,14 @@ mod tests {
     fn csv() {
         let raw_input = " [ foo, bar, foo, bar ] ";
         let mut input = TestInput::new(raw_input, tokenize);
-        let loc = list_of(Token::LSquare, name, Token::Comma, Token::RSquare)
-            .parse_next(&mut input)
-            .unwrap();
+        let loc = list_of(
+            Token::LSquare,
+            name.with_location(),
+            Token::Comma,
+            Token::RSquare,
+        )
+        .parse_next(&mut input)
+        .unwrap();
 
         assert_eq!(loc.location, SourceLocation::new(1, 23));
         assert_eq!(&raw_input[1..2], "[");
