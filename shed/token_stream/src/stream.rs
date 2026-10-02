@@ -27,6 +27,11 @@ use winnow::stream::StreamIsPartial;
 ///
 /// Lexing shouldn't fail: input that doesn't form a valid token should become an error token of
 /// the language instead, so the parser can report it where it's encountered & recover past it.
+///
+/// Tokenizers are plain functions, so that [`TokenStream`]'s type doesn't depend on its tokenizer,
+/// but that means they can't capture state. Lexing that depends on runtime configuration, e.g. a
+/// set of keywords, should leave that distinction to the parser or read the configuration from a
+/// `static`.
 pub type Tokenizer<'i, Token> = fn(&mut LocatingSlice<&'i str>) -> Option<Loc<Token>>;
 
 /// A [`winnow::stream::Stream`] of the tokens a [`Tokenizer`] lexes from a string on demand.
