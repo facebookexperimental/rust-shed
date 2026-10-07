@@ -1,4 +1,4 @@
-# token_stream
+# winnow-token-stream
 
 A [`winnow`](https://crates.io/crates/winnow) stream of tokens, lexed on demand from a string by a
 tokenizer function, so parsers can be written against tokens rather than characters & whitespace.
@@ -11,18 +11,18 @@ let mut input = TokenStream::new(source, tokenize);
 let expr = expression.parse_next(&mut input)?;
 ```
 
-See the [crate docs](https://docs.rs/token_stream) for a complete example.
+See the [crate docs](https://docs.rs/winnow-token-stream) for a complete example.
 
 Malformed input should be lexed into an error token of the language rather than failing, so the
 parser can report it where it's encountered & recover past it.
 
 `.with_location()` wraps a parser's output in a [`token_location`](https://crates.io/crates/token_location)
-`Loc`, spanning the tokens it consumed. `token_location` & `winnow` are re-exported as `token_stream::token_location` & `token_stream::winnow`,
+`Loc`, spanning the tokens it consumed. `token_location` & `winnow` are re-exported as `winnow_token_stream::token_location` & `winnow_token_stream::winnow`,
 so there's no need to depend on matching versions of them separately. A few combinators cover common token-level patterns, e.g.
 delimited lists with error recovery (`list_of`, `try_unlocated_list_of`) & skipping ahead (`skip_to`,
 `yank_to`).
 
 ## License
 
-token_stream is both MIT and Apache License, Version 2.0 licensed, as found in the
+winnow-token-stream is both MIT and Apache License, Version 2.0 licensed, as found in the
 [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE) files.

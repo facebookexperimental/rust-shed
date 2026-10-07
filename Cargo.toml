@@ -194,12 +194,12 @@ members = [
   "shed/thrift_compiler",
   "shed/time_ext",
   "shed/token_location",
-  "shed/token_stream",
   "shed/tokio-detectors",
   "shed/tokio-uds-compat",
   "shed/tracing_slog_compat",
   "shed/tracing_slog_compat/example",
   "shed/weight_observer",
+  "shed/winnow-token-stream",
 ]
 resolver = "2"
 

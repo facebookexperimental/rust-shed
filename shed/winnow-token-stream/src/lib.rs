@@ -8,26 +8,26 @@
  * above-listed licenses.
  */
 
-//! # token_stream
+//! # winnow-token-stream
 //!
-//! `token_stream` turns a [`Tokenizer`] function into a [`winnow::stream::Stream`] of tokens, lexed
-//! from a string on demand, so parsers can be written against tokens instead of characters &
-//! whitespace.
+//! `winnow-token-stream` turns a [`Tokenizer`] function into a [`winnow::stream::Stream`] of
+//! tokens, lexed from a string on demand, so parsers can be written against tokens instead of
+//! characters & whitespace.
 //!
 //! ```
-//! use token_stream::TokenStream;
-//! use token_stream::list_of;
-//! use token_stream::token_location::IntoLoc;
-//! use token_stream::token_location::Loc;
-//! use token_stream::winnow::LocatingSlice;
-//! use token_stream::winnow::Parser;
-//! use token_stream::winnow::ascii::digit1;
-//! use token_stream::winnow::ascii::multispace0;
-//! use token_stream::winnow::error::ContextError;
-//! use token_stream::winnow::error::ErrMode;
-//! use token_stream::winnow::error::ParserError;
-//! use token_stream::winnow::stream::Location;
-//! use token_stream::winnow::token::any;
+//! use winnow_token_stream::TokenStream;
+//! use winnow_token_stream::list_of;
+//! use winnow_token_stream::token_location::IntoLoc;
+//! use winnow_token_stream::token_location::Loc;
+//! use winnow_token_stream::winnow::LocatingSlice;
+//! use winnow_token_stream::winnow::Parser;
+//! use winnow_token_stream::winnow::ascii::digit1;
+//! use winnow_token_stream::winnow::ascii::multispace0;
+//! use winnow_token_stream::winnow::error::ContextError;
+//! use winnow_token_stream::winnow::error::ErrMode;
+//! use winnow_token_stream::winnow::error::ParserError;
+//! use winnow_token_stream::winnow::stream::Location;
+//! use winnow_token_stream::winnow::token::any;
 //!
 //! #[derive(Clone, Copy, Debug, PartialEq)]
 //! enum Token<'i> {
