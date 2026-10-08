@@ -53,6 +53,28 @@ pub struct WeightGuard {
     pub weight: usize,
 }
 
+impl WeightGuard {
+    /// Create a guard and add its initial weight to the observer.
+    pub fn tracked(observer: Option<Arc<dyn WeightObserver>>, weight: usize) -> Self {
+        if let Some(ref observer) = observer {
+            observer.on_weight_added(weight);
+        }
+        Self { observer, weight }
+    }
+
+    /// Replace the tracked weight, reporting only the difference to the observer.
+    pub fn set_weight(&mut self, weight: usize) {
+        if let Some(ref observer) = self.observer {
+            match weight.cmp(&self.weight) {
+                std::cmp::Ordering::Greater => observer.on_weight_added(weight - self.weight),
+                std::cmp::Ordering::Less => observer.on_weight_removed(self.weight - weight),
+                std::cmp::Ordering::Equal => {}
+            }
+        }
+        self.weight = weight;
+    }
+}
+
 impl Drop for WeightGuard {
     fn drop(&mut self) {
         if let Some(ref observer) = self.observer {
@@ -76,15 +98,9 @@ impl<T> WeightedItem<T> {
     /// Wrap an item, call `on_weight_added`, and create a guard that
     /// will call `on_weight_removed` when this wrapper is dropped.
     pub fn tracked(inner: T, observer: &Option<Arc<dyn WeightObserver>>, weight: usize) -> Self {
-        if let Some(obs) = observer {
-            obs.on_weight_added(weight);
-        }
         Self {
             inner,
-            _guard: WeightGuard {
-                observer: observer.clone(),
-                weight,
-            },
+            _guard: WeightGuard::tracked(observer.clone(), weight),
         }
     }
 
@@ -154,6 +170,25 @@ mod tests {
                 weight: 100,
             };
             assert_eq!(observer.net_weight(), 100);
+        }
+        assert_eq!(observer.net_weight(), 0);
+    }
+
+    #[test]
+    fn weight_guard_updates_report_only_the_difference() {
+        let observer = MockWeightObserver::new_arc();
+        {
+            let mut guard = WeightGuard::tracked(Some(observer.clone()), 100);
+            assert_eq!(observer.net_weight(), 100);
+
+            guard.set_weight(250);
+            assert_eq!(observer.net_weight(), 250);
+
+            guard.set_weight(40);
+            assert_eq!(observer.net_weight(), 40);
+
+            guard.set_weight(40);
+            assert_eq!(observer.net_weight(), 40);
         }
         assert_eq!(observer.net_weight(), 0);
     }
