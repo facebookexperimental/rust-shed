@@ -17,8 +17,6 @@ mod oss;
 pub use fb_cachelib::*;
 
 #[cfg(not(fbcode_build))]
-pub use crate::oss::dummy_cache as abomonation_cache;
-#[cfg(not(fbcode_build))]
 pub use crate::oss::dummy_cache as bincode_cache;
 #[cfg(not(fbcode_build))]
 pub use crate::oss::lrucache::*;
