@@ -13,6 +13,12 @@
 //!
 //! Strings that can be serialized with abomonation and maintain a particular
 //! alignment in the abomonation buffer.
+//!
+//! The upstream `abomonation::decode` widens a reference to one byte into a
+//! reference to the whole value, which violates Stacked Borrows. A decoder must
+//! form the typed reference from the full header's raw pointer and use storage
+//! aligned for `String`. The tests exercise `entomb` and `exhume` directly with
+//! these guarantees.
 
 use std::io::Result as IoResult;
 use std::io::Write;
@@ -96,7 +102,14 @@ impl<const ALIGN: usize> Abomonation for AbomonableString<ALIGN> {
 
 #[cfg(test)]
 mod tests {
+    use std::mem::size_of;
+
+    use abomonation::Abomonation;
+
     use super::AbomonableString;
+
+    #[repr(align(8))]
+    struct AlignedBuffer([u8; 512]);
 
     fn align_n<const ALIGN: usize>() {
         for l in 0..250 {
@@ -111,12 +124,20 @@ mod tests {
             // The buffer length should match the alignment.
             assert!(v.len() % ALIGN == 0);
 
-            // Extract it back out
-            let (d, rem) =
-                unsafe { abomonation::decode(&mut v).expect("Disabomonate should succeed") };
+            let mut buffer = AlignedBuffer([0; 512]);
+            let bytes = &mut buffer.0[..v.len()];
+            bytes.copy_from_slice(&v);
+            let (header, payload) = bytes.split_at_mut(size_of::<AbomonableString<ALIGN>>());
+            // SAFETY: The header contains an encoded AbomonableString and is
+            // aligned by AlignedBuffer. Its raw pointer covers the entire header,
+            // which remains exclusively borrowed while the value is used.
+            let d = unsafe { &mut *header.as_mut_ptr().cast::<AbomonableString<ALIGN>>() };
+            // SAFETY: The payload was encoded from s, is disjoint from the header,
+            // and outlives d. The exhumed string is only read and is never dropped.
+            let rem = unsafe { d.exhume(payload).expect("Disabomonate should succeed") };
 
             // The string should match
-            assert_eq!(&s, d);
+            assert_eq!(&s, &*d);
 
             // We should have consumed the padding (if any)
             assert_eq!(rem.len(), 0);
