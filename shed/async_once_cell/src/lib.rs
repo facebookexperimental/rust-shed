@@ -182,104 +182,124 @@ mod test {
 
     use super::*;
 
-    #[tokio::test]
-    async fn new_with() {
-        assert_eq!(AsyncOnceCell::new_with(123).get(), Some(&123));
-        assert_eq!(
-            AsyncOnceCell::new_with(456)
-                .get_or_init(|| async { panic!("must not be called") })
-                .await,
-            &456
-        );
+    // #[tokio::test] calls enable_all(), starting an I/O reactor whose
+    // kqueue/IOCP syscalls Miri cannot execute. These tests need only timers.
+    fn run_test(future: impl Future<Output = ()>) {
+        tokio::runtime::Builder::new_current_thread()
+            .enable_time()
+            .build()
+            .unwrap()
+            .block_on(future);
     }
 
-    #[tokio::test]
-    async fn set_get() {
-        let aoc = AsyncOnceCell::new();
-        assert_eq!(aoc.get(), None);
-        assert_eq!(aoc.set(123).await, Ok(()));
-        assert_eq!(aoc.get(), Some(&123));
-        assert_eq!(aoc.set(456).await, Err(456));
-        assert_eq!(aoc.get(), Some(&123));
+    #[test]
+    fn new_with() {
+        run_test(async {
+            assert_eq!(AsyncOnceCell::new_with(123).get(), Some(&123));
+            assert_eq!(
+                AsyncOnceCell::new_with(456)
+                    .get_or_init(|| async { panic!("must not be called") })
+                    .await,
+                &456
+            );
+        });
     }
 
-    #[tokio::test]
-    async fn get_or_init() {
-        let aoc = AsyncOnceCell::new();
-        assert_eq!(aoc.get(), None);
-        assert_eq!(aoc.get_or_init(|| async { 123 }).await, &123);
-        assert_eq!(aoc.get(), Some(&123));
-        assert_eq!(aoc.get_or_init(|| async { 456 }).await, &123);
-        assert_eq!(aoc.get(), Some(&123));
+    #[test]
+    fn set_get() {
+        run_test(async {
+            let aoc = AsyncOnceCell::new();
+            assert_eq!(aoc.get(), None);
+            assert_eq!(aoc.set(123).await, Ok(()));
+            assert_eq!(aoc.get(), Some(&123));
+            assert_eq!(aoc.set(456).await, Err(456));
+            assert_eq!(aoc.get(), Some(&123));
+        });
     }
 
-    #[tokio::test]
-    async fn get_or_try_init() {
-        let aoc = AsyncOnceCell::new();
-        assert_eq!(aoc.get(), None);
-        assert_eq!(
-            aoc.get_or_try_init(|| async { Err("error!") }).await,
-            Err("error!")
-        );
-        assert_eq!(aoc.get(), None);
-        assert_eq!(
-            aoc.get_or_try_init(|| async { Ok::<_, ()>(123) }).await,
-            Ok(&123)
-        );
-        assert_eq!(aoc.get(), Some(&123));
-        assert_eq!(
-            aoc.get_or_try_init(|| async { Ok::<_, ()>(456) }).await,
-            Ok(&123)
-        );
-        assert_eq!(aoc.get(), Some(&123));
-        assert_eq!(
-            aoc.get_or_try_init(|| async { Err("error!") }).await,
-            Ok(&123)
-        );
-        assert_eq!(aoc.get(), Some(&123));
+    #[test]
+    fn get_or_init() {
+        run_test(async {
+            let aoc = AsyncOnceCell::new();
+            assert_eq!(aoc.get(), None);
+            assert_eq!(aoc.get_or_init(|| async { 123 }).await, &123);
+            assert_eq!(aoc.get(), Some(&123));
+            assert_eq!(aoc.get_or_init(|| async { 456 }).await, &123);
+            assert_eq!(aoc.get(), Some(&123));
+        });
     }
 
-    #[tokio::test]
-    async fn concurrent_get_or_init() {
-        let aoc: AsyncOnceCell<i32> = AsyncOnceCell::new();
-        let delay1 = Duration::from_millis(rand::random_range(0..100));
-        let delay2 = Duration::from_millis(rand::random_range(0..100));
-        let count = AtomicUsize::new(0);
-        let f = futures::future::join(
-            async {
-                tokio::time::sleep(delay1).await;
-                aoc.get_or_init(|| async {
-                    tokio::time::sleep(delay1 + delay2).await;
-                    count.fetch_add(1, Ordering::Relaxed);
-                    123
-                })
-                .await
-                .clone()
-            },
-            async {
-                tokio::time::sleep(delay2).await;
-                aoc.get_or_init(|| async {
-                    tokio::time::sleep(delay1 + delay2).await;
-                    count.fetch_add(1, Ordering::Relaxed);
-                    456
-                })
-                .await
-                .clone()
-            },
-        );
-        let (v1, v2) = f.await;
+    #[test]
+    fn get_or_try_init() {
+        run_test(async {
+            let aoc = AsyncOnceCell::new();
+            assert_eq!(aoc.get(), None);
+            assert_eq!(
+                aoc.get_or_try_init(|| async { Err("error!") }).await,
+                Err("error!")
+            );
+            assert_eq!(aoc.get(), None);
+            assert_eq!(
+                aoc.get_or_try_init(|| async { Ok::<_, ()>(123) }).await,
+                Ok(&123)
+            );
+            assert_eq!(aoc.get(), Some(&123));
+            assert_eq!(
+                aoc.get_or_try_init(|| async { Ok::<_, ()>(456) }).await,
+                Ok(&123)
+            );
+            assert_eq!(aoc.get(), Some(&123));
+            assert_eq!(
+                aoc.get_or_try_init(|| async { Err("error!") }).await,
+                Ok(&123)
+            );
+            assert_eq!(aoc.get(), Some(&123));
+        });
+    }
 
-        // The two values should be the same.
-        assert_eq!(v1, v2);
+    #[test]
+    fn concurrent_get_or_init() {
+        run_test(async {
+            let aoc: AsyncOnceCell<i32> = AsyncOnceCell::new();
+            let delay1 = Duration::from_millis(rand::random_range(0..100));
+            let delay2 = Duration::from_millis(rand::random_range(0..100));
+            let count = AtomicUsize::new(0);
+            let f = futures::future::join(
+                async {
+                    tokio::time::sleep(delay1).await;
+                    aoc.get_or_init(|| async {
+                        tokio::time::sleep(delay1 + delay2).await;
+                        count.fetch_add(1, Ordering::Relaxed);
+                        123
+                    })
+                    .await
+                    .clone()
+                },
+                async {
+                    tokio::time::sleep(delay2).await;
+                    aoc.get_or_init(|| async {
+                        tokio::time::sleep(delay1 + delay2).await;
+                        count.fetch_add(1, Ordering::Relaxed);
+                        456
+                    })
+                    .await
+                    .clone()
+                },
+            );
+            let (v1, v2) = f.await;
 
-        // They should be one of the two possibilities (depending on which one
-        // executed).
-        assert!(v1 == 123 || v1 == 456, "cell has unexpected value: {}", v1);
+            // The two values should be the same.
+            assert_eq!(v1, v2);
 
-        // The underlying AsyncOnceCell should have that value.
-        assert_eq!(aoc.get(), Some(&v1));
+            // They should be one of the two possibilities (depending on which one
+            // executed).
+            assert!(v1 == 123 || v1 == 456, "cell has unexpected value: {}", v1);
 
-        // Only one future should have been executed.
-        assert_eq!(count.load(Ordering::Relaxed), 1);
+            // The underlying AsyncOnceCell should have that value.
+            assert_eq!(aoc.get(), Some(&v1));
+
+            // Only one future should have been executed.
+            assert_eq!(count.load(Ordering::Relaxed), 1);
+        });
     }
 }
