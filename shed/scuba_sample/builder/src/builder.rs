@@ -243,7 +243,7 @@ impl ScubaSampleBuilder {
 
     /// Add values to the sample that are widely used in Facebook services. For
     /// non-fbcode-builds it does nothing. The provided mapper function is used
-    /// to transform the valuse before they are written to the sample.
+    /// to transform the values before they are written to the sample.
     pub fn add_mapped_common_server_data<F>(&mut self, _mapper: F) -> &mut Self
     where
         F: Fn(ServerData) -> &'static str,

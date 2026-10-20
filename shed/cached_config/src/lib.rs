@@ -11,7 +11,7 @@
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 //! This crate defines the ConfigStore which can be used to maintain a cached
-//! set of configs identitied by their paths that are periodically refreshed.
+//! set of configs identified by their paths that are periodically refreshed.
 //! The configs are provided by the implementors of the Source trait.
 
 #[cfg(fbcode_build)]

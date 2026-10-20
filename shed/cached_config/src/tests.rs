@@ -323,7 +323,7 @@ async fn test_config_update_watcher_wait_for_next() {
     // Give the async closure some time to run since tests are executed
     // in single threaded environment.
     tokio::time::sleep(Duration::from_millis(SLEEP_TIME_MS)).await;
-    // Ensure that the flag_val has not changed inspite of the watcher waiting
+    // Ensure that the flag_val has not changed in spite of the watcher waiting
     // for the next configuration value. Given that the underlying config hasn't
     // changed, the watcher should be sleeping and thus flag_val should not be updated.
     assert_eq!(flag_val.load(Ordering::Relaxed), 1);
@@ -351,7 +351,7 @@ async fn test_config_update_watcher_wait_for_next() {
     // in single threaded environment.
     tokio::time::sleep(Duration::from_millis(SLEEP_TIME_MS)).await;
 
-    // The flag_val should now be updated to refect two things.
+    // The flag_val should now be updated to reflect two things.
     // 1. The loop in the async closure should have executed exactly once.
     // 2. The value fetched from the watcher is the latest value.
     assert_eq!(flag_val.load(Ordering::Relaxed), 11);
@@ -395,7 +395,7 @@ async fn test_config_update_watcher_multiple_updates() {
     // Give the async closure some time to run since tests are executed
     // in single threaded environment.
     tokio::time::sleep(Duration::from_millis(SLEEP_TIME_MS)).await;
-    // Ensure that the flag_val has not changed inspite of the watcher waiting
+    // Ensure that the flag_val has not changed in spite of the watcher waiting
     // for the next configuration value. Given that the underlying config hasn't
     // changed, the watcher should be sleeping and thus flag_val should not be updated.
     assert_eq!(flag_val.load(Ordering::Relaxed), 1);
@@ -438,7 +438,7 @@ async fn test_config_update_watcher_multiple_updates() {
     // in single threaded environment.
     tokio::time::sleep(Duration::from_millis(SLEEP_TIME_MS)).await;
 
-    // The flag_val should now be updated to refect two things.
+    // The flag_val should now be updated to reflect two things.
     // 1. The loop in the async closure should have executed exactly once.
     // 2. The value fetched from the watcher is the last value that was
     // published by the config source. The intermediate values are not

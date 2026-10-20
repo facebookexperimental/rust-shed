@@ -65,14 +65,14 @@
 /// See crate's documentation
 #[macro_export]
 macro_rules! borrowed {
-    // Ambigous, so need to specify type
+    // Ambiguous, so need to specify type
     ($i:ident as $alias:ident : $borrow:ty) => {
         let $alias: $borrow = {
             use std::borrow::Borrow;
             $i.borrow()
         };
     };
-    // If borrow is unambigous
+    // If borrow is unambiguous
     ($i:ident as $alias:ident) => {
         let $alias = {
             use std::borrow::Borrow;

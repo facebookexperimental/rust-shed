@@ -13,5 +13,5 @@ fn main() {
 
     panichandler::set_panichandler(panichandler::Fate::Continue);
 
-    panic!("I paniced! {} {}", "Everything's awful!", 1234);
+    panic!("I panicked! {} {}", "Everything's awful!", 1234);
 }

@@ -32,8 +32,8 @@ pub struct OutOfRangeError(i64);
 /// timestamp. This adapter thus naturally does not have sub-second precision.
 ///
 /// Note that negative numbers are valid and are interpreted as how many seconds
-/// before January 1, 1970. Other langauges and implementations should be
-/// careful not to intepret negative numbers as values far, far in the future
+/// before January 1, 1970. Other languages and implementations should be
+/// careful not to interpret negative numbers as values far, far in the future
 /// (e.g. don't reinterpret cast to an `uint64_t`!).
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
@@ -47,7 +47,7 @@ pub struct OutOfRangeError(i64);
 /// # Errors
 ///
 /// This adapter is limited by the range supported by [`NaiveDateTime`]. Values
-/// larger than 262,000 years away from the common era are unsuppported, and
+/// larger than 262,000 years away from the common era are unsupported, and
 /// will always fail.
 ///
 /// [`DateTime<Utc>`]: chrono::DateTime
@@ -73,8 +73,8 @@ pub struct UtcTimestampAdapter;
 /// since midnight UTC on January 1, 1970.
 ///
 /// Note that negative numbers are valid and are interpreted as how many seconds
-/// before January 1, 1970. Other langauges and implementations should be
-/// careful not to intepret negative numbers as values far, far in the future
+/// before January 1, 1970. Other languages and implementations should be
+/// careful not to interpret negative numbers as values far, far in the future
 /// (e.g. don't reinterpret cast to an `uint64_t`!).
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
@@ -88,7 +88,7 @@ pub struct UtcTimestampAdapter;
 /// # Errors
 ///
 /// This adapter is limited by the range supported by [`NaiveDateTime`]. Values
-/// larger than 262,000 years away from the common era are unsuppported, and
+/// larger than 262,000 years away from the common era are unsupported, and
 /// will always fail.
 ///
 /// [`DateTime<Utc>`]: chrono::DateTime
@@ -114,8 +114,8 @@ pub struct UtcMillisecondTimestampAdapter;
 /// since midnight UTC on January 1, 1970.
 ///
 /// Note that negative numbers are valid and are interpreted as how many seconds
-/// before January 1, 1970. Other langauges and implementations should be
-/// careful not to intepret negative numbers as values far, far in the future
+/// before January 1, 1970. Other languages and implementations should be
+/// careful not to interpret negative numbers as values far, far in the future
 /// (e.g. don't reinterpret cast to an `uint64_t`!).
 ///
 /// Note that this adapter is only implemented on `i64`. This is intentional for
@@ -129,7 +129,7 @@ pub struct UtcMillisecondTimestampAdapter;
 /// # Errors
 ///
 /// This adapter is limited by the range supported by [`NaiveDateTime`]. Values
-/// larger than 262,000 years away from the common era are unsuppported, and
+/// larger than 262,000 years away from the common era are unsupported, and
 /// will always fail.
 ///
 /// [`DateTime<Utc>`]: chrono::DateTime

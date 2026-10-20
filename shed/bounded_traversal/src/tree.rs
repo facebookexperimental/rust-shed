@@ -43,7 +43,7 @@ use super::common::Either2;
 /// will be run on this node.
 ///
 /// ## `fold: FnMut(OutCtx, impl Iterator<Out>) -> impl Future<Output = Result<Out, Err>>`
-/// Aynchronous function which given node context and output of `fold` for its chidlren
+/// Asynchronous function which given node context and output of `fold` for its children
 /// should produce new output value.
 ///
 /// ## return value `impl Future<Output = Result<Out, Err>>`

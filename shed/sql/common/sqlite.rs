@@ -105,7 +105,7 @@ pub struct SqliteMultithreaded {
     hlc_provider: Option<Arc<Box<SqliteHlcProvider>>>,
 }
 
-/// Shared inner part of SqliteMultithreded plus any active connection guard.
+/// Shared inner part of SqliteMultithreaded plus any active connection guard.
 pub struct SqliteMultithreadedInner {
     connection: Mutex<Option<SqliteConnection>>,
     condvar: Condvar,

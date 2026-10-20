@@ -275,7 +275,7 @@ impl LruCachePool {
     }
 
     /// Increase the size of the pool by size, returning true if it grew, false if there is
-    /// insufficent available memory to grow this pool
+    /// insufficient available memory to grow this pool
     pub fn grow_pool(&self, _size: usize) -> Result<bool> {
         Ok(false)
     }

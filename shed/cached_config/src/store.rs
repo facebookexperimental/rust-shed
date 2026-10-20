@@ -85,7 +85,7 @@ impl ConfigStore {
     /// Create a new instance of the ConfigStore with its own updating thread
     /// which will be run whenever a message is received on the provided channel.
     ///
-    /// Unlike `new`, the bacground updater thread in this case will be stopped
+    /// Unlike `new`, the background updater thread in this case will be stopped
     /// once the channel is closed.
     pub fn with_notification_channel(
         source: Arc<dyn Source + Sync + Send>,

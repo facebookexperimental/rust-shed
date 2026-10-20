@@ -6,7 +6,7 @@
 
 `hash_memo::EagerHashMemoizer` can wrap your type `T` to eagerly memoize your
 hash value. This is ideal when you know you are immediately going to use it with
-somthing that will call `Hash::hash()`, for example you are going to use is as a
+something that will call `Hash::hash()`, for example you are going to use is as a
 key in a `HashMap`.
 
 `hash_memo::LazyHashMemoizer` can do similar, but is useful if you are not sure

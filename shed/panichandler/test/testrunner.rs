@@ -38,7 +38,7 @@ fn test() -> Result<()> {
         .code(101)
         .stdout("I'm on an adventure!\n")
         .stderr(predicates::str::starts_with(
-            "PANIC: I paniced! Everything's awful! 1234\n",
+            "PANIC: I panicked! Everything's awful! 1234\n",
         ));
     Ok(())
 }
@@ -51,7 +51,7 @@ fn test_deep() -> Result<()> {
         .code(101)
         .stdout("I'm on an adventure!\n")
         .stderr(
-            predicates::str::starts_with("PANIC: I paniced! Everything's awful! 1234\n")
+            predicates::str::starts_with("PANIC: I panicked! Everything's awful! 1234\n")
                 .and(predicates::str::is_match(r"(limiting \d* frames to 1000)")?),
         );
     Ok(())
@@ -65,7 +65,7 @@ fn testmultithread() -> Result<()> {
         .code(99)
         .stdout("I'm on an adventure!\n")
         .stderr(predicates::str::starts_with(
-            "PANIC: I paniced! Everything's awful! 1234\n",
+            "PANIC: I panicked! Everything's awful! 1234\n",
         ));
     Ok(())
 }
@@ -82,7 +82,7 @@ fn testmultithread_abort() -> Result<()> {
     assert
         .stdout("I'm on an adventure!\n")
         .stderr(predicates::str::starts_with(
-            "PANIC: I paniced! Everything's awful! 1234\n",
+            "PANIC: I panicked! Everything's awful! 1234\n",
         ));
     Ok(())
 }

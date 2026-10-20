@@ -12,7 +12,7 @@ use futures::prelude::*;
 use futures::sync::oneshot;
 
 /// Given an input stream, split its error out to a separate Future, and returning that
-/// error Future and an infallable Stream. There are two outcomes:
+/// error Future and an infallible Stream. There are two outcomes:
 /// 1. The stream has no error - the error future never resolves
 /// 2. The stream has an error - the output stream terminates, and the error future
 ///    resolves to the error

@@ -44,7 +44,7 @@ use super::common::NodeLocation;
 /// `O(exp(N))` path it might cause problems) but it comes with a price:
 ///  - `bounded_traversal_dag` keeps `Out` result of computation for all the nodes
 ///    but `bounded_traversal` only keeps results for nodes that have not been completely
-///    evaluatated
+///    evaluated
 ///  - `In` has additional constraints to be `Eq + Hash + Clone`
 ///  - `Out` has additional constraint to be `Clone`
 ///
@@ -57,11 +57,11 @@ use super::common::NodeLocation;
 /// will be run on this node.
 ///
 /// ## `fold: FnMut(OutCtx, impl Iterator<Out>) -> impl Future<Item = Result<Out, Err>>`
-/// Aynchronous function which given node context and output of `fold` for its chidlren
+/// Asynchronous function which given node context and output of `fold` for its children
 /// should produce new output value.
 ///
 /// ## return value `impl Future<Output = Result<Option<Out>, Err>>`
-/// Result of running fold operation on the root of the tree. `None` indiciate that cycle
+/// Result of running fold operation on the root of the tree. `None` indicate that cycle
 /// has been found.
 pub fn bounded_traversal_dag<'caller, Err, In, Ins, Out, OutCtx, Unfold, Fold>(
     scheduled_max: usize,

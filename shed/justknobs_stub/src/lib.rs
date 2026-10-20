@@ -9,7 +9,7 @@
  */
 
 //! This crate provides a client for accessing JustKnobs and takes care of isolating the test setup
-//! from production configs. There are mulitple implementations that this module will choose from:
+//! from production configs. There are multiple implementations that this module will choose from:
 //!  * production, for Meta-internal build it's the configerator-based jk impl.  For open-source
 //!    builds it'll be a stub that always returns false.
 //!  * cached-config, which will work with any config source that cached_config crate can work with.

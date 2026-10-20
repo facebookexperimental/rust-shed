@@ -66,8 +66,8 @@ impl ThriftAdapter for UuidAdapter<Vec<u8>> {
 /// Implementation for adapting optionally hyphenated thrift strings.
 ///
 /// Unlike the `Vec<u8>` implementation, this adapter may transform your data.
-/// The adapter supports both hypenated and unhyphenated UUIDs, and will always
-/// serializes as a hypenated lowercase string.
+/// The adapter supports both hyphenated and unhyphenated UUIDs, and will always
+/// serializes as a hyphenated lowercase string.
 ///
 /// Passing in an empty string returns the [nil UUID].
 ///

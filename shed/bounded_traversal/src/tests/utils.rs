@@ -24,7 +24,7 @@ use lock_ext::LockExt;
 use pretty_assertions::assert_eq;
 use tokio::task::yield_now;
 
-// Manully controlled timer
+// Manually controlled timer
 pub struct TickInner {
     current_time: usize,
     events: BinaryHeap<TickEvent>,

@@ -89,7 +89,7 @@ pub enum Phase {
     #[serde(rename = "M")]
     Metadata,
 
-    /// The Unspecified variant exists soley to implement the Default trait.
+    /// The Unspecified variant exists solely to implement the Default trait.
     /// It should not be used; attempting to serialize it will result in an error.
     #[default]
     #[serde(skip_serializing)]
@@ -97,7 +97,7 @@ pub enum Phase {
 }
 
 /// Struct representing a JSON record of an individual event in a trace, as
-/// decribed in the Trace Event format specification. Field names correspond
+/// described in the Trace Event format specification. Field names correspond
 /// to those expected in the JSON output.
 ///
 /// Optional fields are annotated with attributes and will be excluded from
@@ -278,7 +278,7 @@ impl Event {
     }
 }
 
-/// Struct representing a trace in the "JSON Object Format", as decribed
+/// Struct representing a trace in the "JSON Object Format", as described
 /// in the Trace Event format specification. Field names correspond to
 /// those expected in the JSON output.
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
@@ -424,7 +424,7 @@ fn gettid() -> u64 {
 
 /// Get an integer ID for the current thread on non-Linux platforms.
 /// Since there is no good portable API for getting a system-level thread
-/// ID, this function instead returns a interger representation of
+/// ID, this function instead returns a integer representation of
 /// the Rust standard library's std::thead::ThreadId type, which
 /// (as of Rust 1.24.0) is completely unrelated to any system level
 /// thread ID.

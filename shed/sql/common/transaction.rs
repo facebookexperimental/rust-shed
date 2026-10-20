@@ -63,7 +63,7 @@ pub enum Transaction {
     /// means that the caller might introduce a deadlock if they are not careful.
     ///
     /// When a Sqlite transaction is dropped a "rollback" is performed, so one should always make
-    /// sure to call "commit" if they want to persist the transation.
+    /// sure to call "commit" if they want to persist the transaction.
     Sqlite(Option<SqliteConnectionGuard>),
     /// A variant used for the internal Mysql client connection.
     Mysql(Option<mysql::Transaction>),

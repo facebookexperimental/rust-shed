@@ -17,7 +17,7 @@ fn main() {
 
     panichandler::set_panichandler(Fate::Exit(99));
 
-    let t = thread::spawn(|| panic!("I paniced! {} {}", "Everything's awful!", 1234));
+    let t = thread::spawn(|| panic!("I panicked! {} {}", "Everything's awful!", 1234));
     let _ = t.join();
 
     println!("I shouldn't have returned");

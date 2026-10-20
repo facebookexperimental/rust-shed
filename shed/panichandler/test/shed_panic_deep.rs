@@ -21,7 +21,7 @@ fn main() {
     #[allow(unconditional_recursion)]
     fn deep(d: u32) {
         if d == 0 {
-            panic!("I paniced! {} {}", "Everything's awful!", 1234);
+            panic!("I panicked! {} {}", "Everything's awful!", 1234);
         } else {
             deep(d - 1);
             let _ = COUNT.fetch_add(1, Ordering::SeqCst);

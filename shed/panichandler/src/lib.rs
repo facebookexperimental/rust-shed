@@ -125,7 +125,7 @@ fn handler(panic: &PanicHookInfo<'_>, fate: Fate) {
 
 /// This function should be used to set the hook to be triggered when a panic
 /// happens. The [Fate] parameter will define what this handler will do when
-/// panicing.
+/// panicking.
 pub fn set_panichandler(fate: Fate) {
     panic::set_hook(Box::new(move |panic| handler(panic, fate)));
 }

@@ -232,7 +232,7 @@
 //! }
 //! ```
 //!
-//! Containers can be contructed using the `build` method of a factory.
+//! Containers can be constructed using the `build` method of a factory.
 //! The build method must be passed the parameters defined on the factory
 //! attribute and these will be used as inputs for building this container.
 //!

@@ -24,7 +24,7 @@ use futures::stream::StreamExt;
 /// and `unfold` arguments. All `unfold` operations are executed in parallel if they
 /// do not depend on each other (not related by ancestor-descendant relation in implicit
 /// tree) with amount of concurrency constrained by `scheduled_max`. Main difference
-/// with `bounded_traversal` is that this one is not structure perserving, and returns
+/// with `bounded_traversal` is that this one is not structure preserving, and returns
 /// stream.
 ///
 /// ## `init: InsInit`

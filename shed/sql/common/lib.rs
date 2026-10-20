@@ -148,7 +148,7 @@ impl WriteResult {
     }
 
     /// Return the id of last inserted row if any, as any type that is
-    /// convertable from a MySQL Value.
+    /// convertible from a MySQL Value.
     pub fn last_insert_id_as<T: FromValue>(&self) -> Option<T> {
         self.last_insert_id.map(|id| T::from_value(Value::UInt(id)))
     }

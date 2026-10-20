@@ -40,7 +40,7 @@ The LongRunningTaskDetector can be started like:
 ```
 
 When blocking is detected the stack traces of the runtime worker threads can be
-dumped (action is plugable), to allow us to identify what is happening in the
+dumped (action is pluggable), to allow us to identify what is happening in the
 worker threads.
 
 On detection, details can contain precise info about the blocking culprit and

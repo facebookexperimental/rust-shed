@@ -29,7 +29,7 @@
 //! When your workload is highly I/O based and you want to leverage as much concurrency as possible. In such cases,
 //! the limiting factor for your concurrency is the amount of memory available to run the workload. The items in your
 //! stream are uneven ,i.e some correspond to a network fetch of few KBs while others end up fetching 100s of MBs.
-//! Instead of using a count based constaint on the concurrent polling of the futures, you can use this crate to apply
+//! Instead of using a count based constraint on the concurrent polling of the futures, you can use this crate to apply
 //! a weight based constraint where the weight of each future can be tied to size of the fetch so at any given time
 //! the system will poll no more than `max_weight` bytes worth of futures thus helping maintain consistent memory use.
 //!

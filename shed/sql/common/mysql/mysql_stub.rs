@@ -71,7 +71,7 @@ impl Connection {
         unimplemented!("This is a stub");
     }
 
-    /// Begins trasaction and returns Transaction object.
+    /// Begins transaction and returns Transaction object.
     pub async fn begin_transaction(&self) -> Result<Transaction, MysqlError> {
         unimplemented!("This is a stub");
     }

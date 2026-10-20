@@ -9,7 +9,7 @@
  */
 
 //! Adapters that interpret Thrift signed integer types as unsigned in memory.
-//! The bit patterns are unchanged, but they are intepreted as unsigned.
+//! The bit patterns are unchanged, but they are interpreted as unsigned.
 use std::marker::PhantomData;
 
 use fbthrift::adapter::ThriftAdapter;
