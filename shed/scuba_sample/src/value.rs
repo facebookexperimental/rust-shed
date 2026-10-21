@@ -14,8 +14,6 @@ use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::f32;
-use std::f64;
 use std::fmt;
 use std::fmt::Display;
 
