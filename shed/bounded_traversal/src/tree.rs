@@ -16,11 +16,14 @@ use std::task::Context;
 use std::task::Poll;
 
 use either::Either;
+use futures::Stream;
+use futures::TryStreamExt;
 use futures::future::BoxFuture;
 use futures::future::Join;
 use futures::future::Ready;
 use futures::future::join;
 use futures::future::ready;
+use futures::pin_mut;
 use futures::ready;
 use futures::stream::FuturesUnordered;
 use futures::stream::StreamExt;
@@ -67,7 +70,31 @@ where
     Ins: IntoIterator<Item = In> + 'caller,
     Fold: FnMut(OutCtx, Iter<Out>) -> BoxFuture<'caller, Result<Out, Err>> + 'caller,
 {
-    BoundedTraversal::new(scheduled_max, init, unfold, fold)
+    let traversal = BoundedTraversal::new(scheduled_max, [init], unfold, fold);
+    async move {
+        pin_mut!(traversal);
+        Ok(traversal.try_next().await?.expect("traversal has one root"))
+    }
+}
+
+/// Traverse multiple roots with a shared concurrency limit, returning their folded
+/// results in completion order.
+pub fn bounded_traversal_forest<'caller, Err, In, Ins, Out, OutCtx, Unfold, Fold>(
+    scheduled_max: usize,
+    roots: impl IntoIterator<Item = In>,
+    unfold: Unfold,
+    fold: Fold,
+) -> impl Future<Output = Result<Vec<Out>, Err>> + 'caller
+where
+    Err: 'caller,
+    Ins: 'caller,
+    Out: 'caller,
+    OutCtx: 'caller,
+    Unfold: FnMut(In) -> BoxFuture<'caller, Result<(OutCtx, Ins), Err>> + 'caller,
+    Ins: IntoIterator<Item = In> + 'caller,
+    Fold: FnMut(OutCtx, Iter<Out>) -> BoxFuture<'caller, Result<Out, Err>> + 'caller,
+{
+    BoundedTraversal::new(scheduled_max, roots, unfold, fold).try_collect()
 }
 
 // execution tree node
@@ -82,7 +109,7 @@ struct Node<Out, OutCtx> {
 struct NodeIndex(usize);
 type NodeLocation = super::common::NodeLocation<NodeIndex>;
 
-#[must_use = "futures do nothing unless polled"]
+#[must_use = "streams do nothing unless polled"]
 struct BoundedTraversal<Out, OutCtx, Unfold, UFut, Fold, FFut>
 where
     UFut: Future,
@@ -106,7 +133,12 @@ where
     Fold: FnMut(OutCtx, Iter<Out>) -> FFut,
     FFut: Future<Output = Result<Out, Err>>,
 {
-    fn new(scheduled_max: usize, init: In, unfold: Unfold, fold: Fold) -> Self {
+    fn new(
+        scheduled_max: usize,
+        roots: impl IntoIterator<Item = In>,
+        unfold: Unfold,
+        fold: Fold,
+    ) -> Self {
         let mut this = Self {
             unfold,
             fold,
@@ -116,13 +148,15 @@ where
             execution_tree: HashMap::new(),
             execution_tree_index: NodeIndex(0),
         };
-        this.enqueue_unfold(
-            NodeLocation {
-                node_index: NodeIndex(0),
-                child_index: 0,
-            },
-            init,
-        );
+        for root in roots {
+            this.enqueue_unfold(
+                NodeLocation {
+                    node_index: NodeIndex(0),
+                    child_index: 0,
+                },
+                root,
+            );
+        }
         this
     }
 
@@ -201,7 +235,7 @@ where
     }
 }
 
-impl<Err, In, Ins, Out, OutCtx, Unfold, UFut, Fold, FFut> Future
+impl<Err, In, Ins, Out, OutCtx, Unfold, UFut, Fold, FFut> Stream
     for BoundedTraversal<Out, OutCtx, Unfold, UFut, Fold, FFut>
 where
     Unfold: FnMut(In) -> UFut,
@@ -210,11 +244,15 @@ where
     Fold: FnMut(OutCtx, Iter<Out>) -> FFut,
     FFut: Future<Output = Result<Out, Err>>,
 {
-    type Output = Result<Out, Err>;
+    type Item = Result<Out, Err>;
 
-    fn poll(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Self::Output> {
+    fn poll_next(self: Pin<&mut Self>, cx: &mut Context) -> Poll<Option<Self::Item>> {
         let this = unsafe { self.get_unchecked_mut() };
         loop {
+            if this.scheduled.is_empty() && this.unscheduled.is_empty() {
+                assert!(this.execution_tree.is_empty());
+                return Poll::Ready(None);
+            }
             // schedule as many jobs as possible
             for job in this.unscheduled.drain(
                 ..std::cmp::min(
@@ -230,13 +268,9 @@ where
                 match job_result {
                     (value, Either::Left(result)) => this.process_unfold(value, result?),
                     (value, Either::Right(result)) => {
-                        // `0` is special index which means whole tree have been executed
+                        // Roots have no parent in the execution tree.
                         if value.node_index == NodeIndex(0) {
-                            // all jobs have to be completed and execution_tree empty
-                            assert!(this.execution_tree.is_empty());
-                            assert!(this.unscheduled.is_empty());
-                            assert!(this.scheduled.is_empty());
-                            return Poll::Ready(result);
+                            return Poll::Ready(Some(result));
                         }
                         this.process_fold(value, result?);
                     }

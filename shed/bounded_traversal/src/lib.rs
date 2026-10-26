@@ -32,6 +32,7 @@ pub use error::BoundedTraversalError;
 
 mod tree;
 pub use tree::bounded_traversal;
+pub use tree::bounded_traversal_forest;
 
 mod dag;
 pub use dag::bounded_traversal_dag;
