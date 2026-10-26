@@ -18,7 +18,7 @@ anyhow = "1.0.104"
 bstr = { version = "1.13.1", features = ["serde", "std", "unicode"] }
 camino = { version = "1.2.6", features = ["serde1"] }
 chrono = { version = "0.4.45", features = ["clock", "serde", "std"], default-features = false }
-either = "1.18.0"
+either = "1.19.0"
 fbthrift = { version = "0.0.1", git = "https://github.com/facebook/fbthrift.git", branch = "main" }
 ordered-float = { version = "5.5.0", features = ["serde"] }
 paste = "1.0.14"
