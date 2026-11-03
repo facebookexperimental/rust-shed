@@ -19,17 +19,17 @@ use seq_macro::seq;
 pub trait ToSQL {
     /// Produce a properly-escaped string representation of this value, suitable for interpolation
     /// into a query to MySQL.
-    fn to_sql_string(&self) -> Cow<str>;
+    fn to_sql_string(&self) -> Cow<'_, str>;
 }
 
 impl<T: ToSQL + ?Sized> ToSQL for &T {
-    fn to_sql_string(&self) -> Cow<str> {
+    fn to_sql_string(&self) -> Cow<'_, str> {
         T::to_sql_string(self)
     }
 }
 
 impl<T: ToSQL> ToSQL for Option<T> {
-    fn to_sql_string(&self) -> Cow<str> {
+    fn to_sql_string(&self) -> Cow<'_, str> {
         match self {
             None => Cow::Borrowed("NULL"),
             Some(v) => v.to_sql_string(),
@@ -43,13 +43,13 @@ pub trait TryToSQL {
     type Error;
     /// Produce a properly-escaped string representation of this value, suitable for interpolation
     /// into a query to MySQL.
-    fn try_to_sql_string(&self) -> Result<Cow<str>, Self::Error>;
+    fn try_to_sql_string(&self) -> Result<Cow<'_, str>, Self::Error>;
 }
 
 impl<T: TryToSQL + ?Sized> TryToSQL for &T {
     type Error = T::Error;
 
-    fn try_to_sql_string(&self) -> Result<Cow<str>, Self::Error> {
+    fn try_to_sql_string(&self) -> Result<Cow<'_, str>, Self::Error> {
         T::try_to_sql_string(self)
     }
 }
@@ -57,7 +57,7 @@ impl<T: TryToSQL + ?Sized> TryToSQL for &T {
 impl<T: TryToSQL> TryToSQL for Option<T> {
     type Error = T::Error;
 
-    fn try_to_sql_string(&self) -> Result<Cow<str>, Self::Error> {
+    fn try_to_sql_string(&self) -> Result<Cow<'_, str>, Self::Error> {
         match self {
             None => Ok(Cow::Borrowed("NULL")),
             Some(v) => v.try_to_sql_string(),
@@ -68,7 +68,7 @@ impl<T: TryToSQL> TryToSQL for Option<T> {
 macro_rules! impl_to_sql_from_to_value {
     ($type:ty) => {
         impl ToSQL for $type {
-            fn to_sql_string(&self) -> Cow<str> {
+            fn to_sql_string(&self) -> Cow<'_, str> {
                 Cow::Owned(ToValue::to_value(&self).as_sql(false))
             }
         }
@@ -76,7 +76,7 @@ macro_rules! impl_to_sql_from_to_value {
         impl TryToSQL for $type {
             type Error = std::convert::Infallible;
 
-            fn try_to_sql_string(&self) -> Result<Cow<str>, Self::Error> {
+            fn try_to_sql_string(&self) -> Result<Cow<'_, str>, Self::Error> {
                 Ok(Cow::Owned(ToValue::to_value(&self).as_sql(false)))
             }
         }
@@ -129,7 +129,7 @@ macro_rules! impl_to_sql_for_tuple {
     ($($type:ident,)*) => {
         impl<$($type: ToSQL),*> ToSQL for ($($type,)*) {
             #[allow(non_snake_case, unused_assignments)]
-            fn to_sql_string(&self) -> Cow<str> {
+            fn to_sql_string(&self) -> Cow<'_, str> {
                 let ($($type,)*) = self;
 
                 $(
@@ -160,7 +160,7 @@ macro_rules! impl_to_sql_for_tuple {
             type Error = std::convert::Infallible;
 
             #[allow(non_snake_case, unused_assignments)]
-            fn try_to_sql_string(&self) -> Result<Cow<str>, Self::Error> {
+            fn try_to_sql_string(&self) -> Result<Cow<'_, str>, Self::Error> {
                 Ok(ToSQL::to_sql_string(self))
             }
         }
@@ -179,7 +179,7 @@ seq!(N in 1..=30 {
 });
 
 impl ToSQL for NaiveDateTime {
-    fn to_sql_string(&self) -> Cow<str> {
+    fn to_sql_string(&self) -> Cow<'_, str> {
         Cow::Owned(
             self.format("%Y-%m-%d %H:%M:%S%.6f")
                 .to_string()
@@ -190,7 +190,7 @@ impl ToSQL for NaiveDateTime {
 }
 
 impl ToSQL for NaiveDate {
-    fn to_sql_string(&self) -> Cow<str> {
+    fn to_sql_string(&self) -> Cow<'_, str> {
         Cow::Owned(
             self.format("%Y-%m-%d")
                 .to_string()

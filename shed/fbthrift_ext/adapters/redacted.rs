@@ -88,7 +88,7 @@ impl<T: Redactable> std::fmt::Debug for Redacted<T> {
 }
 
 impl<T: Redactable> valuable::Valuable for Redacted<T> {
-    fn as_value(&self) -> valuable::Value {
+    fn as_value(&self) -> valuable::Value<'_> {
         REDACTED.as_value()
     }
 
