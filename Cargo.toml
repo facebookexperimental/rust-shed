@@ -1,5 +1,4 @@
 [patch.crates-io]
-abomonation = { git = "https://github.com/markbt/abomonation", rev = "0f43346d2afa2aedc64d61f3f4273e8d1e454642" }
 backtrace = { git = "https://github.com/rust-lang/backtrace-rs", rev = "df979dcf80027eb047d7bb9e0874710c15009f31" }
 bindgen = { git = "https://github.com/jsgf/rust-bindgen", rev = "4d385d21c160e6ee1f443aeb7e00528a1dc7fd44" }
 cxx = { git = "https://github.com/facebookexperimental/cxx.git", rev = "b835645da52253df462725516fbd460ef000d496" }
@@ -8,7 +7,6 @@ quickcheck_async = { git = "https://github.com/markbt/quickcheck_async", rev = "
 
 [workspace]
 members = [
-  "shed/abomonable_string",
   "shed/ascii_ext",
   "shed/async_once_cell",
   "shed/async_process_traits",
