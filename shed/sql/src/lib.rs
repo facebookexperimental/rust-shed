@@ -14,6 +14,7 @@
 //! This crate API is heavily based on mysql_async. If you wish to use your custom structure in SQL
 //! queries or to parse your structure from a result of SQL query then implement
 //! `mysql_async::prelude::ToValue` and/or `mysql_async::prelude::::FromValue` for it.
+//! Use [`Binary`] for byte parameters that should always be encoded as binary strings.
 //!
 //! Queries are created using the `queries!` macro, you need to specify your query type to be either
 //! `read` if you perform a SELECT and expect the result to be parsed into a tuple or `write` if
@@ -57,6 +58,8 @@
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 #[cfg(test)]
+mod encoding_tests;
+#[cfg(test)]
 mod tests;
 pub use anyhow;
 pub use cloned;
@@ -75,7 +78,9 @@ use rusqlite::types::ToSqlOutput as ToSqliteOutput;
 use rusqlite::types::Value as SqliteValue;
 use rusqlite::types::ValueRef as SqliteValueRef;
 pub use sql_common;
+pub use sql_common::Binary;
 pub use sql_common::Connection;
+pub use sql_common::QueryParameter;
 pub use sql_common::QueryTelemetry;
 pub use sql_common::SqlConnections;
 pub use sql_common::SqlShardedConnections;
@@ -488,7 +493,7 @@ macro_rules! _read_query_impl {
         }
 
         fn mysql_async_row_to_tuple(row: $crate::mysql_async::Row) -> Result<($( $rtype, )*), Error> {
-            #[allow(clippy::eval_order_dependence)]
+            #[allow(clippy::mixed_read_write_in_expression)]
                 let mut idx = 0;
                 let res = (
                     $({
@@ -614,7 +619,7 @@ macro_rules! _read_query_impl {
             $crate::_emit_mysql_lnames!($( $lname ),*);
             format!(
                 $mysql_q,
-                $( $pname = ToValue::to_value(&$pname).as_sql(false), )*
+                $( $pname = $crate::mysql::AsSql::as_sql(&$pname, false), )*
                 $( $lname = $lname, )*
             )
         }
@@ -636,7 +641,7 @@ macro_rules! _read_query_impl {
             // the tuple we are constructing.
             // Once the feature: `macro_metavar_expr` is stable, we can replace `row.get(idx)` with
             // ${index()} and clean up this code a little
-            #[allow(clippy::eval_order_dependence)]
+            #[allow(clippy::mixed_read_write_in_expression)]
             {
                 let mut idx = 0;
                 let res = (
@@ -779,7 +784,7 @@ macro_rules! _write_query_impl {
                 $(
                     params.push((
                         format!(":{}", stringify!($pname).trim_start_matches("r#")),
-                        ValueWrapper(ToValue::to_value($pname)),
+                        ValueWrapper($crate::QueryParameter::to_sqlite_value($pname)),
                     ));
                 )*
 
@@ -821,7 +826,7 @@ macro_rules! _write_query_impl {
                 $(
                     params.push((
                         format!(":{}", stringify!($pname).trim_start_matches("r#")),
-                        ValueWrapper(ToValue::to_value($pname)),
+                        ValueWrapper($crate::QueryParameter::to_sqlite_value($pname)),
                     ));
                 )*
 
@@ -1036,7 +1041,7 @@ macro_rules! _write_mysql_query {
             $q,
             insert_or_ignore = "INSERT IGNORE",
             values = $values,
-            $( $pname = ToValue::to_value(&$pname).as_sql(false), )*
+            $( $pname = $crate::mysql::AsSql::as_sql(&$pname, false), )*
         )
     };
 
@@ -1044,7 +1049,7 @@ macro_rules! _write_mysql_query {
         format!(
             $q,
             insert_or_ignore = "INSERT IGNORE",
-            $( $pname = ToValue::to_value(&$pname).as_sql(false), )*
+            $( $pname = $crate::mysql::AsSql::as_sql(&$pname, false), )*
             $( $lname = $lname, )*
         )
     };
@@ -1053,14 +1058,14 @@ macro_rules! _write_mysql_query {
         format!(
             $q,
             values = $values,
-            $( $pname = ToValue::to_value(&$pname).as_sql(false), )*
+            $( $pname = $crate::mysql::AsSql::as_sql(&$pname, false), )*
         )
     };
 
     (none, $q:expr, $( $pname:ident ),* $( >list $lname:ident )*) => {
         format!(
             $q,
-            $( $pname = ToValue::to_value(&$pname).as_sql(false), )*
+            $( $pname = $crate::mysql::AsSql::as_sql(&$pname, false), )*
             $( $lname = $lname, )*
         )
     };
@@ -1136,7 +1141,7 @@ macro_rules! _sqlite_named_params {
                 $(
                     $params.push((
                         format!(":{}", stringify!($unames).trim_start_matches("r#")),
-                        ValueWrapper(ToValue::to_value($uses)),
+                        ValueWrapper($crate::QueryParameter::to_sqlite_value($uses)),
                     ));
                 )*
             }
@@ -1174,9 +1179,9 @@ macro_rules! _append_to_mysql_values {
         match $tup {
             ( $( $binds , )* value , ) => {
                 $(
-                    write!(&mut $values, "{}, ", $uses.to_value().as_sql(false)).unwrap();
+                    write!(&mut $values, "{}, ", $crate::mysql::AsSql::as_sql($uses, false)).unwrap();
                 )*
-                write!(&mut $values, "{}", value.to_value().as_sql(false)).unwrap();
+                write!(&mut $values, "{}", $crate::mysql::AsSql::as_sql(value, false)).unwrap();
             }
         }
     );
@@ -1198,7 +1203,7 @@ macro_rules! _emit_mysql_lnames {
                     } else {
                         write!(&mut val, ", ").unwrap();
                     }
-                    write!(&mut val, "{}", ToValue::to_value(&lval).as_sql(false)).unwrap();
+                    write!(&mut val, "{}", $crate::mysql::AsSql::as_sql(&lval, false)).unwrap();
                 }
                 write!(&mut val, ")").unwrap();
                 val
@@ -1239,7 +1244,7 @@ macro_rules! _emit_sqlite_lnames {
 macro_rules! _prepare_sqlite_params {
     ($params:ident, $( $pname:ident ),* $( >list $lname:ident )*) => (
         let $params = vec![ $(
-            (format!(":{}", stringify!($pname).trim_start_matches("r#")), ValueWrapper(ToValue::to_value($pname)))
+            (format!(":{}", stringify!($pname).trim_start_matches("r#")), ValueWrapper($crate::QueryParameter::to_sqlite_value($pname)))
         ),* ].into_iter();
 
         $(
@@ -1248,7 +1253,7 @@ macro_rules! _prepare_sqlite_params {
                     .enumerate()
                     .map(|(idx, val)| (
                         format!(":{}{}", stringify!($lname), idx),
-                        ValueWrapper(ToValue::to_value(val)),
+                        ValueWrapper($crate::QueryParameter::to_sqlite_value(val)),
                     ))
             );
         )*

@@ -19,8 +19,105 @@ use sql_tests_lib::test_transaction_rollback;
 use sql_tests_lib::test_transaction_rollback_on_drop;
 use sql_tests_lib::test_write_query;
 
+use crate::Binary;
 use crate::Connection;
+use crate::mysql::AsSql;
 use crate::rusqlite::Connection as SqliteConnection;
+
+fn binary_inputs() -> Vec<Vec<u8>> {
+    vec![
+        vec![],
+        b"plain text".to_vec(),
+        "café".as_bytes().to_vec(),
+        b"\0'\"\\\n\r\x1a".to_vec(),
+        (0..=255).collect(),
+    ]
+}
+
+#[test]
+fn test_binary_literal_sqlite() {
+    let conn = SqliteConnection::open_in_memory().unwrap();
+    for bytes in binary_inputs() {
+        for no_backslash_escape in [false, true] {
+            let literal = Binary(&bytes).as_sql(no_backslash_escape);
+            let (value, kind): (Vec<u8>, String) = conn
+                .query_row(&format!("SELECT {literal}, typeof({literal})"), [], |row| {
+                    Ok((row.get(0)?, row.get(1)?))
+                })
+                .unwrap();
+            assert_eq!(value, bytes);
+            assert_eq!(kind, "blob");
+        }
+    }
+}
+
+#[tokio::test]
+#[allow(unused_imports)]
+async fn test_binary_parameters_sqlite() {
+    crate::queries! {
+        write InsertBinary(values: (id: i64, value: Binary<'_>)) {
+            none,
+            "INSERT INTO binary_values (id, value) VALUES {values}"
+        }
+        write UpdateBinary(value: Binary<'_>, >list ids: i64) {
+            none,
+            "UPDATE binary_values SET value = {value} WHERE id IN {ids}"
+        }
+        read ReadBinary(value: Binary<'_>) -> (i64, Vec<u8>, String) {
+            "SELECT id, value, typeof(value) FROM binary_values WHERE value = {value} ORDER BY id"
+        }
+        read ReadBinaryList(>list values: Binary<'_>) -> (i64) {
+            "SELECT id FROM binary_values WHERE value IN {values} ORDER BY id"
+        }
+    }
+
+    let conn = SqliteConnection::open_in_memory().unwrap();
+    conn.execute_batch("CREATE TABLE binary_values (id INTEGER PRIMARY KEY, value BLOB)")
+        .unwrap();
+    let conn = Connection::with_sqlite(conn);
+    let inputs = binary_inputs();
+    let values: Vec<_> = inputs.iter().map(|bytes| Binary(bytes)).collect();
+    let ids: Vec<_> = (0..values.len() as i64).collect();
+    let rows: Vec<_> = ids.iter().zip(&values).collect();
+
+    InsertBinary::query(&conn, &rows).await.unwrap();
+    for (id, value) in &rows {
+        assert_eq!(
+            ReadBinary::query(&conn, value).await.unwrap(),
+            vec![(**id, value.0.to_vec(), "blob".to_owned())],
+        );
+    }
+    assert_eq!(
+        ReadBinaryList::query(&conn, &values).await.unwrap(),
+        ids.iter().map(|id| (*id,)).collect::<Vec<_>>(),
+    );
+
+    let replacement = Binary(b"replacement\0");
+    let transaction = conn.start_transaction().await.unwrap();
+    let (transaction, _) = UpdateBinary::query_with_transaction(transaction, &replacement, &ids)
+        .await
+        .unwrap();
+    let (transaction, rows) = ReadBinary::query_with_transaction(transaction, &replacement)
+        .await
+        .unwrap();
+    assert_eq!(rows.len(), values.len());
+    transaction.rollback().await.unwrap();
+    assert_eq!(
+        ReadBinary::query(&conn, &replacement).await.unwrap(),
+        vec![],
+    );
+
+    let transaction = conn.start_transaction().await.unwrap();
+    let (transaction, _) =
+        InsertBinary::query_with_transaction(transaction, &[(&10, &replacement)])
+            .await
+            .unwrap();
+    transaction.commit().await.unwrap();
+    assert_eq!(
+        ReadBinary::query(&conn, &replacement).await.unwrap(),
+        vec![(10, replacement.0.to_vec(), "blob".to_owned())],
+    );
+}
 
 #[tokio::test]
 async fn test_read_query_sqlite() {

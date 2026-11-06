@@ -14,6 +14,7 @@
 #![deny(warnings, missing_docs, clippy::all, rustdoc::broken_intra_doc_links)]
 
 pub mod mysql;
+mod parameter;
 pub mod sqlite;
 pub mod transaction;
 use std::collections::HashMap;
@@ -23,6 +24,9 @@ use std::fmt::Debug;
 use mysql_async::Value;
 use mysql_async::prelude::FromValue;
 use vec1::Vec1;
+
+pub use crate::parameter::Binary;
+pub use crate::parameter::QueryParameter;
 
 /// Struct to store a set of write, read and read-only connections for a shard.
 #[derive(Clone)]
