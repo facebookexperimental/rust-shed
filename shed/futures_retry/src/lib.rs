@@ -442,6 +442,29 @@ mod tests {
         assert_eq!(attempts, 3);
     }
 
+    #[tokio::test(start_paused = true)]
+    async fn test_retry_with_max_interval_survives_many_attempts() {
+        let result = retry(
+            |attempt| async move {
+                if attempt < 100 {
+                    Err(TestError::NotYet)
+                } else {
+                    Ok(attempt)
+                }
+            },
+            Duration::from_secs(1),
+        )
+        .binary_exponential_backoff()
+        .max_interval(Duration::from_secs(30))
+        .await;
+
+        assert_eq!(
+            result,
+            Ok((100, 100)),
+            "the capped interval keeps working after the uncapped one would overflow"
+        );
+    }
+
     #[tokio::test]
     async fn test_retry_with_fibonacci_backoff() {
         let counter = Arc::new(AtomicUsize::new(0));

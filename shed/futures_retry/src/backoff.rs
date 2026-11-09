@@ -56,7 +56,10 @@ impl Iterator for ExponentialBackoff {
 
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.current;
-        self.current = current.mul_f64(self.base);
+        // The same product as `Duration::mul_f64`, saturating instead of
+        // panicking once it no longer fits.
+        self.current =
+            Duration::try_from_secs_f64(current.as_secs_f64() * self.base).unwrap_or(Duration::MAX);
         Some(current)
     }
 }
@@ -82,7 +85,7 @@ impl Iterator for FibonacciBackoff {
 
     fn next(&mut self) -> Option<Self::Item> {
         let current = self.current;
-        let next_next = self.current + self.next;
+        let next_next = self.current.saturating_add(self.next);
         self.current = self.next;
         self.next = next_next;
         Some(current)
@@ -108,7 +111,7 @@ impl<B: Iterator<Item = Duration>> Iterator for Jitter<B> {
     fn next(&mut self) -> Option<Self::Item> {
         self.inner.next().map(|interval| {
             let jitter = self.jitter.mul_f64(rand::random::<f64>());
-            interval + jitter
+            interval.saturating_add(jitter)
         })
     }
 }
@@ -251,6 +254,24 @@ mod tests {
             Duration::from_millis(2000),
         ];
         assert_eq!(intervals, expected);
+    }
+
+    #[test]
+    fn test_backoffs_saturate_instead_of_overflowing() {
+        let exponential = ExponentialBackoff::binary(Duration::from_secs(1))
+            .nth(100)
+            .expect("exponential backoff never ends");
+        assert_eq!(exponential, Duration::MAX, "2^100 seconds saturates");
+
+        let fibonacci = FibonacciBackoff::new(Duration::from_secs(1))
+            .nth(200)
+            .expect("fibonacci backoff never ends");
+        assert_eq!(fibonacci, Duration::MAX, "F(200) seconds saturates");
+
+        let jittered = Jitter::new(FixedInterval::new(Duration::MAX), Duration::from_secs(1))
+            .next()
+            .expect("jitter over a fixed interval never ends");
+        assert_eq!(jittered, Duration::MAX);
     }
 
     #[test]
