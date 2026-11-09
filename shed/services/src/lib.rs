@@ -9,13 +9,28 @@
  */
 
 #![deny(warnings)]
-#![cfg_attr(not(fbcode_build), feature(never_type))]
+#![feature(never_type)]
+
+#[cfg(fbcode_build)]
+#[path = "facebook/native.rs"]
+mod facebook;
 
 #[cfg(not(fbcode_build))]
 mod oss;
 
 #[cfg(fbcode_build)]
-pub use fb_services::*;
+pub use services_common::*;
 
+#[cfg(fbcode_build)]
+pub use crate::facebook::*;
 #[cfg(not(fbcode_build))]
 pub use crate::oss::*;
+
+#[cfg(all(test, not(fbcode_build)))]
+mod tests {
+    #[test]
+    fn proc_stats_is_a_no_op() {
+        super::export_proc_stats_to_fb303(true);
+        super::export_proc_stats_to_fb303(false);
+    }
+}

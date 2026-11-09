@@ -20,6 +20,9 @@ pub enum ServicesError {
     /// Unknown C++ exception
     #[error("Unknown C++ exception")]
     CxxException(#[from] cxx::Exception),
+    /// The service framework failed to start or stopped serving
+    #[error(transparent)]
+    Framework(#[from] anyhow::Error),
 }
 
 #[cfg(fbcode_build)]
