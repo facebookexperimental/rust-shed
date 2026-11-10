@@ -19,6 +19,7 @@ use tokio::sync::watch::Receiver;
 
 use crate::ModificationTime;
 use crate::refreshable_entities::RegisteredConfigEntity;
+use crate::refreshable_entities::Snapshot;
 
 /// Versioning metadata for a config snapshot, as reported by the config
 /// source (e.g. configerator's Entity version). For configerator-backed
@@ -51,11 +52,11 @@ pub struct ConfigHandle<T> {
 /// ConfigHandle remains in scope. Once the corresponding ConfigHandle is dropped,
 /// the ConfigUpdateWatcher can no longer receive updated configs.
 pub struct ConfigUpdateWatcher<T> {
-    update_receiver: Receiver<Arc<T>>,
+    update_receiver: Receiver<Snapshot<T>>,
 }
 
 impl<T> ConfigUpdateWatcher<T> {
-    fn new(update_receiver: Receiver<Arc<T>>) -> Self {
+    fn new(update_receiver: Receiver<Snapshot<T>>) -> Self {
         Self { update_receiver }
     }
 
@@ -64,11 +65,23 @@ impl<T> ConfigUpdateWatcher<T> {
     /// updated config. If the config updater has gone away when this
     /// method is called, it returns an error
     pub async fn wait_for_next(&mut self) -> Result<Arc<T>> {
+        self.changed().await?;
+        Ok(self.update_receiver.borrow().contents.clone())
+    }
+
+    /// [`Self::wait_for_next`], with the version metadata the returned config
+    /// was parsed from.
+    pub async fn wait_for_next_with_version(&mut self) -> Result<(Arc<T>, ConfigVersionInfo)> {
+        self.changed().await?;
+        let snapshot = self.update_receiver.borrow();
+        Ok((snapshot.contents.clone(), snapshot.version_info.clone()))
+    }
+
+    async fn changed(&mut self) -> Result<()> {
         self.update_receiver
             .changed()
             .await
-            .context("Error while waiting for the config updater to update the config")?;
-        Ok(self.update_receiver.borrow().clone())
+            .context("Error while waiting for the config updater to update the config")
     }
 }
 
@@ -98,10 +111,11 @@ where
 
     /// Fetch the current version of the config referred to by this handle
     /// together with its versioning metadata. Both halves of the returned
-    /// tuple are read atomically from the same snapshot, so the version info
-    /// always corresponds to the returned contents, even if the config is
-    /// concurrently refreshed. Fixed (static) configs, e.g. obtained via
-    /// `from_json` or `default`, have no version and return `None`.
+    /// tuple come from one snapshot, the one `get` and the watchers see, so
+    /// the version info always corresponds to the returned contents, even if
+    /// the config is concurrently refreshed. Fixed (static) configs, e.g.
+    /// obtained via `from_json` or `default`, have no version and return
+    /// `None`.
     pub fn get_with_version(&self) -> (Arc<T>, Option<ConfigVersionInfo>) {
         match &self.inner {
             ConfigHandleImpl::Registered(handle) => {

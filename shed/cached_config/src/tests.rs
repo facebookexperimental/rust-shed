@@ -8,6 +8,7 @@
  * above-listed licenses.
  */
 
+use std::panic::RefUnwindSafe;
 use std::sync::Arc;
 use std::sync::atomic::AtomicI64;
 use std::sync::atomic::Ordering;
@@ -182,6 +183,75 @@ fn test_get_with_version_registered() {
 }
 
 #[test]
+fn test_get_and_get_with_version_read_one_snapshot() {
+    let test_source = Arc::new(TestSource::new());
+    test_source.insert_config_with_version(
+        "some1",
+        r#"{ "value": 1 }"#,
+        ModificationTime::UnixTimestamp(1),
+        "v1",
+    );
+    let store = ConfigStore::new(test_source.clone(), None::<Duration>, None);
+    let handle = get_test_handle(&store, "some1").expect("Failed to get handle");
+
+    for value in 2..5 {
+        test_source.insert_config_with_version(
+            "some1",
+            &format!(r#"{{ "value": {value} }}"#),
+            ModificationTime::UnixTimestamp(value as u64),
+            &format!("v{value}"),
+        );
+        test_source.insert_to_refresh("some1".to_owned());
+        store.force_update_configs();
+
+        let (contents, info) = handle.get_with_version();
+        assert!(
+            Arc::ptr_eq(&contents, &handle.get()),
+            "get() and get_with_version() must return the same snapshot"
+        );
+        assert_eq!(*contents, TestConfig { value });
+        assert_eq!(
+            info.expect("registered handle").version,
+            format!("v{value}")
+        );
+    }
+}
+
+#[tokio::test]
+async fn test_config_update_watcher_returns_the_version_of_its_contents() {
+    let test_source = Arc::new(TestSource::new());
+    test_source.insert_config_with_version(
+        "some1",
+        r#"{ "value": 1 }"#,
+        ModificationTime::UnixTimestamp(1),
+        "v1",
+    );
+    let store = ConfigStore::new(test_source.clone(), None::<Duration>, None);
+    let handle = get_test_handle(&store, "some1").expect("Failed to get handle");
+    let mut watcher = handle.watcher().expect("registered handles have watchers");
+
+    test_source.insert_config_with_version(
+        "some1",
+        r#"{ "value": 2 }"#,
+        ModificationTime::UnixTimestamp(2),
+        "v2",
+    );
+    test_source.insert_to_refresh("some1".to_owned());
+    store.force_update_configs();
+
+    let (contents, info) = timeout(
+        Duration::from_secs(10),
+        watcher.wait_for_next_with_version(),
+    )
+    .await
+    .expect("the watcher sees the update")
+    .expect("the store is alive");
+    assert_eq!(*contents, TestConfig { value: 2 });
+    assert_eq!(info.version, "v2");
+    assert_eq!(info.mod_time, ModificationTime::UnixTimestamp(2));
+}
+
+#[test]
 fn test_get_with_version_legacy_insert_config() {
     let test_source = {
         let test_source = TestSource::new();
@@ -222,6 +292,13 @@ fn test_get_with_version_fixed() {
         info.is_none(),
         "fixed (from_json/default) handles must return None version info, not a sentinel"
     );
+}
+
+#[test]
+fn test_config_handle_is_ref_unwind_safe() {
+    // Mononoke's gotham middleware requires it.
+    fn assert_ref_unwind_safe<T: RefUnwindSafe>() {}
+    assert_ref_unwind_safe::<ConfigHandle<TestConfig>>();
 }
 
 #[test]
