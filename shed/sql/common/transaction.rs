@@ -76,11 +76,11 @@ impl Transaction {
     pub async fn new(connection: &super::Connection) -> Result<Transaction, Error> {
         match connection {
             super::Connection::Sqlite(con) => {
-                let con = con
+                let mut con = con
                     .acquire_sqlite_connection(SqliteQueryType::Transaction)
                     .await?;
                 // Transactions in SQLite are always SERIALIZABLE; no transaction options.
-                con.execute_batch("BEGIN DEFERRED")?;
+                con.begin_transaction()?;
                 Ok(Transaction::Sqlite(Some(con)))
             }
             super::Connection::Mysql(conn) => {

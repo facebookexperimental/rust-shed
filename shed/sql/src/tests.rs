@@ -169,6 +169,83 @@ async fn test_transaction_commit_with_sqlite() {
 }
 
 #[tokio::test]
+#[expect(
+    unused_imports,
+    reason = "queries! imports helpers for every backend; this test uses only Sqlite"
+)]
+async fn test_transaction_rolled_back_after_failed_query_with_sqlite() {
+    crate::queries! {
+        write InsertFoo(x: i64) {
+            none,
+            "INSERT INTO foo (x) VALUES ({x})"
+        }
+        write InsertMissing(x: i64) {
+            none,
+            "INSERT INTO missing_table (x) VALUES ({x})"
+        }
+        read CountFoo() -> (i64) {
+            "SELECT COUNT(*) FROM foo"
+        }
+    }
+
+    let conn = prepare_sqlite_con();
+    let transaction = conn.start_transaction().await.unwrap();
+    let (transaction, _) = InsertFoo::query_with_transaction(transaction, &1)
+        .await
+        .unwrap();
+    assert!(
+        InsertMissing::query_with_transaction(transaction, &2)
+            .await
+            .is_err()
+    );
+
+    assert_eq!(
+        CountFoo::query(&conn).await.unwrap(),
+        vec![(0,)],
+        "write from the failed transaction must not be visible",
+    );
+    let transaction = conn.start_transaction().await.unwrap();
+    let (transaction, _) = InsertFoo::query_with_transaction(transaction, &3)
+        .await
+        .unwrap();
+    transaction.commit().await.unwrap();
+    assert_eq!(CountFoo::query(&conn).await.unwrap(), vec![(1,)]);
+}
+
+#[tokio::test]
+#[expect(
+    unused_imports,
+    reason = "queries! imports helpers for every backend; this test uses only Sqlite"
+)]
+async fn test_manual_transaction_across_queries_with_sqlite() {
+    crate::queries! {
+        write Begin() {
+            none,
+            "BEGIN IMMEDIATE"
+        }
+        write InsertFoo(x: i64) {
+            none,
+            "INSERT INTO foo (x) VALUES ({x})"
+        }
+        write Commit() {
+            none,
+            "COMMIT"
+        }
+        read CountFoo() -> (i64) {
+            "SELECT COUNT(*) FROM foo"
+        }
+    }
+
+    // A transaction begun by a plain query stays open across queries until
+    // the caller commits it.
+    let conn = prepare_sqlite_con();
+    Begin::query(&conn).await.unwrap();
+    InsertFoo::query(&conn, &1).await.unwrap();
+    Commit::query(&conn).await.unwrap();
+    assert_eq!(CountFoo::query(&conn).await.unwrap(), vec![(1,)]);
+}
+
+#[tokio::test]
 async fn test_visibility_modifiers_compile_with_sqlite() {
     test_query_visibility_modifiers_compile(prepare_sqlite_con()).await;
 }

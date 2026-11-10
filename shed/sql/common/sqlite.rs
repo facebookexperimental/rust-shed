@@ -120,6 +120,8 @@ pub struct SqliteConnectionGuard {
     inner: Arc<SqliteMultithreadedInner>,
     // drop() needs to remove the connection, so use Option<...> here
     connection: Option<SqliteConnection>,
+    // Whether this guard began the open transaction for a `Transaction`.
+    owns_transaction: bool,
 }
 
 impl SqliteConnectionGuard {
@@ -147,7 +149,17 @@ impl SqliteConnectionGuard {
         SqliteConnectionGuard {
             inner,
             connection: Some(connection),
+            owns_transaction: false,
         }
+    }
+
+    /// Begin the transaction of a `Transaction` on this connection. If the
+    /// guard is dropped without committing it (for example because a query
+    /// in the transaction failed and dropped the guard), it is rolled back.
+    pub(crate) fn begin_transaction(&mut self) -> rusqlite::Result<()> {
+        self.execute_batch("BEGIN DEFERRED")?;
+        self.owns_transaction = true;
+        Ok(())
     }
 
     /// Commit a transaction that is being executed on this connection, and
@@ -186,9 +198,20 @@ impl Deref for SqliteConnectionGuard {
 
 impl Drop for SqliteConnectionGuard {
     fn drop(&mut self) {
+        let released = self.connection.take().unwrap();
+        // A query that fails inside a `Transaction` drops the guard with the
+        // transaction still open. Never hand that open transaction to the
+        // next user of the connection.
+        if self.owns_transaction
+            && !released.is_autocommit()
+            && let Err(err) = released.execute_batch("ROLLBACK")
+        {
+            panic!("Rollback of abandoned Sqlite transaction has failed: {err:#?}");
+        }
+
         *(CONN_LOCK.lock().expect("lock poisoned")) = true;
         let mut connection = self.inner.connection.lock().expect("poisoned lock");
-        connection.get_or_insert(self.connection.take().unwrap());
+        connection.get_or_insert(released);
         // notify others that wait for this connection
         self.inner.condvar.notify_one();
         CONN_CONDVAR.notify_one();
