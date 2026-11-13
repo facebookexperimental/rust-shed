@@ -13,7 +13,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 anyhow = "1.0.104"
 cloned = { version = "0.1.0", path = "../cloned" }
-frunk = "0.4.4"
+frunk = "0.5.0"
 futures = { version = "0.3.34", features = ["async-await", "compat"] }
 futures-util = { version = "0.3.34", features = ["compat"] }
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
