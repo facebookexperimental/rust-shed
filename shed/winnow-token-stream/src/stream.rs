@@ -227,8 +227,8 @@ impl<'i, Token: Debug> Stream for TokenStream<'i, Token> {
         self.input.reset(checkpoint);
     }
 
-    fn raw(&self) -> &dyn Debug {
-        self
+    fn trace(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
     }
 }
 

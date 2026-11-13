@@ -15,4 +15,4 @@ categories = ["parsing"]
 
 [dependencies]
 token_location = { version = "0.1.0", path = "../token_location" }
-winnow = "0.7.15"
+winnow = "1.0.5"
