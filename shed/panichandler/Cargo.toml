@@ -45,7 +45,7 @@ backtrace = "0.3"
 anyhow = "1.0.104"
 assert_cmd = "2.2.2"
 buck-resources = "1"
-predicates = "1.0.8"
+predicates = "2.1.5"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc = "0.2.186"
