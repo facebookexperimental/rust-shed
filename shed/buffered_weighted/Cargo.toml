@@ -18,7 +18,7 @@ weight_observer = { version = "0.1.0", path = "../weight_observer" }
 [dev-dependencies]
 futures = { version = "0.3.34", features = ["async-await", "compat"] }
 proptest = "1.12.0"
-proptest-derive = "0.7.0"
+proptest-derive = "0.8.0"
 tokio = { version = "1.54.1", features = ["full", "test-util", "tracing"] }
 tokio-stream = { version = "0.1.19", features = ["fs", "io-util", "net", "signal", "sync", "time"] }
 
