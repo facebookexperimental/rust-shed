@@ -17,8 +17,8 @@ frunk = "0.5.0"
 futures = { version = "0.3.34", features = ["async-await", "compat"] }
 futures-util = { version = "0.3.34", features = ["compat"] }
 futures_ext = { version = "0.1.0", path = "../futures_ext" }
-mysql_async = "0.34.2"
-mysql_common = { version = "0.32.4", features = ["chrono", "default"] }
+mysql_async = { version = "0.35.1", features = ["native-tls-tls"] }
+mysql_common = { version = "0.34.1", features = ["chrono", "default"] }
 rusqlite = { version = "0.40.0", features = ["backup", "blob", "bundled", "column_decltype", "fallible_uint", "functions", "limits", "modern_sqlite", "serde_json", "session", "vtab"] }
 sql_common = { version = "0.1.0", path = "common" }
 
