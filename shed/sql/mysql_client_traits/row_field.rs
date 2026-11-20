@@ -222,16 +222,15 @@ impl OptionalTryFromRowField for String {
 
 impl OptionalTryFromRowField for bool {
     fn try_from_opt(field: RowField) -> Result<Option<Self>, ValueError> {
-        // If we turn the field into `mysql_async::Value`, then `Value::Int(0)` and `Value::Int(1)`
-        // can be converted into `false` and `true`, but `Value::UInt(0)` and `Value::UInt(1)`
-        // cannot. So we have to deal with them separately.
-        if let RowField::U64(0) = &field {
-            return Ok(Some(false));
-        } else if let RowField::U64(1) = &field {
-            return Ok(Some(true));
+        // `mysql_async::Value` converts any nonzero integer into `true`. Only accept 0 and 1.
+        match field {
+            RowField::I64(0) | RowField::U64(0) => Ok(Some(false)),
+            RowField::I64(1) | RowField::U64(1) => Ok(Some(true)),
+            RowField::I64(_) | RowField::U64(_) => Err(ValueError(format!(
+                "Failed to convert mysql_async::Value into the result type bool: {field:?}",
+            ))),
+            _ => opt_try_from_rowfield(field),
         }
-
-        opt_try_from_rowfield(field)
     }
 }
 
