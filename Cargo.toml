@@ -82,7 +82,7 @@ members = [
   "shed/weight_observer",
   "shed/winnow-token-stream",
 ]
-resolver = "2"
+resolver = "3"
 
 [workspace.package]
 license = "MIT OR Apache-2.0"
